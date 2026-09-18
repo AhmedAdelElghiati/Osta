@@ -1,0 +1,635 @@
+﻿<main class="page-bg" dir="rtl">
+
+  <!-- Hero -->
+  <section class="guide-hero">
+    <div class="container">
+
+      <div class="breadcrumb-custom">
+        <span class="breadcrumb-link">
+          دليل الأسطوات والمعتمدين
+        </span>
+      </div>
+
+      <h1 class="guide-hero-title">
+        دوّر على أشطر أسطى قريب منك ويجيلك لبيتك
+      </h1>
+
+      <p class="guide-hero-subtitle">
+        تواصل مع أسطوات موثوقين، بأسعار معلنة وتقييمات حقيقية وضمان بعد الخدمة.
+      </p>
+
+      <!-- Search -->
+      <div class="guide-search-bar">
+
+        <!-- Specialty -->
+        <div class="search-field">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l3.76 3.76z">
+            </path>
+          </svg>
+
+          <div class="search-input-content">
+            <label>التخصص أو العمل أو المهنة</label>
+
+            <input type="text" [(ngModel)]="searchSpecialty" placeholder="سباك، تكييف، كهرباء، نجارة..."
+              (keyup.enter)="search()">
+          </div>
+        </div>
+
+
+        <!-- Location -->
+        <div class="search-field search-location-field">
+
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z">
+            </path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+
+          <div class="search-input-content">
+            <label>الموقع والناحية</label>
+
+            <input type="text" [(ngModel)]="searchLocation" placeholder="القاهرة، التجمع الخامس والرحاب"
+              (keyup.enter)="search()">
+          </div>
+        </div>
+
+
+        <!-- Search button -->
+        <button type="button" class="btn btn-search-guide" (click)="search()">
+
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+
+          دور على أسطى
+        </button>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- Results Area -->
+  <section class="container guide-content">
+
+    <div class="row g-4">
+
+      <!-- Filters - RIGHT -->
+      <div class="col-lg-4 filters-column">
+
+        <aside class="filters-card bg-white rounded-3 shadow-sm" [class.filters-hidden]="!showFilters">
+
+          <!-- Filter Toggle -->
+          <div class="filter-toggle-wrapper">
+
+            <button type="button" class="btn btn-filter-toggle" (click)="toggleFilters()">
+
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="4" y1="12" x2="14" y2="12"></line>
+                <line x1="4" y1="18" x2="8" y2="18"></line>
+              </svg>
+
+              {{ showFilters ? 'إخفاء الفلاتر' : 'إظهار الفلاتر' }}
+
+            </button>
+          </div>
+
+
+          <div *ngIf="showFilters">
+
+            <!-- Specialties -->
+            <div class="filter-section">
+
+              <h6 class="filter-section-title">
+                التخصص والصنعة
+              </h6>
+
+              <div class="d-flex flex-column gap-2">
+
+                <label class="filter-check-item" *ngFor="let s of specialties">
+
+                  <input type="checkbox" class="filter-checkbox" [checked]="s.selected" (change)="selectSpecialty(s)">
+
+                  <span class="filter-label">
+                    {{ s.name }}
+                  </span>
+
+                  <span class="filter-count">
+                    {{ s.count }}
+                  </span>
+
+                </label>
+
+              </div>
+
+              <button type="button" class="clear-specialty" *ngIf="selectedSpecialty" (click)="clearSpecialty()">
+
+                إلغاء التخصص
+
+              </button>
+
+            </div>
+
+
+            <!-- Distance -->
+            <div class="filter-section">
+
+              <h6 class="filter-section-title">
+                نطاق التجوال والمسافة
+              </h6>
+
+              <div class="range-labels">
+
+                <small>1 كم</small>
+
+                <small class="active-range">
+                  {{ distanceRange }} كم
+                </small>
+
+                <small>50 كم</small>
+
+              </div>
+
+              <input type="range" class="form-range range-custom" min="1" max="50" [(ngModel)]="distanceRange">
+
+            </div>
+
+
+            <!-- Price -->
+            <div class="filter-section">
+
+              <h6 class="filter-section-title">
+                أجرة المعاينة والكشف (ج.م)
+              </h6>
+
+              <div class="price-filter">
+
+                <div class="price-input-group">
+
+                  <label>أقل سعر</label>
+
+                  <input type="number" class="form-control price-input" [(ngModel)]="priceMin" min="0">
+
+                </div>
+
+                <span class="price-separator">-</span>
+
+                <div class="price-input-group">
+
+                  <label>أعلى سعر</label>
+
+                  <input type="number" class="form-control price-input" [(ngModel)]="priceMax" min="0">
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- Credentials -->
+            <div class="filter-section credentials-section">
+
+              <h6 class="filter-section-title">
+                اعتمادات الأسطى وثقته
+              </h6>
+
+              <label class="filter-check-item">
+
+                <input type="checkbox" class="filter-checkbox" [(ngModel)]="credentialsFilters.securityChecked">
+
+                <span class="filter-label">
+                  فيش وتشبيه مفحوص أمنياً
+                </span>
+
+              </label>
+
+
+              <label class="filter-check-item">
+
+                <input type="checkbox" class="filter-checkbox" [(ngModel)]="credentialsFilters.skillCertificate">
+
+                <span class="filter-label">
+                  شهادة قياس مهارة وخبرة
+                </span>
+
+              </label>
+
+
+              <label class="filter-check-item">
+
+                <input type="checkbox" class="filter-checkbox" [(ngModel)]="credentialsFilters.experience7Years">
+
+                <span class="filter-label">
+                  خبرة أكثر من 7 سنين
+                </span>
+
+              </label>
+
+
+              <label class="filter-check-item">
+
+                <input type="checkbox" class="filter-checkbox" [(ngModel)]="credentialsFilters.invoiceGuarantee">
+
+                <span class="filter-label">
+                  فاتورة وضمان مكتوب
+                </span>
+
+              </label>
+
+            </div>
+
+
+            <button type="button" class="btn btn-apply-filter w-100" (click)="applyFilters()">
+
+              تطبيق الفلاتر
+
+            </button>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+
+      <!-- Results - LEFT -->
+      <div class="col-lg-8 results-column">
+
+        <!-- Map -->
+        <div class="guide-map-container">
+
+          <iframe class="guide-map" src="https://www.google.com/maps?q=New+Cairo,+Cairo,+Egypt&output=embed"
+            loading="lazy" title="خريطة موقع الأسطوات">
+          </iframe>
+
+          <div class="map-overlay-badge">
+
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z">
+              </path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+
+            التجمع الخامس، النرجس، الياسمين والرحاب
+
+          </div>
+
+
+          <div class="map-count-badge">
+            {{ filteredCraftsmen.length }} أسطى متاحين في منطقتك
+          </div>
+
+
+          <a class="btn btn-map-toggle" href="https://www.google.com/maps/search/?api=1&query=New+Cairo+Cairo+Egypt"
+            target="_blank" rel="noopener">
+
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+
+            عرض الخريطة
+
+          </a>
+
+        </div>
+
+
+        <!-- Results Header -->
+        <div class="results-header">
+
+          <div class="results-count">
+
+            <span>
+              الأسطوات المتاحين حواليك
+            </span>
+
+            <small>
+              (عرض {{ firstDisplayedItem }} - {{ lastDisplayedItem }}
+              من إجمالي {{ filteredCraftsmen.length }} أسطى)
+            </small>
+
+          </div>
+
+
+          <!-- Sort -->
+          <div class="sort-select-wrapper">
+            <select class="form-select sort-select" [(ngModel)]="sortBy" (change)="changeSort()">
+
+              <option value="الأفضل تقييماً">
+                الأفضل تقييماً
+              </option>
+
+              <option value="الأقرب إليك">
+                الأقرب إليك
+              </option>
+
+              <option value="الأسرع رداً">
+                الأسرع رداً
+              </option>
+
+              <option value="الأقل سعراً">
+                الأقل سعراً
+              </option>
+
+            </select>
+
+          </div>
+
+        </div>
+
+
+        <!-- Empty State -->
+        <div class="empty-state" *ngIf="filteredCraftsmen.length === 0">
+
+          <div class="empty-icon">
+            🔍
+          </div>
+
+          <h5>
+            مفيش أسطوات مطابقين للبحث
+          </h5>
+
+          <p>
+            جرّبي تغيري التخصص أو المسافة أو نطاق الأسعار.
+          </p>
+
+        </div>
+
+
+        <!-- Craftsmen -->
+        <div class="craftsmen-list" *ngIf="filteredCraftsmen.length > 0">
+
+          <article class="craftsman-card-guide" *ngFor="let c of displayedCraftsmen">
+
+            <!-- Card Top -->
+            <div class="card-top">
+
+              <!-- Craftsman -->
+              <div class="craftsman-info">
+
+                <div class="craftsman-card-avatar">
+
+                  <img [src]="c.avatar" [alt]="c.name">
+
+                  <span class="online-dot" *ngIf="c.available">
+                  </span>
+
+                </div>
+
+
+                <div class="craftsman-card-details">
+
+                  <div class="name-row">
+
+                    <a href="#" class="craftsman-card-name">
+
+                      {{ c.name }}
+
+                    </a>
+
+                    <span class="verified-badge-guide" *ngIf="c.verified">
+
+                      ✓ معتمد
+
+                    </span>
+
+                  </div>
+
+
+                  <p class="craftsman-card-title">
+                    {{ c.title }}
+                  </p>
+
+                  <p class="craftsman-card-specialty">
+                    {{ c.specialty }}
+                  </p>
+
+
+                  <div class="craftsman-meta">
+
+                    <span>
+                      <span class="meta-star">★</span>
+                      {{ c.rating }}
+
+                      <span class="meta-muted">
+                        ({{ c.reviewCount }} تقييم)
+                      </span>
+                    </span>
+
+
+                    <span>
+                      <span class="meta-icon">◷</span>
+                      رد خلال {{ c.responseTime }}
+                    </span>
+
+
+                    <span>
+                      <span class="meta-icon">⌖</span>
+                      {{ c.location }}
+                      ({{ c.distance }})
+                    </span>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+
+              <!-- Price -->
+              <div class="price-box">
+
+                <div class="price-label">
+                  سعر المعاينة والكشف
+                </div>
+
+                <div class="price-value" *ngIf="c.priceFrom">
+
+                  {{ c.priceFrom }}
+                  <span>ج.م</span>
+
+                </div>
+
+                <div class="price-desc" *ngIf="c.priceFrom">
+
+                  يبدأ من
+
+                </div>
+
+                <div class="price-desc" *ngIf="!c.priceFrom">
+
+                  اتفق على السعر
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <!-- Photos -->
+            <div class="photos-row">
+
+              <div class="photo-count-badge">
+                +{{ c.photosCount }} صورة
+              </div>
+
+              <div class="photo-thumb" *ngFor="let p of c.photos">
+
+                <img [src]="p" [alt]="'صورة من أعمال ' + c.name">
+
+              </div>
+
+            </div>
+
+
+            <!-- Tags -->
+            <div class="tags-row">
+
+              <span class="craft-tag" *ngFor="let tag of c.tags">
+
+                {{ tag }}
+
+              </span>
+
+              <span class="craft-tag guarantee" *ngIf="c.guarantee">
+
+                {{ c.guarantee }}
+
+              </span>
+
+            </div>
+
+
+            <!-- Actions -->
+            <div class="card-actions">
+
+              <div class="actions-buttons">
+
+                <button type="button" class="btn btn-book-now">
+
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+                    <rect x="3" y="4" width="18" height="18" rx="2">
+                    </rect>
+
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+
+                  </svg>
+
+                  إحجزه فوري
+
+                </button>
+
+
+                <button type="button" class="btn btn-view-profile">
+
+                  شوف شغله وتقييماته
+
+                </button>
+
+              </div>
+
+
+              <span class="info-tag" *ngIf="c.experience">
+
+                خبرة {{ c.experience }}
+
+              </span>
+
+            </div>
+
+          </article>
+
+        </div>
+
+
+        <!-- Pagination -->
+        <div class="pagination-row" *ngIf="filteredCraftsmen.length > 0">
+
+          <!-- السابق -->
+          <button type="button" class="btn btn-paginate pagination-prev" [disabled]="currentPage === 1"
+            (click)="previousPage()">
+
+            السابق
+            <span>→</span>
+
+          </button>
+
+
+          <!-- Numbers -->
+          <div class="pagination-numbers">
+
+            <button type="button" class="btn btn-page-num" *ngFor="let page of pageNumbers"
+              [class.active]="page === currentPage" (click)="goToPage(page)">
+
+              {{ page }}
+
+            </button>
+
+          </div>
+
+
+          <!-- التالي -->
+          <button type="button" class="btn btn-paginate pagination-next" [disabled]="currentPage === totalPages"
+            (click)="nextPage()">
+
+            <span>←</span>
+            التالي
+
+          </button>
+
+        </div>
+
+
+        <!-- CTA -->
+        <div class="cta-banner">
+
+          <div class="cta-content">
+
+            <div class="cta-icon-box">
+              +
+            </div>
+
+            <div>
+
+              <h5>
+                ملقتيش الميعاد المناسب أو طلبك محتاج معاينة خاصة؟
+              </h5>
+
+              <p>
+                انزل طلبك في سوق الشغلانات مجاناً وخلي الأسطوات يعرضوا عليك أفضل عروضهم.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <button type="button" class="btn btn-cta-banner">
+
+            انشر شغلتك دلوقتي
+
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+pagination-row
