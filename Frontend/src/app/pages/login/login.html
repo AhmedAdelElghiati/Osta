@@ -1,0 +1,221 @@
+<div class="login-wrapper">
+
+  <!-- Success Toast -->
+  <div class="success-toast" *ngIf="showSuccessMessage">
+    <div class="toast-icon">
+      {{ toastIcon }}
+    </div>
+
+    <div class="toast-content">
+      <strong>{{ toastTitle }}</strong>
+      <span>{{ toastMessage }}</span>
+    </div>
+  </div>
+
+  <div class="login-card">
+
+    <!-- Lock icon -->
+    <div class="login-icon-box">
+
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#EA580C" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
+
+    </div>
+
+
+    <!-- Title -->
+    <h2 class="text-center fw-bolder mb-2" style="color: var(--color-primary);">
+      مرحباً بعودتك إلى أسطى
+    </h2>
+
+    <p class="text-center text-muted mb-4" style="font-size: 14px;">
+      سجل دخولك لمتابعة طلبات الصيانة وإدارة أعمالك الحرفية
+    </p>
+
+
+    <!-- Tabs -->
+    <div class="login-tabs">
+
+      <button type="button" class="login-tab" [class.active]="activeTab === 'client'" (click)="switchTab('client')">
+
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+
+        دخول كعميل
+
+      </button>
+
+
+      <button type="button" class="login-tab" [class.active]="activeTab === 'craftsman'"
+        (click)="switchTab('craftsman')">
+
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6
+                   a1 1 0 0 0 1.4 0l3.77-3.77
+                   a6 6 0 0 1-7.94 7.94l-6.91 6.91
+                   a2.12 2.12 0 0 1-3-3l6.91-6.91
+                   a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+          </path>
+        </svg>
+
+        دخول كحرفي / ورشة
+
+      </button>
+
+    </div>
+
+
+    <!-- Form -->
+    <form #loginForm="ngForm" (ngSubmit)="onLogin(loginForm)" novalidate>
+
+      <!-- Email / Phone -->
+      <div class="mb-4">
+
+        <label class="form-label-custom">
+          البريد الإلكتروني أو رقم الهاتف
+        </label>
+
+        <div class="form-input-wrapper">
+
+          <input type="text" [(ngModel)]="emailOrPhone" name="emailOrPhone" #emailOrPhoneInput="ngModel"
+            class="form-input-custom" placeholder="email@example.com" required>
+
+          <span class="form-input-icon">
+
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12
+                       c0 1.1-.9 2-2 2H4
+                       c-1.1 0-2-.9-2-2V6
+                       c0-1.1.9-2 2-2z">
+              </path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+
+          </span>
+
+        </div>
+
+        <small class="validation-message" *ngIf="emailOrPhoneInput.touched && emailOrPhoneInput.invalid">
+          يرجى إدخال البريد الإلكتروني أو رقم الهاتف.
+        </small>
+
+      </div>
+
+
+      <!-- Password -->
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <a href="#" class="text-secondary-custom fw-bold" style="font-size: 13px;">
+            نسيت كلمة المرور؟
+          </a>
+
+          <label class="form-label-custom mb-0">
+            كلمة المرور
+          </label>
+        </div>
+
+        <div class="form-input-wrapper">
+
+          <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password"
+            class="form-input-custom" id="passwordInput" placeholder="••••••••"
+            style="padding-left: 40px; padding-right: 40px;">
+
+          <!-- Lock icon - Right -->
+          <span class="form-input-icon password-lock-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+          </span>
+
+          <!-- Eye icon - Left -->
+          <button type="button" class="password-toggle" (click)="togglePassword()">
+            <svg *ngIf="!showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+              stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+
+            <svg *ngIf="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke="var(--color-secondary)" stroke-width="2">
+              <path
+                d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+              </path>
+              <line x1="1" y1="1" x2="23" y2="23"></line>
+            </svg>
+          </button>
+
+        </div>
+      </div>
+
+
+      <!-- Remember me -->
+      <div class="d-flex align-items-center justify-content-end mb-4" style="gap: 8px;">
+
+        <label style="
+            font-size: 14px;
+            color: var(--color-text-muted);
+            cursor: pointer;
+          " for="rememberMe">
+          تذكرني على هذا الجهاز
+        </label>
+
+        <input type="checkbox" id="rememberMe" [(ngModel)]="rememberMe" name="rememberMe" style="
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--color-secondary);
+          ">
+
+      </div>
+
+
+      <!-- Submit -->
+      <button type="submit" class="btn-login" [disabled]="loginForm.invalid">
+
+        تسجيل الدخول
+
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+
+      </button>
+
+    </form>
+
+
+    <!-- Register link -->
+    <p class="text-center mt-4" style="
+        font-size: 14px;
+        color: var(--color-text-muted);
+      ">
+
+      ليس لديك حساب بعد؟
+
+      <a routerLink="/client-register" class="text-secondary-custom fw-bold">
+        إنشاء حساب جديد
+      </a>
+
+    </p>
+
+
+    <!-- Security badge -->
+    <div class="security-badge">
+
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7
+                 c0 6 8 10 8 10z">
+        </path>
+      </svg>
+
+      بياناتك مشفرة ومحمية بضمان أسطى الأمان المعتمد
+
+    </div>
+
+  </div>
+</div>
