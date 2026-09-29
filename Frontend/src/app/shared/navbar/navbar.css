@@ -1,5 +1,5 @@
-*{
-  font-family: ;
+* {
+  font-family: 'Cairo', sans-serif;
 }
 /* =========================
    Announcement Bar
@@ -34,13 +34,12 @@
   display: flex;
   align-items: center;
   gap: 12px;
-} 
+}
 
 .announcement-action .btn-close {
   font-size: 10px;
   opacity: 0.8;
 }
-
 
 /* =========================
    Main Navbar
@@ -56,7 +55,6 @@
 .navbar-brand img {
   object-fit: contain;
 }
-
 
 /* =========================
    Brand
@@ -77,7 +75,6 @@
   color: rgba(0, 0, 0, 0.5);
   margin-top: 3px;
 }
-
 
 /* =========================
    Navigation Links
@@ -102,7 +99,6 @@
   border-bottom: 2px solid var(--color-primary);
 }
 
-
 /* =========================
    Auth
 ========================= */
@@ -120,13 +116,43 @@
   color: var(--color-primary);
 }
 
+/* =========================
+   User Menu (logged in)
+========================= */
+
+.user-menu-btn {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  color: var(--color-text-dark);
+  transition: 0.2s ease;
+}
+
+.user-menu-btn:hover {
+  border-color: var(--color-secondary);
+  color: var(--color-primary);
+}
+
+.user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
 /* =========================
    Responsive
 ========================= */
 
 @media (max-width: 991px) {
-
   .announcement-bar {
     padding: 8px 15px;
     flex-direction: column;

@@ -1,0 +1,140 @@
+.status-active {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+.status-waiting {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.status-done {
+  background-color: #fff8f2;
+  color: #8d4b00;
+}
+
+.status-cancelled {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-default {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+<!-- Modals -- > .confirm-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #fef3c7;
+  color: #0f172a;
+}
+
+.confirm-btn {
+  background-color: #0f172a;
+  color: #fff;
+  border: 1px solid #0f172a;
+}
+
+.confirm-btn:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  color: #fff;
+}
+
+.rating-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #fef3c7;
+  color: #0f172a;
+}
+
+.rating-star-btn {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.rating-star-btn:hover {
+  transform: scale(1.1);
+}
+
+.rating-star-active {
+  color: #f59e0b;
+}
+
+.rating-star-inactive {
+  color: #cbd5e1;
+}
+
+.rating-submit-btn {
+  background-color: #0f172a;
+  border: 1px solid #0f172a;
+  color: #fff;
+}
+
+.rating-submit-btn:hover:not(:disabled) {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  color: #fff;
+}
+
+.rating-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.schedule-info {
+  padding: 0.75rem 1rem;
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.875rem;
+}
+
+.schedule-submit-btn {
+  background-color: #0f172a;
+  border: 1px solid #0f172a;
+  color: #fff;
+}
+
+.schedule-submit-btn:hover:not(:disabled) {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  color: #fff;
+}
+
+.schedule-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.invoice-info {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.invoice-total {
+  color: #0f172a;
+}
+
+.invoice-success {
+  padding: 0.75rem 1rem;
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 0.875rem;
+}
+
+.invoice-download-btn {
+  background-color: #0f172a;
+  border: 1px solid #0f172a;
+  color: #fff;
+}
+
+.invoice-download-btn:hover {
+  background-color: #1e293b;
+  border-color: #1e293b;
+  color: #fff;
+}

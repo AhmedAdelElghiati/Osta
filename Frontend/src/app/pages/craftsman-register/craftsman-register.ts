@@ -152,17 +152,12 @@ export class CraftsmanRegister {
 
     this.auth.register(userData).subscribe({
       next: (response: any) => {
-        console.log('1 - response وصل:', response);
-
         this.toastIcon = '✓';
         this.toastTitle = 'تم التسجيل بنجاح';
         this.toastMessage = response.message;
         this.showSuccessMessage = true;
 
         this.cdr.detectChanges();
-
-        console.log('2 - message:', this.toastMessage);
-        console.log('3 - toast ظهر');
 
         setTimeout(() => {
           // إخفاء التوست
@@ -188,19 +183,14 @@ export class CraftsmanRegister {
           this.passwordStrengthText = '';
           this.passwordStrengthClass = '';
         }, 3000);
-      },  
+      },
       error: (error) => {
-        console.log('1 - error وصل:', error);
-
         this.toastIcon = '✕';
         this.toastTitle = 'تعذر التسجيل';
-        this.toastMessage = error.error.message;
+        this.toastMessage = error?.error?.message || 'حدث خطأ أثناء التسجيل، حاول مرة أخرى.';
         this.showSuccessMessage = true;
 
         this.cdr.detectChanges();
-
-        console.log('2 - message:', this.toastMessage);
-        console.log('3 - toast ظهر');
       },
     });
   }

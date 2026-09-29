@@ -1,6 +1,6 @@
 import { Component, ChangeDetectorRef } from '@angular/core';
 import { Auth } from '../../services/auth';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -24,6 +24,7 @@ export class Login {
 
   constructor(
     private auth: Auth,
+    private router: Router,
     private cdr: ChangeDetectorRef,
   ) {}
   switchTab(tab: 'client' | 'craftsman'): void {
@@ -40,10 +41,11 @@ export class Login {
       return;
     }
 
+    // الباك اند بيدوّر بالإيميل بس دلوقتي، فمؤقتًا الحقل بيتبعت كإيميل
+    // (التوضيح ده انعمل في الـ label والـ placeholder بدل الوعد بدعم
+    // رقم الهاتف اللي لسه مش موجود).
     this.auth.login(this.emailOrPhone, this.password).subscribe({
       next: (response: any) => {
-        console.log('1 - response وصل:', response);
-
         this.toastIcon = '✓';
         this.toastTitle = 'تم تسجيل الدخول';
         this.toastMessage = response.message;
@@ -51,33 +53,30 @@ export class Login {
 
         this.cdr.detectChanges();
 
-        console.log('2 - message:', this.toastMessage);
-        console.log('3 - toast ظهر');
+        const role = response?.data?.user?.role;
 
         setTimeout(() => {
           this.showSuccessMessage = false;
 
-          form.resetForm();
-
-          this.emailOrPhone = '';
-          this.password = '';
-          this.rememberMe = false;
-          this.showPassword = false;
-        }, 3000);
+          if (role === 'artisan') {
+            this.router.navigate(['/craftsman-dashboard']);
+          } else {
+            this.router.navigate(['/customer-dashboard']);
+          }
+        }, 1500);
       },
 
       error: (error) => {
-        console.log('1 - error وصل:', error);
-
         this.toastIcon = '✕';
         this.toastTitle = 'تعذر تسجيل الدخول';
-        this.toastMessage = error.error.message;
+        this.toastMessage = error?.error?.message || 'حدث خطأ أثناء تسجيل الدخول، حاول مرة أخرى.';
         this.showSuccessMessage = true;
 
         this.cdr.detectChanges();
 
-        console.log('2 - message:', this.toastMessage);
-        console.log('3 - toast ظهر');
+        setTimeout(() => {
+          this.showSuccessMessage = false;
+        }, 3000);
       },
     });
   }

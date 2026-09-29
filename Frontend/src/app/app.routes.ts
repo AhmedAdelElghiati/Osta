@@ -5,6 +5,11 @@ import { CraftsmanRegister } from './pages/craftsman-register/craftsman-register
 import { ClientRegister } from './pages/client-register/client-register';
 import { CraftsmenGuide } from './pages/craftsmen-guide/craftsmen-guide';
 import { ContactUs } from './pages/contact-us/contact-us';
+import { HowItWorks } from './pages/how-it-works/how-it-works';
+import { JobsMarket } from './pages/jobs-market/jobs-market';
+import { CustomerDashboard } from './pages/customer-dashboard/customer-dashboard';
+import { CraftsmanDashboardPlaceholder } from './pages/craftsman-dashboard-placeholder/craftsman-dashboard-placeholder';
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -14,6 +19,16 @@ export const routes: Routes = [
   {
     path: 'login',
     component: Login,
+  },
+  {
+    path: 'customer-dashboard',
+    component: CustomerDashboard,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'craftsman-dashboard',
+    component: CraftsmanDashboardPlaceholder,
+    canActivate: [authGuard],
   },
   {
     path: 'register',
@@ -38,11 +53,11 @@ export const routes: Routes = [
   },
   {
     path: 'how-it-works',
-    redirectTo: '',
+    component: HowItWorks,
   },
   {
     path: 'jobs-market',
-    redirectTo: '',
+    component: JobsMarket,
   },
   {
     path: 'privacy-policy',
