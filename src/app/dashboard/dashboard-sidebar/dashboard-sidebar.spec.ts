@@ -1,17 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Footer } from './footer';
+import { DashboardSidebar } from './dashboard-sidebar';
 
-
-describe('Footer', () => {
-  let component: Footer;
-  let fixture: ComponentFixture<Footer>;
+describe('DashboardSidebar', () => {
+  let component: DashboardSidebar;
+  let fixture: ComponentFixture<DashboardSidebar>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Footer],
+      imports: [DashboardSidebar],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(Footer);
+    fixture = TestBed.createComponent(DashboardSidebar);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

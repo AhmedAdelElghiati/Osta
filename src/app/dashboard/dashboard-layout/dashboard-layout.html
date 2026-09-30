@@ -1,0 +1,57 @@
+<!-- 
+
+<div class="dashboard-layout" [class.sidebar-open]="sidebarOpen">
+
+  <app-dashboard-navbar
+    (toggleSidebar)="toggleSidebar()">
+  </app-dashboard-navbar>
+
+  <div class="dashboard-body">
+
+    <main class="dashboard-content">
+      <router-outlet></router-outlet>
+    </main>
+
+    <app-dashboard-sidebar
+      [class.open]="sidebarOpen"
+      (closeSidebar)="closeSidebar()">
+    </app-dashboard-sidebar>
+
+  </div>
+
+  @if (sidebarOpen) {
+    <div class="sidebar-overlay" (click)="closeSidebar()"></div>
+  }
+
+</div> -->
+
+
+
+
+<div class="dashboard-layout" [class.sidebar-open]="sidebarOpen">
+
+  <!-- Sidebar (يمين — ارتفاع كامل) -->
+  <app-dashboard-sidebar
+    [class.open]="sidebarOpen"
+    (closeSidebar)="closeSidebar()">
+  </app-dashboard-sidebar>
+
+  <!-- المحتوى (شمال) -->
+  <div class="dashboard-main">
+
+    <!-- Navbar -->
+    <app-dashboard-navbar (toggleSidebar)="toggleSidebar()"></app-dashboard-navbar>
+
+    <!-- Main Content -->
+    <main class="dashboard-content">
+      <router-outlet></router-outlet>
+    </main>
+
+  </div>
+
+  <!-- Overlay (mobile) -->
+  @if (sidebarOpen) {
+    <div class="sidebar-overlay" (click)="closeSidebar()"></div>
+  }
+
+</div>
