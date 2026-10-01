@@ -24,11 +24,13 @@ export const routes: Routes = [
     path: 'customer-dashboard',
     component: CustomerDashboard,
     canActivate: [authGuard],
+    data: { role: 'customer' },
   },
   {
     path: 'craftsman-dashboard',
     component: CraftsmanDashboardPlaceholder,
     canActivate: [authGuard],
+    data: { role: 'artisan' },
   },
   {
     path: 'register',

@@ -87,6 +87,10 @@
 
                     <select class="form-select" [(ngModel)]="profile.city" name="city">
 
+                        <option *ngIf="profile.city && !knownCities.includes(profile.city)" [value]="profile.city">
+                            {{ profile.city }}
+                        </option>
+
                         <option value="مدينة نصر">
                             مدينة نصر
                         </option>
@@ -244,7 +248,7 @@
 
             <div class="settings-actions mt-4">
 
-                <button type="submit" class="primary-btn">
+                <button type="submit" class="primary-btn" [disabled]="passwordLoading">
                     <i class="bi bi-key"></i>
                     تغيير كلمة المرور
                 </button>
@@ -522,6 +526,10 @@
             <p>
                 هل أنت متأكد من رغبتك في حذف الحساب؟
                 هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+
+            <p *ngIf="deleteAccountError" class="text-danger small">
+                {{ deleteAccountError }}
             </p>
 
             <div class="modal-footer">

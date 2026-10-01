@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Router } from '@angular/router';
+import { Auth } from '../../../../services/auth';
 
 @Component({
   selector: 'app-dashboard-settings',
@@ -8,23 +10,46 @@ import { Component, EventEmitter, Output } from '@angular/core';
   templateUrl: './dashboard-settings.html',
   styleUrl: './dashboard-settings.css',
 })
-export class DashboardSettings {
+export class DashboardSettings implements OnInit {
   @Output() accountDeleted = new EventEmitter<void>();
-  // Profile
+
+  constructor(
+    private auth: Auth,
+    private router: Router,
+    private cdr: ChangeDetectorRef,
+  ) {}
+
+  // Profile (بيانات حقيقية من /auth/me)
   profile = {
-    name: 'م. أحمد عثمان',
-    email: 'ahmed@domain.com',
-    phone: '01012345678',
-    city: 'مدينة نصر',
+    name: '',
+    email: '',
+    phone: '',
+    city: '',
   };
+
+  knownCities = ['مدينة نصر', 'مصر الجديدة', 'المعادي'];
+
+  ngOnInit(): void {
+    const user = this.auth.currentUserValue;
+    if (user) {
+      this.profile = {
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        city: user.location,
+      };
+    }
+  }
 
   profileMessage = '';
 
+  // الباك اند مفيهوش endpoint لتعديل البيانات الشخصية لسه، فمش هنوهم اليوزر إنها اتحفظت.
   saveProfile() {
-    this.profileMessage = 'تم حفظ التغييرات بنجاح.';
+    this.profileMessage = 'تعديل البيانات الشخصية هيتفعّل قريبًا.';
 
     setTimeout(() => {
       this.profileMessage = '';
+      this.cdr.markForCheck();
     }, 2500);
   }
 
@@ -40,6 +65,8 @@ export class DashboardSettings {
   passwordMessage = '';
   passwordError = '';
 
+  passwordLoading = false;
+
   changePassword() {
     this.passwordMessage = '';
     this.passwordError = '';
@@ -54,16 +81,40 @@ export class DashboardSettings {
       return;
     }
 
-    if (this.newPassword.length < 6) {
-      this.passwordError = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل.';
+    // نفس قواعد الباك اند: 8 حروف على الأقل + كبير + صغير + رقم + رمز
+    const strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    if (!strong.test(this.newPassword)) {
+      this.passwordError =
+        'كلمة المرور لازم تكون 8 حروف على الأقل وفيها حرف كبير وصغير ورقم ورمز.';
       return;
     }
 
-    this.passwordMessage = 'تم تغيير كلمة المرور بنجاح.';
+    this.passwordLoading = true;
 
-    this.currentPassword = '';
-    this.newPassword = '';
-    this.confirmPassword = '';
+    this.auth.changePassword(this.currentPassword, this.newPassword).subscribe({
+      next: () => {
+        this.passwordLoading = false;
+        this.passwordMessage = 'تم تغيير كلمة المرور بنجاح. هتسجل دخول من جديد.';
+        this.currentPassword = '';
+        this.newPassword = '';
+        this.confirmPassword = '';
+        this.cdr.markForCheck();
+
+        // الباك اند بيلغي كل الجلسات بعد تغيير كلمة المرور
+        setTimeout(() => {
+          this.auth.clearCurrentUser();
+          this.router.navigate(['/login']);
+        }, 1800);
+      },
+      error: (error) => {
+        this.passwordLoading = false;
+        this.passwordError =
+          error?.error?.message === 'Current password is incorrect'
+            ? 'كلمة المرور الحالية غير صحيحة.'
+            : error?.error?.message || 'تعذر تغيير كلمة المرور، حاول مرة أخرى.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   // Notifications
@@ -171,6 +222,7 @@ export class DashboardSettings {
   deleteAccountModalOpen = false;
 
   openDeleteAccountModal() {
+    this.deleteAccountError = '';
     this.deleteAccountModalOpen = true;
   }
 
@@ -178,8 +230,10 @@ export class DashboardSettings {
     this.deleteAccountModalOpen = false;
   }
 
+  deleteAccountError = '';
+
+  // مفيش endpoint لحذف الحساب في الباك اند لسه، فمش هنعرض شاشة "تم الحذف" زيف.
   confirmDeleteAccount() {
-    this.deleteAccountModalOpen = false;
-    this.accountDeleted.emit();
+    this.deleteAccountError = 'حذف الحساب هيتفعّل قريبًا. تواصل مع الدعم لو محتاج تحذف حسابك.';
   }
 }

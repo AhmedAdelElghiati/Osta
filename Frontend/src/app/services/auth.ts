@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from '../core/api.config';
 
 export interface CurrentUser {
@@ -75,13 +75,43 @@ export class Auth {
     );
   }
 
+  // الباك اند بيطلب refreshToken في الـ body (Joi) حتى لو الكوكي موجودة، لكن الكنترولر
+  // بيقرا الكوكي الأول. والـ refreshToken httpOnly مش بنقدر نقراه من JS، فبنبعت قيمة
+  // placeholder عشان الـ validation يعدّي، والباك اند هيستخدم الكوكي الحقيقية.
   refresh(): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/refresh`, {}, { withCredentials: true }).pipe(
-      tap((response) => {
-        if (response?.data?.user) {
-          this.currentUserSubject.next(response.data.user);
-        }
-      }),
+    return this.http
+      .post<any>(
+        `${this.apiUrl}/refresh`,
+        { refreshToken: 'cookie' },
+        { withCredentials: true },
+      )
+      .pipe(
+        tap((response) => {
+          if (response?.data?.user) {
+            this.currentUserSubject.next(response.data.user);
+          }
+        }),
+      );
+  }
+
+  // تجديد واحد بس في نفس الوقت: لو كذا طلب فشلوا بـ 401 مع بعض، كلهم يستنوا
+  // نفس التجديد (الباك اند بيعمل rotate للـ refresh token فمينفعش نطلبه مرتين).
+  private refreshInFlight$: Observable<any> | null = null;
+  refreshOnce(): Observable<any> {
+    if (!this.refreshInFlight$) {
+      this.refreshInFlight$ = this.refresh().pipe(
+        finalize(() => (this.refreshInFlight$ = null)),
+        shareReplay(1),
+      );
+    }
+    return this.refreshInFlight$;
+  }
+
+  changePassword(currentPassword: string, newPassword: string) {
+    return this.http.patch<any>(
+      `${this.apiUrl}/change-password`,
+      { currentPassword, newPassword },
+      { withCredentials: true },
     );
   }
 

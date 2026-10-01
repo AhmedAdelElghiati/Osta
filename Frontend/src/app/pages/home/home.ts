@@ -44,4 +44,10 @@ export class Home {
   goToCraftsmanRegister(): void {
     this.router.navigate(['/craftsman-register']);
   }
+
+  openNewRequest() {
+    this.router.navigate(['/customer-dashboard'], {
+      queryParams: { newRequest: 'true' },
+    });
+  }
 }

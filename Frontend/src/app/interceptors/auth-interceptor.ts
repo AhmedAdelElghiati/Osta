@@ -1,33 +1,41 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { Auth } from '../services/auth';
+import { API_BASE_URL } from '../core/api.config';
 
-// اتشال الـ Bearer header بالكامل. بقينا بنعتمد على httpOnly cookies
-// (accessToken / refreshToken) اللي الباك اند بيحطها، وكل استدعاء في
-// auth.ts بيضيف withCredentials صراحة بنفسه.
+// بنعتمد على httpOnly cookies (accessToken / refreshToken)
+// فأي طلب رايح للـ API بنضيفله withCredentials تلقائيًا.
 //
-// دلوقتي كمان بيمسك أي 401 (access token expired) لطلب مش خاص بالـ
-// auth نفسه، بيحاول يجدد التوكين مرة واحدة عبر /auth/refresh، ولو
-// نجحت بيعيد الطلب الأصلي تاني، ولو فشلت بيصفّي حالة اليوزر ويودّيه
-// على صفحة الـ login.
+// لو رجع 401 لطلب مش خاص بالـ auth نفسه، بنحاول نجدد التوكين
+// مرة واحدة، وبعدها نعيد الطلب الأصلي.
+//
+// مهم:
+// الـInterceptor مش مسؤول عن تحويل المستخدم للـ Login.
+// الـauthGuard هو المسؤول عن حماية الصفحات الخاصة.
+// عشان كده لو مفيش User مسجل دخول، نسيب الصفحة العامة زي ما هي.
 const AUTH_ENDPOINTS_TO_SKIP = ['/auth/login', '/auth/register', '/auth/refresh', '/auth/logout'];
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(Auth);
-  const router = inject(Router);
 
-  const isAuthEndpoint = AUTH_ENDPOINTS_TO_SKIP.some((path) => req.url.includes(path));
+  const isApi = req.url.startsWith(API_BASE_URL);
 
-  return next(req).pipe(
+  const request = isApi && !req.withCredentials ? req.clone({ withCredentials: true }) : req;
+
+  const isAuthEndpoint = AUTH_ENDPOINTS_TO_SKIP.some((path) => request.url.includes(path));
+
+  return next(request).pipe(
     catchError((error: unknown) => {
-      if (error instanceof HttpErrorResponse && error.status === 401 && !isAuthEndpoint) {
-        return auth.refresh().pipe(
-          switchMap(() => next(req)),
+      if (error instanceof HttpErrorResponse && error.status === 401 && isApi && !isAuthEndpoint) {
+        return auth.refreshOnce().pipe(
+          switchMap(() => next(request)),
           catchError((refreshError) => {
             auth.clearCurrentUser();
-            router.navigate(['/login']);
+
+            // مفيش router.navigate هنا.
+            // الـauthGuard هو اللي يتعامل مع الصفحات المحمية.
+
             return throwError(() => refreshError);
           }),
         );

@@ -270,17 +270,19 @@
                 <!-- Page Content -->
                 <main class="dashboard-content">
                     <!-- DASHBOARD HOME -->
-                    <app-dashboard-home *ngIf="activePage === 'home'" [activeJobsCount]="activeJobsCount"
-                        [completedJobsCount]="completedJobsCount" [escrowAmount]="escrowAmount"
-                        [walletBalance]="walletBalance" [activeRequests]="activeRequests" [detailsData]="requestDetails"
-                        [kitchenOffers]="kitchenOffers" (pageChange)="showPage($event)"
+                    <app-dashboard-home *ngIf="activePage === 'home'" [userName]="user.name"
+                        [activeJobsCount]="activeJobsCount" [completedJobsCount]="completedJobsCount"
+                        [escrowAmount]="escrowAmount" [walletBalance]="walletBalance" [activeRequests]="activeRequests"
+                        [detailsData]="requestDetails" [kitchenOffers]="kitchenOffers" (pageChange)="showPage($event)"
                         (requestDetails)="openRequestDetailsById($event)">
                     </app-dashboard-home>
 
                     <!-- Other Pages -->
                     <!-- REQUESTS -->
                     <app-dashboard-requests *ngIf="activePage === 'requests'" [selectedRequestId]="selectedRequest?.id"
-                        [searchTerm]="globalSearch" (pageChange)="showPage($event)">
+                        [searchTerm]="globalSearch" [loading]="requestsLoading" [loadError]="requestsError"
+                        (pageChange)="handleRequestsPageChange($event)" (retry)="reloadRequests()"
+                        (toast)="showToast($event.message, $event.type)">
                     </app-dashboard-requests>
 
                     <!-- OFFERS -->
@@ -333,18 +335,23 @@
                                 نوع الصنعة
                             </label>
                             <div class="row g-2">
-                                @for (craft of crafts; track craft) {
+                                @for (craft of crafts; track craft.id) {
                                 <div class="col-6">
                                     <button type="button" class="btn w-100 text-end border p-3"
-                                        [class.border-primary]="selectedCraft === craft"
-                                        [class.bg-primary-subtle]="selectedCraft === craft"
-                                        (click)="selectedCraft = craft">
-                                        <i class="bi bi-tools ms-2"></i>
-                                        {{ craft }}
+                                        [class.border-primary]="selectedCraft === craft.id"
+                                        [class.bg-primary-subtle]="selectedCraft === craft.id"
+                                        (click)="selectedCraft = craft.id">
+                                        <i class="bi ms-2" [ngClass]="craftIcon(craft.slug)"></i>
+                                        {{ craft.name }}
                                     </button>
                                 </div>
                                 }
                             </div>
+                            @if (crafts.length === 0) {
+                            <div class="alert alert-warning small mt-2 mb-0">
+                                مفيش أنواع صنايع متاحة حاليًا. حاول تاني بعد شوية أو تواصل مع الدعم.
+                            </div>
+                            }
                         </div>
                         <!-- Title -->
                         <div class="mb-3">
@@ -375,82 +382,115 @@
                             <div class="border rounded-3 p-4 text-center">
                                 <i class="bi bi-images fs-3 text-secondary"></i>
                                 <div class="small text-secondary mt-2">
-                                    أضف حتى 6 صور JPG أو PNG
+                                    أضف حتى 10 صور JPG أو PNG أو WebP (5 ميجا للصورة)
                                 </div>
-                                <button type="button" class="btn btn-outline-secondary btn-sm mt-3">
+                                <input #requestFiles type="file" class="d-none" multiple
+                                    accept="image/jpeg,image/png,image/webp" (change)="onRequestFilesSelected($event)">
+                                <button type="button" class="btn btn-outline-secondary btn-sm mt-3"
+                                    (click)="requestFiles.click()">
                                     اختيار الصور
                                 </button>
+                                @if (newRequestFiles.length) {
+                                <ul class="list-unstyled small text-start mt-3 mb-0">
+                                    @for (file of newRequestFiles; track $index) {
+                                    <li class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                                        <span class="text-truncate">{{ file.name }}</span>
+                                        <button type="button" class="btn btn-sm btn-link text-danger p-0"
+                                            (click)="removeRequestFile($index)">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </li>
+                                    }
+                                </ul>
+                                }
                             </div>
                         </div>
                         <!-- Location -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">المحافظة</label>
+                                <input type="text" class="form-control" placeholder="مثال: القاهرة"
+                                    [(ngModel)]="newRequestCity" name="requestCity">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label fw-semibold">المنطقة</label>
+                                <input type="text" class="form-control" placeholder="مثال: مدينة نصر"
+                                    [(ngModel)]="newRequestLocation" name="requestArea">
+                            </div>
+                        </div>
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">
-                                المنطقة
-                            </label>
-                            <input type="text" class="form-control" placeholder="مثال: مدينة نصر"
-                                [(ngModel)]="newRequestLocation">
+                            <label class="form-label fw-semibold">العنوان بالتفصيل</label>
+                            <input type="text" class="form-control" placeholder="مثال: شارع مكرم عبيد، عمارة 5"
+                                [(ngModel)]="newRequestAddress" name="requestAddress">
                         </div>
                         <!-- When -->
                         <div class="mb-3">
                             <label class="form-label fw-semibold">
                                 إمتى محتاج الشغل؟
                             </label>
-                            <select class="form-select" [(ngModel)]="newRequestWhen">
+                            <select class="form-select" [(ngModel)]="newRequestWhen" name="requestWhen">
                                 <option>بأسرع وقت ممكن</option>
                                 <option>غدًا</option>
                                 <option>خلال هذا الأسبوع</option>
                                 <option>أفضل تحديد موعد</option>
                             </select>
                         </div>
+                        @if (newRequestWhen === 'أفضل تحديد موعد') {
+                        <div class="row g-2 mb-3">
+                            <div class="col-7">
+                                <input type="date" class="form-control" [min]="minPreferredDate"
+                                    [(ngModel)]="newRequestDate" name="requestDate">
+                            </div>
+                            <div class="col-5">
+                                <input type="time" class="form-control" [(ngModel)]="newRequestTime" name="requestTime">
+                            </div>
+                        </div>
+                        }
                         <!-- Budget -->
                         <div class="mb-4">
                             <label class="form-label fw-semibold">
                                 الميزانية
                             </label>
                             <div class="input-group">
-                                <input type="number" class="form-control" placeholder="مثال: 5000"
-                                    [(ngModel)]="newRequestBudget"> <span class="input-group-text">
-                                    ج.م
-                                </span>
+                                <span class="input-group-text">من</span>
+                                <input type="number" min="0" class="form-control" placeholder="الحد الأدنى"
+                                    [(ngModel)]="newRequestBudgetMin" name="requestBudgetMin">
+                                <span class="input-group-text">إلى</span>
+                                <input type="number" min="0" class="form-control" placeholder="الحد الأقصى"
+                                    [(ngModel)]="newRequestBudget" name="requestBudgetMax">
+                                <span class="input-group-text">ج.م</span>
                             </div>
                         </div>
                         <!-- Receive offers -->
-                        <div class="mb-4">
-                            <label class="form-label fw-semibold d-block">
-                                استقبال العروض
-                            </label>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="requestTerms"
-                                    [(ngModel)]="termsAccepted">
-                                <label class="form-check-label" for="receiveAll">
-                                    استقبال عروض من جميع الأساطي
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="receiveOffers" id="receiveNearby">
-                                <label class="form-check-label" for="receiveNearby">
-                                    الأساطي القريبين مني فقط
-                                </label>
-                            </div>
+                        <div class="small text-secondary mb-4">
+                            <i class="bi bi-info-circle ms-1"></i>
+                            هتستقبل عروض من الأساطي المتاحين في منطقتك.
                         </div>
                         <!-- Terms -->
-                        <div class="form-check mb-4">
-                            <input class="form-check-input" type="checkbox" id="requestTerms">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="requestTerms"
+                                [(ngModel)]="termsAccepted" name="requestTerms">
                             <label class="form-check-label small" for="requestTerms">
                                 أوافق على شروط استخدام المنصة وسياسة استقبال العروض.
                             </label>
                         </div>
+                        @if (newRequestError) {
+                        <div class="alert alert-danger small mb-0" role="alert">
+                            {{ newRequestError }}
+                        </div>
+                        }
                     </div>
                     <!-- Footer -->
                     <div class="border-top p-4 d-flex gap-2">
-                        <button type="button" class="btn btn-primary flex-fill" [disabled]="
-                    !selectedCraft ||
-                    !newRequestTitle ||
-                    !newRequestDescription ||
-                    !newRequestLocation ||
-                    !newRequestBudget ||
-                    !termsAccepted" (click)="submitNewRequest()"><i class="bi bi-send ms-1"></i>
+                        <button type="button" class="btn btn-primary flex-fill" [disabled]="!canSubmitNewRequest"
+                            (click)="submitNewRequest()">
+                            @if (newRequestSubmitting) {
+                            <span class="spinner-border spinner-border-sm ms-1" aria-hidden="true"></span>
+                            جاري النشر...
+                            } @else {
+                            <i class="bi bi-send ms-1"></i>
                             نشر الطلب
+                            }
                         </button>
                         <button type="button" class="btn btn-outline-secondary" (click)="closeNewRequest()">
                             إلغاء
@@ -461,6 +501,17 @@
             }
         </div>
     </div>
+    <!-- Toast -->
+    @if (toastOpen) {
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 2000;">
+        <div class="alert shadow mb-0 d-flex align-items-center gap-2" [class.alert-success]="toastType === 'success'"
+            [class.alert-danger]="toastType === 'error'" role="status">
+            <i class="bi" [class.bi-check-circle-fill]="toastType === 'success'"
+                [class.bi-exclamation-triangle-fill]="toastType === 'error'"></i>
+            {{ toastMessage }}
+        </div>
+    </div>
+    }
     <!-- accountDeleted -->
     <div *ngIf="accountDeleted" class="account-deleted-section">
 

@@ -102,21 +102,31 @@
             <span class="fw-semibold">{{ user.name }}</span>
           </button>
 
-          <ul class="dropdown-menu dropdown-menu-end">
+          <ul class="dropdown-menu dropdown-menu-end user-dropdown" dir="rtl">
+
             <li>
-              <a class="dropdown-item"
+              <a class="dropdown-item user-dropdown-item"
                 [routerLink]="user.role === 'artisan' ? '/craftsman-dashboard' : '/customer-dashboard'">
-                لوحة التحكم
+
+                <i class="bi bi-grid-1x2-fill"></i>
+
+                <span>لوحة التحكم</span>
               </a>
             </li>
+
             <li>
               <hr class="dropdown-divider">
             </li>
+
             <li>
-              <button type="button" class="dropdown-item text-danger" (click)="logout()">
-                تسجيل الخروج
+              <button type="button" class="dropdown-item user-dropdown-item logout-item" (click)="logout()">
+
+                <i class="bi bi-box-arrow-right"></i>
+
+                <span>تسجيل الخروج</span>
               </button>
             </li>
+
           </ul>
         </div>
 

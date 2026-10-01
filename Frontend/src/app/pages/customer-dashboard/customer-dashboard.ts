@@ -1,7 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
+
+import { Auth, CurrentUser } from '../../services/auth';
+import { Craft, RequestVm, ServiceRequests } from '../../services/service-requests';
 
 import { DashboardHome } from './components/dashboard-home/dashboard-home';
 import { DashboardRequests } from './components/dashboard-requests/dashboard-requests';
@@ -25,142 +29,89 @@ import { DashboardSettings } from './components/dashboard-settings/dashboard-set
   templateUrl: './customer-dashboard.html',
   styleUrl: './customer-dashboard.css',
 })
-export class CustomerDashboard {
-  constructor(private router: Router) {}
-  user = {
-    name: 'م. أحمد عثمان',
-    email: 'ahmed@domain.com',
-  };
+export class CustomerDashboard implements OnInit, OnDestroy {
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute,
+    private auth: Auth,
+    private requestsApi: ServiceRequests,
+    private cdr: ChangeDetectorRef,
+  ) {}
+
+  private subs = new Subscription();
+
+  // بيانات اليوزر الحقيقية من /auth/me
+  user: { name: string; email: string } = { name: '', email: '' };
   get userInitials() {
-    return 'أ ع';
+    const parts = (this.user.name || '').trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return '؟';
+    return parts
+      .slice(0, 2)
+      .map((part) => part.charAt(0))
+      .join(' ');
   }
-  requests = [
-    {
-      id: 'REQ-2418',
-      title: 'تجديد مطبخ أرو أمريكي',
-      category: 'نجارة ومطابخ',
-      location: 'مدينة نصر',
-      status: 'waiting',
-      statusText: 'في انتظار العروض',
-      budget: 12000,
-      offers: 3,
-    },
-    {
-      id: 'REQ-2425',
-      title: 'تركيب تكييفين سبليت',
-      category: 'تكييف وتبريد',
-      location: 'مدينة نصر',
-      status: 'waiting',
-      statusText: 'في انتظار العروض',
-      budget: 20000,
-      offers: 2,
-    },
-    {
-      id: 'REQ-2411',
-      title: 'صيانة سباكة ومحابس الحمام',
-      category: 'سباكة',
-      location: 'مدينة نصر',
-      status: 'active',
-      statusText: 'جارية',
-      budget: 1400,
-      offers: 1,
-    },
-    {
-      id: 'REQ-2421',
-      title: 'تأسيس إضاءة سمارت هوم',
-      category: 'كهرباء',
-      location: 'التجمع الخامس',
-      status: 'active',
-      statusText: 'جارية',
-      budget: 3800,
-      offers: 1,
-    },
-    {
-      id: 'REQ-2390',
-      title: 'منقولة جبس بورد للصالة',
-      category: 'جبس بورد',
-      location: 'مدينة نصر',
-      status: 'done',
-      statusText: 'مكتملة',
-      budget: 3200,
-      offers: 1,
-    },
-    {
-      id: 'REQ-2384',
-      title: 'صيانة غسالة أوتوماتيك',
-      category: 'أجهزة',
-      location: 'مدينة نصر',
-      status: 'cancelled',
-      statusText: 'ملغاة',
-      budget: 800,
-      offers: 0,
-    },
-  ];
-  requestDetails: any = {
-    'REQ-2418': {
-      description:
-        'تجديد مطبخ أرو أمريكي بالكامل مع تغيير المفصلات والإكسسوارات وتنفيذ التشطيبات المطلوبة.',
-      photos: [
-        'https://images.unsplash.com/photo-1556911220-e15b29be8c8f',
-        'https://images.unsplash.com/photo-1556912173-46c336c7fd55',
-      ],
-      timeline: [
-        { title: 'تم إنشاء الطلب', date: '24 مايو، 10:30 ص', done: true },
-        { title: 'استقبال العروض', date: '24 مايو، 11:15 ص', done: true },
-        { title: 'اختيار الأسطى', date: 'في انتظار الاختيار', done: false },
-        { title: 'بدء التنفيذ', date: 'بعد قبول العرض', done: false },
-        { title: 'اكتمال العمل', date: 'لم يبدأ بعد', done: false },
-      ],
-    },
 
-    'REQ-2425': {
-      description: 'تركيب تكييفين سبليت مع تجهيز أماكن التركيب والتأكد من التوصيلات والتشغيل.',
-      photos: ['https://images.unsplash.com/photo-1631545806609-8b4c6d6d3f1f'],
-      timeline: [
-        { title: 'تم إنشاء الطلب', date: '24 مايو', done: true },
-        { title: 'استقبال العروض', date: 'تم استقبال عرضين', done: true },
-        { title: 'اختيار الأسطى', date: 'في انتظار الاختيار', done: false },
-        { title: 'بدء التنفيذ', date: 'بعد قبول العرض', done: false },
-        { title: 'اكتمال العمل', date: 'لم يبدأ بعد', done: false },
-      ],
-    },
-    'REQ-2411': {
-      description: 'صيانة سباكة ومحابس الحمام وإصلاح التسريبات الموجودة.',
-      photos: [],
-      craftsman: {
-        name: 'إبراهيم صقر',
-        category: 'سباك معتمد',
-        rating: 4.8,
-        jobs: 214,
-        price: 1400,
-      },
-      timeline: [
-        { title: 'تم إنشاء الطلب', date: '24 مايو', done: true },
-        { title: 'تم اختيار الأسطى', date: '24 مايو', done: true },
-        { title: 'جاري التنفيذ', date: 'العمل قيد التنفيذ', done: true },
-        { title: 'اكتمال العمل', date: 'لم يكتمل بعد', done: false },
-      ],
-    },
+  // الطلبات الحقيقية من /api/v1/requests/me
+  requests: RequestVm[] = [];
+  requestsLoading = true;
+  requestsError = '';
+  crafts: Craft[] = [];
 
-    'REQ-2421': {
-      description: 'تأسيس إضاءة سمارت هوم وتجهيز التوصيلات اللازمة.',
-      photos: [],
-      craftsman: {
-        name: 'طارق عبد الرحمن',
-        category: 'كهربائي معتمد',
-        rating: 4.9,
-        jobs: 156,
-        price: 3800,
+  ngOnInit(): void {
+    this.route.queryParams.subscribe((params) => {
+      if (params['newRequest'] === 'true') {
+        this.openNewRequest();
+      }
+    });
+    this.subs.add(
+      this.auth.currentUser$.subscribe((user: CurrentUser | null) => {
+        if (user) {
+          this.user = { name: user.name, email: user.email };
+        }
+        this.cdr.markForCheck();
+      }),
+    );
+
+    this.subs.add(
+      this.requestsApi.requests$.subscribe((requests) => {
+        this.requests = requests;
+        this.cdr.markForCheck();
+      }),
+    );
+
+    this.subs.add(
+      this.requestsApi.crafts$.subscribe((crafts) => {
+        this.crafts = crafts;
+        this.cdr.markForCheck();
+      }),
+    );
+
+    this.reloadRequests();
+    this.requestsApi.loadCrafts().subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    this.requestsApi.reset();
+  }
+
+  reloadRequests(): void {
+    this.requestsLoading = true;
+    this.requestsError = '';
+    this.requestsApi.loadRequests().subscribe({
+      next: () => {
+        this.requestsLoading = false;
+        this.cdr.markForCheck();
       },
-      timeline: [
-        { title: 'تم إنشاء الطلب', date: '24 مايو', done: true },
-        { title: 'تم اختيار الأسطى', date: '24 مايو', done: true },
-        { title: 'المعاينة', date: 'في انتظار تحديد الموعد', done: false },
-        { title: 'بدء التنفيذ', date: 'بعد المعاينة', done: false },
-        { title: 'اكتمال العمل', date: 'لم يبدأ بعد', done: false },
-      ],
-    },
-  };
+      error: (error) => {
+        this.requestsLoading = false;
+        this.requestsError = error?.error?.message || 'تعذر تحميل الطلبات، حاول مرة أخرى.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+  // لسه مفيش endpoint للعروض في الباك اند، فبنسيب الحقل فاضي هنا.
+  requestDetails: any = {};
   offerGroup = 'g-kitchen';
   offerGroups = [
     {
@@ -240,8 +191,7 @@ export class CustomerDashboard {
       installation: 'شامل التركيب',
     },
   ];
-  selectedCraft = '';
-  crafts = ['سباك', 'كهربائي', 'نجار', 'نقاش', 'حداد', 'تكييف', 'سيراميك', 'أجهزة'];
+  selectedCraft = ''; // craftId الحقيقي
   newRequestTitle = '';
   newRequestDescription = '';
   newRequestLocation = '';
@@ -252,7 +202,15 @@ export class CustomerDashboard {
   selectedRating = 0;
   ratingComment = '';
   rated: { [key: string]: boolean } = {};
-  newRequestBudget: number | null = null;
+  newRequestBudget: number | null = null; // الحد الأقصى
+  newRequestBudgetMin: number | null = null;
+  newRequestCity = '';
+  newRequestAddress = '';
+  newRequestDate = '';
+  newRequestTime = '';
+  newRequestFiles: File[] = [];
+  newRequestSubmitting = false;
+  newRequestError = '';
   newRequestWhen = 'بأسرع وقت ممكن';
   newRequestReceive = 'all';
   termsAccepted = false;
@@ -350,60 +308,204 @@ export class CustomerDashboard {
   get completedJobsCount() {
     return this.requests.filter((request) => request.status === 'done').length;
   }
-  escrowAmount = 4850;
-  walletBalance = 2300;
+  // مفيش endpoint للمحفظة/الضمان في الباك اند لسه.
+  escrowAmount = 0;
+  walletBalance = 0;
 
   get activeRequests() {
     return this.requests.filter((request) => request.status === 'active');
   }
   ///////////إنشاء طلب جديد
-  reqSeq = 2426;
   resetNewRequest() {
     this.selectedCraft = '';
     this.newRequestTitle = '';
     this.newRequestDescription = '';
     this.newRequestLocation = '';
+    this.newRequestCity = '';
+    this.newRequestAddress = '';
     this.newRequestBudget = null;
+    this.newRequestBudgetMin = null;
     this.newRequestWhen = 'بأسرع وقت ممكن';
+    this.newRequestDate = '';
+    this.newRequestTime = '';
+    this.newRequestFiles = [];
+    this.newRequestError = '';
     this.newRequestReceive = 'all';
     this.termsAccepted = false;
   }
   newRequestOpen = false;
   openNewRequest() {
+    this.resetNewRequest();
+    this.newRequestError = '';
     this.newRequestOpen = true;
+    // لو اليوزر سجّل محافظة وقت التسجيل نملى بيها الحقل تلقائيًا
+    const savedLocation = this.auth.currentUserValue?.location;
+    if (savedLocation) {
+      this.newRequestCity = savedLocation;
+    }
+    // لو قائمة الحرف لسه فاضية نحاول نجيبها تاني
+    if (!this.crafts.length) {
+      this.requestsApi.loadCrafts().subscribe();
+    }
+  }
+
+  // تاريخ بكرة (محلي) بصيغة YYYY-MM-DD
+  private dateOffset(days: number): string {
+    const date = new Date();
+    date.setDate(date.getDate() + days);
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${date.getFullYear()}-${mm}-${dd}`;
+  }
+
+  craftIcon(slug: string): string {
+    const icons: Record<string, string> = {
+      plumbing: 'bi-droplet',
+      electricity: 'bi-lightbulb',
+      carpentry: 'bi-hammer',
+      painting: 'bi-paint-bucket',
+      metalwork: 'bi-gear-wide-connected',
+      'air-conditioning': 'bi-snow',
+      tiling: 'bi-grid-3x3-gap',
+      'appliance-repair': 'bi-tools',
+    };
+    return icons[slug] ?? 'bi-tools';
+  }
+
+  get minPreferredDate(): string {
+    return this.dateOffset(1);
+  }
+
+  onRequestFilesSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const picked = Array.from(input.files ?? []);
+    input.value = '';
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    const valid: File[] = [];
+    for (const file of picked) {
+      if (!allowed.includes(file.type)) {
+        this.newRequestError = 'الصور لازم تكون JPG أو PNG أو WebP.';
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        this.newRequestError = 'حجم الصورة لازم يكون 5 ميجابايت أو أقل.';
+        continue;
+      }
+      valid.push(file);
+    }
+    this.newRequestFiles = [...this.newRequestFiles, ...valid].slice(0, 10);
+  }
+
+  removeRequestFile(index: number) {
+    this.newRequestFiles = this.newRequestFiles.filter((_, i) => i !== index);
+  }
+
+  get canSubmitNewRequest(): boolean {
+    return (
+      !!this.selectedCraft &&
+      !!this.newRequestTitle.trim() &&
+      !!this.newRequestDescription.trim() &&
+      !!this.newRequestCity.trim() &&
+      !!this.newRequestLocation.trim() &&
+      !!this.newRequestAddress.trim() &&
+      this.newRequestBudget !== null &&
+      this.newRequestBudgetMin !== null &&
+      this.termsAccepted &&
+      !this.newRequestSubmitting
+    );
+  }
+
+  // رسائل التحقق بنفس قواعد الباك اند (Joi) عشان اليوزر يشوف المشكلة قبل الإرسال
+  private validateNewRequest(): string {
+    if (this.newRequestTitle.trim().length < 3) return 'عنوان الطلب لازم يكون 3 حروف على الأقل.';
+    if (this.newRequestDescription.trim().length < 10)
+      return 'تفاصيل الطلب لازم تكون 10 حروف على الأقل.';
+    if (this.newRequestCity.trim().length < 2) return 'من فضلك اكتب المحافظة.';
+    if (this.newRequestLocation.trim().length < 2) return 'من فضلك اكتب المنطقة.';
+    if (this.newRequestAddress.trim().length < 5) return 'العنوان لازم يكون 5 حروف على الأقل.';
+    const min = Number(this.newRequestBudgetMin);
+    const max = Number(this.newRequestBudget);
+    if (isNaN(min) || isNaN(max) || min < 0 || max < 0) return 'الميزانية غير صحيحة.';
+    if (max < min) return 'الحد الأقصى للميزانية لازم يكون أكبر من أو يساوي الحد الأدنى.';
+    if (this.newRequestWhen === 'أفضل تحديد موعد' && !this.newRequestDate) {
+      return 'من فضلك اختار تاريخ الموعد.';
+    }
+    return '';
   }
 
   submitNewRequest() {
-    if (
-      !this.selectedCraft ||
-      !this.newRequestTitle ||
-      !this.newRequestDescription ||
-      !this.newRequestLocation ||
-      !this.newRequestBudget ||
-      !this.termsAccepted
-    ) {
+    if (!this.canSubmitNewRequest) {
       return;
     }
 
-    const newId = `REQ-${this.reqSeq++}`;
-    this.requests.unshift({
-      id: newId,
-      title: this.newRequestTitle,
-      category: this.selectedCraft,
-      location: this.newRequestLocation,
-      status: 'waiting',
-      statusText: 'في انتظار العروض',
-      budget: this.newRequestBudget,
-      offers: 0,
-    });
-    this.closeNewRequest();
-    this.requestFilter = 'all';
-    this.activePage = 'requests';
-    this.resetNewRequest();
-    this.toastMessage = 'تم نشر طلبك بنجاح';
+    const validationMessage = this.validateNewRequest();
+    if (validationMessage) {
+      this.newRequestError = validationMessage;
+      return;
+    }
+
+    let preferredDate: string | undefined;
+    let preferredTime: string | undefined;
+    if (this.newRequestWhen === 'غدًا') {
+      preferredDate = this.dateOffset(1);
+    } else if (this.newRequestWhen === 'خلال هذا الأسبوع') {
+      preferredDate = this.dateOffset(3);
+    } else if (this.newRequestWhen === 'أفضل تحديد موعد') {
+      preferredDate = this.newRequestDate;
+      preferredTime = this.newRequestTime || undefined;
+    }
+
+    this.newRequestError = '';
+    this.newRequestSubmitting = true;
+
+    this.requestsApi
+      .create(
+        {
+          title: this.newRequestTitle.trim(),
+          description: this.newRequestDescription.trim(),
+          craftId: this.selectedCraft,
+          location: {
+            city: this.newRequestCity.trim(),
+            area: this.newRequestLocation.trim(),
+            address: this.newRequestAddress.trim(),
+          },
+          budget: { min: Number(this.newRequestBudgetMin), max: Number(this.newRequestBudget) },
+          preferredDate,
+          preferredTime,
+        },
+        this.newRequestFiles,
+        true,
+      )
+      .subscribe({
+        next: () => {
+          this.newRequestSubmitting = false;
+          this.closeNewRequest();
+          this.selectedRequest = null;
+          this.activePage = 'requests';
+          this.resetNewRequest();
+          this.showToast('تم نشر طلبك بنجاح');
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.newRequestSubmitting = false;
+          this.newRequestError = error?.error?.message || 'تعذر نشر الطلب، حاول مرة أخرى.';
+          // ممكن الطلب يكون اتحفظ كمسودة (مثلًا فشل رفع الصور) فنحدّث القائمة
+          this.reloadRequests();
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  toastType: 'success' | 'error' = 'success';
+  showToast(message: string, type: 'success' | 'error' = 'success') {
+    this.toastType = type;
+    this.toastMessage = message;
     this.toastOpen = true;
+    this.cdr.markForCheck();
     setTimeout(() => {
       this.toastOpen = false;
+      this.cdr.markForCheck();
     }, 3000);
   }
 
@@ -564,6 +666,14 @@ export class CustomerDashboard {
         return 'اختر تقييمك';
     }
   }
+  handleRequestsPageChange(page: string) {
+    if (page === 'new-request') {
+      this.openNewRequest();
+      return;
+    }
+
+    this.showPage(page);
+  }
   submitRating() {
     if (!this.selectedRating || !this.selectedRatingRequest) {
       return;
@@ -572,11 +682,7 @@ export class CustomerDashboard {
     // تسجيل إن الطلب اتقيّم
     this.rated[requestId] = true;
     this.closeRating();
-    this.toastMessage = 'تم إرسال تقييمك بنجاح';
-    this.toastOpen = true;
-    setTimeout(() => {
-      this.toastOpen = false;
-    }, 3000);
+    this.showToast('تم إرسال تقييمك بنجاح');
   }
 
   scheduleModalOpen = false;
@@ -597,11 +703,7 @@ export class CustomerDashboard {
       return;
     }
     this.closeSchedule();
-    this.toastMessage = 'تم تحديد موعد المعاينة بنجاح';
-    this.toastOpen = true;
-    setTimeout(() => {
-      this.toastOpen = false;
-    }, 3000);
+    this.showToast('تم تحديد موعد المعاينة بنجاح');
   }
   invoiceModalOpen = false;
   openInvoice() {

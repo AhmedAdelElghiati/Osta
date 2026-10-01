@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
   styleUrl: './dashboard-home.css',
 })
 export class DashboardHome {
+  @Input() userName = '';
   @Input() activeJobsCount = 0;
   @Input() completedJobsCount = 0;
   @Input() escrowAmount = 0;
@@ -21,6 +22,18 @@ export class DashboardHome {
   @Output() pageChange = new EventEmitter<string>();
 
   @Output() requestDetails = new EventEmitter<string>();
+
+  get firstName(): string {
+    return (this.userName || '').trim().split(/\s+/)[0] || '';
+  }
+
+  get todayLabel(): string {
+    return new Date().toLocaleDateString('ar-EG', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+  }
 
   goToPage(page: string) {
     this.pageChange.emit(page);

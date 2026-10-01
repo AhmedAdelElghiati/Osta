@@ -6,7 +6,7 @@
 
         <div>
             <h1 class="mb-1 fw-bold">
-                أهلاً م. أحمد
+                أهلاً {{ firstName }}
             </h1>
 
             <p class="mb-0 text-secondary small">
@@ -15,7 +15,7 @@
         </div>
 
         <span class="current-date text-secondary">
-            الأربعاء، 24 مايو
+            {{ todayLabel }}
         </span>
 
     </div>
@@ -119,6 +119,12 @@
 
         <!-- Jobs -->
         <div class="row g-3">
+
+            <div class="col-12" *ngIf="activeRequests.length === 0">
+                <div class="job-card text-center text-secondary py-4">
+                    مفيش شغلانات جارية دلوقتي. لما تقبل عرض هتظهر هنا.
+                </div>
+            </div>
 
             <div class="col-12 col-lg-6" *ngFor="let request of activeRequests">
 

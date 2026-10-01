@@ -149,6 +149,124 @@
 }
 
 /* =========================
+   User Menu
+========================= */
+
+.user-menu-btn {
+  background: transparent;
+  border: 1px solid #8d4b00 ;
+  color: #1e293b;
+  padding: 6px 10px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+
+.user-menu-btn:hover,
+.user-menu-btn:focus {
+  background-color: #f8fafc;
+  color: #8d4b00;
+  box-shadow: none;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #8d4b00;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* =========================
+   Dropdown
+========================= */
+
+.user-dropdown {
+  min-width: 155px;
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background-color: #fff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+/* Dropdown Item */
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+  padding: 11px 12px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: transparent;
+  color: #1e293b;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-decoration: none;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.user-dropdown-item i {
+  width: 20px;
+  font-size: 17px;
+  text-align: center;
+  color: #8d4b00;
+}
+
+.user-dropdown-item:hover {
+  background-color: #f8fafc;
+  color: #8d4b00;
+}
+
+.user-dropdown-item:hover i {
+  color: #8d4b00;
+}
+
+/* Divider */
+
+.user-dropdown .dropdown-divider {
+  margin: 6px 4px;
+  border-color: #e2e8f0;
+}
+
+/* =========================
+   Logout
+========================= */
+
+.user-dropdown .logout-item {
+  color: #dc2626;
+}
+
+.user-dropdown .logout-item i {
+  color: #dc2626;
+}
+
+.user-dropdown .logout-item:hover {
+  background-color: #fef2f2;
+  color: #dc2626;
+}
+
+.user-dropdown .logout-item:hover i {
+  color: #dc2626;
+}
+
+/* =========================
    Responsive
 ========================= */
 

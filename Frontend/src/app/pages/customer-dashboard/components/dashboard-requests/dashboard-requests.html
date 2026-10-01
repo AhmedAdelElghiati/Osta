@@ -40,6 +40,22 @@
     </div>
 
 
+    <!-- Loading / Error -->
+    @if (loading && requests.length === 0) {
+    <div class="text-center text-secondary py-5">
+        <div class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></div>
+        جاري تحميل طلباتك...
+    </div>
+    }
+    @if (loadError) {
+    <div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2" role="alert">
+        <span>{{ loadError }}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="retry.emit()">
+            إعادة المحاولة
+        </button>
+    </div>
+    }
+
     <!-- Requests List -->
     <div class="row g-3">
 
@@ -75,7 +91,7 @@
                                     </h5>
 
                                     <span class="badge bg-light text-secondary">
-                                        {{ request.id }}
+                                        {{ request.code }}
                                     </span>
 
                                 </div>
@@ -122,7 +138,7 @@
                             </div>
 
                             <div class="fw-bold">
-                                {{ request.budget | number }} ج.م
+                                {{ request.budgetLabel }}
                             </div>
 
                         </div>
@@ -178,7 +194,7 @@
 
         </div>
         }
-        @if (filteredRequests.length === 0) {
+        @if (filteredRequests.length === 0 && !loading && !loadError) {
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center py-5">
@@ -229,13 +245,17 @@
             </h1>
 
             <p class="text-secondary mb-0">
-                {{ selectedRequest.id }}
+                {{ selectedRequest.code }}
             </p>
 
         </div>
 
     </div>
 
+
+    @if (detailsError) {
+    <div class="alert alert-warning" role="alert">{{ detailsError }}</div>
+    }
 
     <!-- Main Card -->
     <div class="card shadow-sm border-0">
@@ -254,7 +274,7 @@
                         </h4>
 
                         <span class="badge bg-light text-secondary">
-                            {{ selectedRequest.id }}
+                            {{ selectedRequest.code }}
                         </span>
 
                     </div>
@@ -299,7 +319,7 @@
                     </div>
 
                     <div class="fw-bold fs-5">
-                        {{ selectedRequest.budget | number }} ج.م
+                        {{ selectedRequest.budgetLabel }}
                     </div>
 
                 </div>
@@ -327,6 +347,11 @@
                     <div class="fw-bold">
                         {{ selectedRequest.location }}
                     </div>
+                    @if (selectedRequest.address) {
+                    <div class="text-secondary small mt-1">
+                        {{ selectedRequest.address }}
+                    </div>
+                    }
 
                 </div>
 
@@ -343,9 +368,15 @@
                     وصف الطلب
                 </h5>
 
-                <p class="text-secondary mb-0">
+                <p class="text-secondary mb-0" style="white-space: pre-line;">
                     {{ currentRequestDetails?.description }}
                 </p>
+                @if (selectedRequest.cancellationReason && selectedRequest.status === 'cancelled') {
+                <p class="text-danger small mt-3 mb-0">
+                    <i class="bi bi-x-circle ms-1"></i>
+                    سبب الإلغاء: {{ selectedRequest.cancellationReason }}
+                </p>
+                }
 
             </div>
 
@@ -371,7 +402,7 @@
 
                                 @for (
                                 photo of currentRequestDetails.photos;
-                                track photo
+                                track $index
                                 ) {
 
                                 <div class="col-6">
@@ -383,6 +414,12 @@
 
                                 }
 
+                            </div>
+
+                            } @else if (detailsLoading) {
+
+                            <div class="text-secondary text-center py-5">
+                                <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
                             </div>
 
                             } @else {
@@ -420,7 +457,7 @@
 
                                 @for (
                                 step of currentRequestDetails?.timeline;
-                                track step.title
+                                track $index
                                 ) {
 
                                 <div class="d-flex gap-3">
@@ -567,6 +604,23 @@
             <!-- Actions -->
             <div class="d-flex flex-wrap gap-2 mt-4">
 
+                @if (selectedRequest.status === 'draft') {
+
+                <!-- Publish draft -->
+                <button type="button" class="btn text-white" style="background-color: #0F172A;" (click)="openConfirm(
+                        'publish',
+                        'نشر الطلب',
+                        'سيتم نشر الطلب ليبدأ الأساطي في إرسال عروضهم.'
+                    )">
+
+                    <i class="bi bi-send ms-1"></i>
+
+                    نشر الطلب
+
+                </button>
+
+                }
+
                 @if (selectedRequest.status === 'waiting') {
 
                 <!-- Offers -->
@@ -579,6 +633,9 @@
 
                 </button>
 
+                }
+
+                @if (selectedRequest.backendStatus === 'PUBLISHED') {
 
                 <!-- Cancel -->
                 <button type="button" class="btn btn-outline-danger" (click)="openConfirm(
@@ -691,9 +748,21 @@
                 </h5>
 
                 <!-- Message -->
-                <p class="text-secondary mb-4">
+                <p class="text-secondary mb-3">
                     {{ confirmMessage }}
                 </p>
+
+                @if (confirmAction === 'cancel') {
+                <div class="text-end mb-3">
+                    <label class="form-label fw-semibold small" for="cancelReason">سبب الإلغاء</label>
+                    <textarea id="cancelReason" class="form-control" rows="2" maxlength="500"
+                        placeholder="اكتب سبب إلغاء الطلب..." [(ngModel)]="cancelReason"></textarea>
+                </div>
+                }
+
+                @if (actionError) {
+                <div class="alert alert-danger small py-2" role="alert">{{ actionError }}</div>
+                }
 
                 <!-- Actions -->
                 <div class="d-flex gap-2 justify-content-center">
@@ -702,7 +771,11 @@
                         رجوع
                     </button>
 
-                    <button type="button" class="btn confirm-btn flex-fill" (click)="confirmActionHandler()">
+                    <button type="button" class="btn confirm-btn flex-fill" [disabled]="actionLoading"
+                        (click)="confirmActionHandler()">
+                        @if (actionLoading) {
+                        <span class="spinner-border spinner-border-sm ms-1" aria-hidden="true"></span>
+                        }
                         تأكيد
                     </button>
 
@@ -753,7 +826,7 @@
                     </div>
 
                     <h6 class="fw-bold mb-1">
-                        {{ selectedRatingRequest?.id }}
+                        {{ selectedRatingRequest?.code }}
                     </h6>
 
                     <p class="text-secondary small mb-4">
@@ -953,7 +1026,7 @@
                         </span>
 
                         <span class="fw-semibold">
-                            {{ selectedRequest?.id }}
+                            {{ selectedRequest?.code }}
                         </span>
 
                     </div>
