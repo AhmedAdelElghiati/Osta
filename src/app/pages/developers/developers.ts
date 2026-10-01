@@ -24,7 +24,8 @@ interface Developer {
     linkedin?: string;
     facebook?: string;
     email?: string;
-  };
+    portfolio?: string;
+};
   gradient: string;
   glow: string;
   quote: string;
@@ -95,7 +96,7 @@ export class Developers implements OnInit, AfterViewInit, OnDestroy {
   ========================= */
 
   titleBlock: TitleBlockRow[] = [
-    { key: 'المشروع', value: 'منصة حرفتي' },
+    { key: 'المشروع', value: 'منصة الاسطي' },
     { key: 'رسم بواسطة', value: 'فريق الأسطى' },
     { key: 'المرحلة', value: 'قيد التنفيذ' },
     { key: 'الإصدار', value: 'v1.0' }
@@ -120,44 +121,47 @@ export class Developers implements OnInit, AfterViewInit, OnDestroy {
      DEVELOPERS
   ========================= */
 
+
   developers: Developer[] = [
     {
       name: 'أشرف حلاوه',
-      role: 'Frontend Engineer',
-      bio: 'بيحوّل التصاميم لكود نظيف وسريع وتجربة استخدام ممتعة.',
-      longBio: 'متخصص في بناء واجهات Angular احترافية باستخدام TypeScript وBootstrap، مهتم بالأداء وتجربة المستخدم والـ animations.',
-      images: [],
+      role: 'Full Stack Developer',
+      bio: 'بيحوّل التصاميم لكود نظيف وسريع وتجربة استخدام ممتعة، من الفرونت للباك.',
+      longBio: 'متخصص في بناء تطبيقات Full Stack احترافية باستخدام Angular وNode.js وTypeScript، مهتم بالأداء وتجربة المستخدم والـ animations، وبيشتغل على الواجهة والـ API وقواعد البيانات.',
+      images: ['/logo.jpg','/logo.jpg'],
       skills: [
         { name: 'Angular', level: 95 },
         { name: 'TypeScript', level: 92 },
-        { name: 'Bootstrap', level: 90 },
-        { name: 'RxJS', level: 85 }
+        { name: 'Node.js', level: 90 },
+        { name: 'MongoDB', level: 85 }
       ],
       social: {
-        github: 'https://github.com/',
-        linkedin: 'https://linkedin.com/',
-        email: 'ashraf@herfaty.com'
-      },
+          github: 'https://github.com/Halawa2030',
+          linkedin: 'https://www.linkedin.com/in/ashraf-halawa-3b2747345/',
+          email: 'mailto:your-email@gmail.com',
+          portfolio: 'https://profiale.vercel.app/'
+        },
       gradient: 'linear-gradient(135deg,#667eea 0%,#764ba2 100%)',
       glow: 'rgba(102,126,234,.55)',
       quote: 'الكود النضيف مش رفاهية، هو احترام للي هيقراه بعدك.'
     },
     {
       name: 'أحمد عادل',
-      role: 'Backend Engineer',
-      bio: 'بيبني APIs وأنظمة قوية تقدر تستحمل الضغط.',
-      longBio: 'مسؤول عن الـ APIs وقواعد البيانات والمنطق البرمجي للمنصة.',
+      role: 'Full Stack Developer',
+      bio: 'بيبني أنظمة متكاملة من الواجهة للباك، APIs قوية وتجربة سلسة.',
+      longBio: 'مسؤول عن بناء التطبيقات Full Stack، من الـ UI للـ API وقواعد البيانات والمنطق البرمجي للمنصة.',
       images: [],
       skills: [
-        { name: 'Node.js', level: 93 },
-        { name: 'Express', level: 90 },
-        { name: 'MongoDB', level: 88 },
-        { name: 'REST API', level: 92 }
+        { name: 'Angular', level: 95 },
+        { name: 'TypeScript', level: 92 },
+        { name: 'Node.js', level: 90 },
+        { name: 'MongoDB', level: 85 }
       ],
       social: {
-        github: 'https://github.com/',
+        github: 'https://github.com/AhmedAdelElghiati',
         linkedin: 'https://linkedin.com/',
-        email: 'ahmed@herfaty.com'
+        email: 'ahmed@herfaty.com',
+          portfolio: 'https://profiale.vercel.app/'
       },
       gradient: 'linear-gradient(135deg,#f093fb 0%,#f5576c 100%)',
       glow: 'rgba(245,87,108,.55)',
@@ -165,26 +169,28 @@ export class Developers implements OnInit, AfterViewInit, OnDestroy {
     },
     {
       name: 'علا',
-      role: 'UI / UX Designer',
-      bio: 'بتحوّل الأفكار لتجارب بسيطة وممتعة.',
-      longBio: 'متخصصة في تحويل الأفكار إلى تجارب مستخدم واضحة وجذابة.',
+      role: 'Full Stack Developer',
+      bio: 'بتحوّل الأفكار لتجارب بسيطة وممتعة، من التصميم للكود للتشغيل.',
+      longBio: 'متخصصة في تحويل الأفكار إلى تجارب مستخدم واضحة وجذابة، مع خبرة في التطوير Full Stack لتنفيذ التصاميم على أرض الواقع.',
       images: [],
       skills: [
-        { name: 'Figma', level: 96 },
-        { name: 'Adobe XD', level: 88 },
-        { name: 'UI Design', level: 94 },
-        { name: 'Prototyping', level: 90 }
+        { name: 'Angular', level: 95 },
+        { name: 'TypeScript', level: 92 },
+        { name: 'Node.js', level: 90 },
+        { name: 'MongoDB', level: 85 }
       ],
       social: {
-        github: 'https://github.com/',
+        github: 'https://github.com/lolaadel',
         linkedin: 'https://linkedin.com/',
-        email: 'ola@herfaty.com'
+        email: 'ola@herfaty.com',
+          portfolio: 'https://profiale.vercel.app/'
       },
       gradient: 'linear-gradient(135deg,#4facfe 0%,#00f2fe 100%)',
       glow: 'rgba(79,172,254,.55)',
       quote: 'التصميم مش شكل، التصميم إحساس.'
     }
   ];
+
 
   selectedDev: Developer | null = null;
   currentImages: string[] = ['', '', ''];

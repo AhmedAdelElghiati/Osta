@@ -1,8 +1,4 @@
-
-
-
 <main class="page-bg" dir="rtl">
-
   <!-- Hero -->
   <section class="jobs-hero">
     <div class="container">
@@ -27,8 +23,7 @@
 
         <div class="info-item">
 
-          <svg width="18" height="18" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
             <path d="m9 12 2 2 4-4"></path>
@@ -44,8 +39,7 @@
 
         <div class="info-item">
 
-          <svg width="18" height="18" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
             <circle cx="12" cy="12" r="9"></circle>
             <path d="M12 7v5l3 2"></path>
@@ -71,19 +65,15 @@
 
       @for (tab of tabs; track tab.key) {
 
-        <button
-          class="jobs-tab"
-          [class.active]="activeTab() === tab.key"
-          (click)="setTab(tab.key)"
-        >
+      <button class="jobs-tab" [class.active]="activeTab() === tab.key" (click)="setTab(tab.key)">
 
-          {{ tab.label }}
+        {{ tab.label }}
 
-          <span class="jobs-count">
-            {{ tab.count }}
-          </span>
+        <span class="jobs-count">
+          {{ tab.count }}
+        </span>
 
-        </button>
+      </button>
 
       }
 
@@ -103,10 +93,7 @@
           الصنعة أو التخصص
         </label>
 
-        <select
-          class="form-select"
-          [(ngModel)]="selectedCategory"
-        >
+        <select class="form-select" [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event)">
 
           <option value="all">
             كل الصنائع والتخصصات
@@ -138,76 +125,25 @@
 
 
       <div class="filter-item">
-
-        <label>
-          المحافظة والمنطقة
-        </label>
-
-        <select
-          class="form-select"
-          [(ngModel)]="selectedLocation"
-        >
-
-          <option value="all">
-            كل المحافظات والمناطق
-          </option>
-
-          <option value="القاهرة">
-            القاهرة
-          </option>
-
-          <option value="الجيزة">
-            الجيزة
-          </option>
-
-        </select>
-
+        <label>المحافظة والمنطقة</label>
+        <input type="text" class="form-select" placeholder="اكتب المحافظة أو المنطقة" [ngModel]="selectedLocation()"
+          (ngModelChange)="selectedLocation.set($event)" />
       </div>
 
 
       <div class="filter-item">
+        <label>ميزانية الشغلة</label>
 
-        <label>
-          ميزانية الشغلة
-        </label>
-
-        <select
-          class="form-select"
-          [(ngModel)]="selectedBudget"
-        >
-
-          <option value="all">
-            أي ميزانية متاحة
-          </option>
-
-          <option value="lt500">
-            أقل من 500
-          </option>
-
-          <option value="500-1000">
-            500 - 1000
-          </option>
-
-          <option value="1000-5000">
-            1000 - 5000
-          </option>
-
-          <option value="gt5000">
-            أكثر من 5000
-          </option>
-
+        <select class="form-select" [ngModel]="selectedBudget()" (ngModelChange)="selectedBudget.set($event)">
+          <option value="all">أي ميزانية متاحة</option>
+          <option value="500">لحد 500 ج.م</option>
+          <option value="1000">لحد 1,000 ج.م</option>
+          <option value="5000">لحد 5,000 ج.م</option>
+          <option value="10000">لحد 10,000 ج.م</option>
+          <option value="20000">لحد 20,000 ج.م</option>
+          <option value="20000+">أكثر من 20,000 ج.م</option>
         </select>
-
       </div>
-
-
-      <button
-        class="apply-filter-btn"
-        (click)="applyFilters()"
-      >
-        تطبيق الفلترة
-      </button>
-
     </div>
 
   </div>
@@ -234,11 +170,7 @@
             الترتيب:
           </span>
 
-          <select
-            [(ngModel)]="sortBy"
-            class="sort-select"
-          >
-
+          <select [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)" class="sort-select">
             <option value="newest">
               الأحدث نشراً
             </option>
@@ -257,103 +189,100 @@
       <!-- Jobs Cards -->
       @for (job of paginatedJobs(); track job.id) {
 
-        <article class="job-card">
+      <article class="job-card">
 
-<!-- Header: النوع + المنطقة + الوقت + الميزانية -->
-<div class="job-card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <!-- Header: النوع + المنطقة + الوقت + الميزانية -->
+        <div class="job-card-header d-flex justify-content-between align-items-center gap-3 flex-wrap">
 
-  <div class="job-tags">
-    @for (tag of job.tags; track tag) {
-      <span class="job-tag">{{ tag }}</span>
-    }
+          <div class="job-tags">
+            @for (tag of job.tags; track tag) {
+            <span class="job-tag">{{ tag }}</span>
+            }
 
-    <span class="job-dot">•</span>
+            <span class="job-dot">•</span>
 
-    <span class="job-loc">{{ job.location }}</span>
+            <span class="job-loc">{{ job.location }}</span>
 
-    <span class="job-dot">•</span>
+            <span class="job-dot">•</span>
 
-    <span class="job-time">{{ job.postedAt }}</span>
-  </div>
+            <span class="job-time">{{ job.postedAt }}</span>
+          </div>
 
-  <!-- الميزانية -->
-  <div class="job-budget-box">
-    <span class="budget-label">الميزانية التقديرية</span>
+          <!-- الميزانية -->
+          <div class="job-budget-box">
+            <span class="budget-label">الميزانية التقديرية</span>
 
-    <strong class="budget-value">
-      {{ job.budgetMin | number }} - {{ job.budgetMax | number }} ج.م
-    </strong>
-  </div>
+            <strong class="budget-value">
+              {{ job.budgetMin | number }} - {{ job.budgetMax | number }} ج.م
+            </strong>
+          </div>
 
-</div>
-          <!-- Title -->
-          <h3 class="job-title">
-            {{ job.title }}
-          </h3>
-
-
-          <!-- Description -->
-          <p class="job-description">
-            {{ job.description }}
-          </p>
+        </div>
+        <!-- Title -->
+        <h3 class="job-title">
+          {{ job.title }}
+        </h3>
 
 
-          <!-- Images -->
-          @if (job.images?.length) {
+        <!-- Description -->
+        <p class="job-description">
+          {{ job.description }}
+        </p>
 
-            <div class="job-images">
 
-              @for (img of job.images; track img) {
+        <!-- Images -->
+        @if (job.images?.length) {
 
-                <img
-                  [src]="img"
-                  alt="صورة الشغلة"
-                />
+        <div class="job-images">
 
-              }
+          @for (img of job.images; track img) {
 
-              @if (job.imagesCount > job.images!.length) {
-
-                <div class="more-images">
-
-                  +{{ job.imagesCount - job.images!.length }}
-                  صور
-
-                </div>
-
-              }
-
-            </div>
+          <img [src]="img" alt="صورة الشغلة" />
 
           }
 
+          @if (job.imagesCount > job.images!.length) {
 
-          <!-- Footer -->
-          <div class="job-footer">
-            <div class="job-stats">
+          <div class="more-images">
 
-              <span>
-                {{ job.offers }} عروض مقدمة
-              </span>
-
-              <span class="dot">
-                •
-              </span>
-
-              <span>
-                منذ {{ job.daysOpen }} أيام لاستقبال العروض
-              </span>
-
-            </div>
-
-
-            <button class="btn-primary">
-              قدّم عرضك ومقايستك
-            </button>
+            +{{ job.imagesCount - job.images!.length }}
+            صور
 
           </div>
 
-        </article>
+          }
+
+        </div>
+
+        }
+
+
+        <!-- Footer -->
+        <div class="job-footer">
+          <div class="job-stats">
+
+            <span>
+              {{ job.offers }} عروض مقدمة
+            </span>
+
+            <span class="dot">
+              •
+            </span>
+
+            <span>
+              منذ {{ job.daysOpen }} أيام لاستقبال العروض
+            </span>
+
+          </div>
+
+
+          <button class="btn-primary">
+            قدّم عرضك ومقايستك
+          </button>
+
+        </div>
+
+      </article>
 
       }
 
@@ -361,42 +290,30 @@
       <!-- Pagination -->
       @if (totalPages() > 1) {
 
-        <div class="pagination">
+      <div class="pagination">
 
-          <!-- Previous -->
-          <button
-            class="page-btn arrow"
-            [disabled]="currentPage() === 1"
-            (click)="previousPage()"
-          >
-            ‹
-          </button>
+        <!-- Previous -->
+        <button class="page-btn arrow" [disabled]="currentPage() === 1" (click)="previousPage()">
+          ‹
+        </button>
 
 
-          <!-- Pages -->
-          @for (page of pages(); track page) {
+        <!-- Pages -->
+        @for (page of pages(); track page) {
 
-            <button
-              class="page-btn"
-              [class.active]="currentPage() === page"
-              (click)="goToPage(page)"
-            >
-              {{ page }}
-            </button>
+        <button class="page-btn" [class.active]="currentPage() === page" (click)="goToPage(page)">
+          {{ page }}
+        </button>
 
-          }
+        }
 
 
-          <!-- Next -->
-          <button
-            class="page-btn arrow"
-            [disabled]="currentPage() === totalPages()"
-            (click)="nextPage()"
-          >
-            ›
-          </button>
+        <!-- Next -->
+        <button class="page-btn arrow" [disabled]="currentPage() === totalPages()" (click)="nextPage()">
+          ›
+        </button>
 
-        </div>
+      </div>
 
       }
 
@@ -471,8 +388,8 @@
             </strong>
 
             <p>
-فصّل بنود المقايسة ووضّح تكلفة المصنعية منفصلة عن الخامات عشان
-العميل يرتاح.            </p>
+              فصّل بنود المقايسة ووضّح تكلفة المصنعية منفصلة عن الخامات عشان
+              العميل يرتاح. </p>
 
           </div>
 
@@ -492,7 +409,7 @@
             </strong>
 
             <p>
-ارفق صور لشغل شبيه عملته قبل كدا يثبت شطارتك ويعلي فرص اختيارك.            </p>
+              ارفق صور لشغل شبيه عملته قبل كدا يثبت شطارتك ويعلي فرص اختيارك. </p>
 
           </div>
 
@@ -512,8 +429,8 @@
             </strong>
 
             <p>
-العروض اللي بتبعت بدري دايماً بتكسب ثقة الزباين ونقاش التفاصيل أولاً
-بأول.            </p>
+              العروض اللي بتبعت بدري دايماً بتكسب ثقة الزباين ونقاش التفاصيل أولاً
+              بأول. </p>
 
           </div>
 

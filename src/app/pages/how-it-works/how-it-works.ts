@@ -1,9 +1,20 @@
 import { Component, signal, computed } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 
 interface Step {
   num: string;
-  icon: 'edit' | 'quote' | 'lock' | 'tools' | 'check' | 'wallet' | 'briefcase' | 'star' | 'handshake' | 'trophy';
+  icon:
+    | 'edit'
+    | 'quote'
+    | 'lock'
+    | 'tools'
+    | 'check'
+    | 'wallet'
+    | 'briefcase'
+    | 'star'
+    | 'handshake'
+    | 'trophy';
   title: string;
   desc: string;
   note: string;
@@ -13,12 +24,11 @@ interface Step {
 @Component({
   selector: 'app-how-it-works',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './how-it-works.html',
   styleUrl: './how-it-works.css',
 })
 export class HowItWorks {
-
   activeTab = signal<'client' | 'craftsman'>('client');
 
   // ============ رحلة صاحب البيت / المنشأة ============
@@ -108,13 +118,13 @@ export class HowItWorks {
       noteIcon: 'star',
     },
   ];
-openFaq: number | null = null;
+  openFaq: number | null = null;
 
-toggleFaq(index: number) {
-  this.openFaq = this.openFaq === index ? null : index;
-}
+  toggleFaq(index: number) {
+    this.openFaq = this.openFaq === index ? null : index;
+  }
   currentSteps = computed<Step[]>(() =>
-    this.activeTab() === 'client' ? this.clientSteps : this.craftsmanSteps
+    this.activeTab() === 'client' ? this.clientSteps : this.craftsmanSteps,
   );
 
   setTab(tab: 'client' | 'craftsman') {
