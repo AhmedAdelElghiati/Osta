@@ -1,0 +1,66 @@
+const Joi = require('joi');
+const mongoose = require('mongoose');
+const { REQUEST_STATUSES, RECEIVE_MODES } = require('../modules/serviceRequests.constants');
+
+const objectId = Joi.string().custom((value, helpers) => {
+  if (!mongoose.isValidObjectId(value)) return helpers.error('any.invalid');
+  return value;
+}, 'MongoDB ObjectId');
+
+const location = Joi.object({
+  city: Joi.string().trim().min(2).max(100).required().messages({ 'any.required': 'من فضلك اكتب المحافظة.' }),
+  area: Joi.string().trim().min(2).max(100).required().messages({ 'any.required': 'من فضلك اكتب المنطقة.' }),
+  address: Joi.string().trim().min(5).max(300).required().messages({ 'any.required': 'من فضلك اكتب العنوان بالتفصيل.' }),
+  latitude: Joi.number().min(-90).max(90).optional(),
+  longitude: Joi.number().min(-180).max(180).optional(),
+}).required();
+
+const budget = Joi.object({
+  min: Joi.number().min(0).required(),
+  max: Joi.number().min(Joi.ref('min')).required(),
+  currency: Joi.string().valid('EGP').default('EGP'),
+}).required().messages({ '*': 'الميزانية غير صحيحة.' });
+
+const preferredDate = Joi.date().iso().min('now').optional().messages({
+  'date.min': 'التاريخ المطلوب لازم يكون في المستقبل.',
+  'date.format': 'التاريخ المطلوب غير صحيح.',
+});
+
+const requestFields = {
+  title: Joi.string().trim().min(3).max(200).required().messages({ 'any.required': 'من فضلك اكتب عنوان الطلب.' }),
+  description: Joi.string().trim().min(10).max(5000).required().messages({ 'any.required': 'من فضلك اكتب تفاصيل الطلب.' }),
+  craftId: objectId.required().messages({ 'any.required': 'من فضلك اختار نوع الخدمة.', 'any.invalid': 'نوع الخدمة غير صحيح.' }),
+  location,
+  preferredDate,
+  preferredTime: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).optional().messages({ 'string.pattern.base': 'الوقت المطلوب غير صحيح.' }),
+  budget,
+  receiveMode: Joi.string().valid(...RECEIVE_MODES).default('OFFERS'),
+};
+
+const createRequestSchema = Joi.object(requestFields).unknown(false);
+const updateRequestSchema = Joi.object({
+  title: requestFields.title.optional(),
+  description: requestFields.description.optional(),
+  craftId: requestFields.craftId.optional(),
+  location: requestFields.location.optional(),
+  preferredDate,
+  preferredTime: requestFields.preferredTime,
+  budget: requestFields.budget,
+  receiveMode: requestFields.receiveMode,
+}).min(1).unknown(false);
+
+const listQuerySchema = Joi.object({
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(10),
+  status: Joi.string().valid(...REQUEST_STATUSES),
+  craftId: objectId,
+  search: Joi.string().trim().max(100),
+  sortBy: Joi.string().valid('createdAt', 'updatedAt', 'title', 'status').default('createdAt'),
+  sortOrder: Joi.string().valid('asc', 'desc').default('desc'),
+}).unknown(false);
+
+const cancelRequestSchema = Joi.object({
+  reason: Joi.string().trim().min(3).max(500).required().messages({ 'any.required': 'من فضلك اكتب سبب إلغاء الطلب.' }),
+}).unknown(false);
+
+module.exports = { createRequestSchema, updateRequestSchema, listQuerySchema, cancelRequestSchema };
