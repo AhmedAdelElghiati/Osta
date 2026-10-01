@@ -9,8 +9,15 @@ const errorHandler = (err, req, res, next) => {
     return next(err);
   }
 
+  if (err.name === 'MulterError') {
+    const message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'حجم الصورة لازم يكون 5 ميجابايت أو أقل.'
+      : 'ملفات الصور المرفوعة غير صحيحة.';
+    return sendResponse(res, 400, false, message);
+  }
+
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal server error';
+  const message = err.message || 'حصلت مشكلة غير متوقعة.';
 
   if (process.env.NODE_ENV !== 'production') {
     console.error(err);

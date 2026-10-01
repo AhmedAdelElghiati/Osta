@@ -7,8 +7,10 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "test": "jest --runInBand",
-    "seed:admin": "node src/scripts/seedAdmin.js"
+    "seed:admin": "node src/scripts/seedAdmin.js",
+    "seed:service-requests": "node src/scripts/seedServiceRequests.js"
   },
+
   "keywords": [
     "express",
     "mongodb",
@@ -29,7 +31,8 @@
     "joi": "^17.6.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "multer": "^2.4.0"
   },
   "devDependencies": {
     "jest": "^29.7.0",
