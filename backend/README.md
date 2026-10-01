@@ -22,6 +22,8 @@ Copy `.env.example` to `.env` and provide secure values for all secrets.
 
 ## API endpoints
 
+Interactive OpenAPI documentation is available at `http://localhost:5001/api-docs` when the backend is running. Use the **Authorize** button to provide a Bearer access token; browser clients may also authenticate with the HTTP-only `accessToken` cookie.
+
 ### POST /api/auth/register
 
 - Auth: No

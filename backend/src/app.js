@@ -3,11 +3,13 @@ const cors = require('cors');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const swaggerUi = require('swagger-ui-express');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth.routes');
 const adminRoutes = require('./routes/admin.routes');
 const serviceRequestRoutes = require('./routes/serviceRequest.routes');
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
+const swaggerDocument = require('./config/swagger');
 
 dotenv.config();
 
@@ -35,6 +37,11 @@ app.use('/uploads', express.static('uploads'));
 app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is healthy' });
 });
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  customSiteTitle: 'Osta Marketplace API Documentation',
+  swaggerOptions: { persistAuthorization: true },
+}));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
