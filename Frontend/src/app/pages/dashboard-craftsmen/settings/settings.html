@@ -1,0 +1,159 @@
+<div dir="rtl">
+
+  <div class="page-header">
+    <h1>الإعدادات</h1>
+    <p>بياناتك، أمانك، وتنبيهاتك — كلها من هنا</p>
+  </div>
+
+
+  <!-- Account -->
+  <div class="settings-card">
+
+    <h3>بيانات الحساب</h3>
+
+    <div class="row g-3">
+
+      <div class="col-md-6">
+        <label>الاسم</label>
+        <input class="form-control" [(ngModel)]="name">
+      </div>
+
+      <div class="col-md-6">
+        <label>البريد الإلكتروني</label>
+        <input type="email" class="form-control" dir="ltr" [(ngModel)]="email">
+      </div>
+
+      <div class="col-md-6">
+        <label>رقم الموبايل</label>
+        <input type="tel" class="form-control" dir="ltr" [(ngModel)]="phone">
+      </div>
+
+      <div class="col-md-6">
+        <label>المدينة</label>
+        <select class="form-select" [(ngModel)]="city">
+          <option *ngFor="let c of cities" [value]="c">{{ c }}</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button class="btn btn-dark btn-sm mt-4" (click)="saveAccount()">
+      حفظ التغييرات
+    </button>
+
+  </div>
+
+
+  <!-- Withdrawal -->
+  <div class="settings-card">
+
+    <h3>حساب السحب</h3>
+
+    <div class="row g-3">
+
+      <div class="col-md-6">
+        <label>اسم البنك / المحفظة</label>
+        <select class="form-select" [(ngModel)]="provider">
+          <option *ngFor="let p of providers" [value]="p">{{ p }}</option>
+        </select>
+      </div>
+
+      <div class="col-md-6">
+        <label>رقم الحساب / الموبايل</label>
+        <input class="form-control" dir="ltr" [(ngModel)]="payoutNumber">
+      </div>
+
+    </div>
+
+    <button class="btn btn-light btn-sm mt-4" (click)="savePayout()">
+      تحديث حساب السحب
+    </button>
+
+  </div>
+
+
+  <!-- Security -->
+  <div class="settings-card">
+
+    <h3>الأمان</h3>
+
+    <div class="row g-3">
+
+      <div class="col-md-6">
+        <label>كلمة المرور الحالية</label>
+        <input type="password" class="form-control" [(ngModel)]="currentPassword">
+      </div>
+
+      <div class="col-md-6">
+        <label>كلمة المرور الجديدة</label>
+        <input type="password" class="form-control" [(ngModel)]="newPassword">
+      </div>
+
+    </div>
+
+    <button class="btn btn-light btn-sm mt-4" (click)="changePassword()">
+      تحديث كلمة المرور
+    </button>
+
+  </div>
+
+
+  <!-- Notifications -->
+  <div class="settings-card">
+
+    <h3>الإشعارات</h3>
+
+    <div class="setting-row">
+      <span>طلبات جديدة في تخصصي</span>
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.newRequests">
+    </div>
+
+    <div class="setting-row">
+      <span>قبول أو رفض عروضي</span>
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.offerUpdates">
+    </div>
+
+    <div class="setting-row">
+      <span>رسائل العملاء</span>
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.messages">
+    </div>
+
+    <div class="setting-row">
+      <span>تحرير الضمان والأرباح</span>
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.escrow">
+    </div>
+
+  </div>
+
+
+  <!-- Danger Zone -->
+  <div class="settings-card danger">
+
+    <h3>منطقة الخطر</h3>
+
+    <p>حذف الحساب معناه مسح بروفايلك وشغلاناتك وتقييماتك نهائياً.</p>
+
+    <button class="btn btn-outline-danger btn-sm" (click)="deleteAccount()">
+      حذف الحساب
+    </button>
+
+  </div>
+
+</div>
+
+
+<!-- Confirm delete -->
+<div class="modal-overlay" *ngIf="confirmDelete" (click)="closeConfirm()">
+  <div class="modal-box modal-sm" dir="rtl" (click)="$event.stopPropagation()">
+    <h3>حذف الحساب نهائياً</h3>
+    <p>هل أنت متأكد؟ سيتم مسح بروفايلك وكل شغلاناتك نهائياً ولا يمكن الرجوع.</p>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm flex-fill" (click)="confirmDeleteAccount()">حذف نهائي</button>
+      <button class="btn btn-light btn-sm" (click)="closeConfirm()">رجوع</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="app-toast" *ngIf="toast()">{{ toast() }}</div>

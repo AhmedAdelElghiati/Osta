@@ -7,10 +7,18 @@ import { CraftsmenGuide } from './pages/craftsmen-guide/craftsmen-guide';
 import { ContactUs } from './pages/contact-us/contact-us';
 import { HowItWorks } from './pages/how-it-works/how-it-works';
 import { JobsMarket } from './pages/jobs-market/jobs-market';
-import { CustomerDashboard } from './pages/customer-dashboard/customer-dashboard';
-import { CraftsmanDashboardPlaceholder } from './pages/craftsman-dashboard-placeholder/craftsman-dashboard-placeholder';
+import { Developers } from './pages/developers/developers';
 import { authGuard } from './guards/auth-guard';
-
+// Ashraf Dashboard
+import { CustomerDashboard } from './pages/dashboard-customer/customer-dashboard';
+import { DashboardLayout } from './pages/dashboard-craftsmen/dashboard-layout/dashboard-layout';
+import { Home as DashboardHome } from './pages/dashboard-craftsmen/dashboard-home/dashboard-home';
+import { AvailableRequests } from './pages/dashboard-craftsmen/available-requests/available-requests';
+import { SentOffers } from './pages/dashboard-craftsmen/sent-offers/sent-offers';
+import { MyJobs } from './pages/dashboard-craftsmen/my-jobs/my-jobs';
+import { Earnings } from './pages/dashboard-craftsmen/earnings/earnings';
+import { Profile } from './pages/dashboard-craftsmen/profile/profile';
+import { Settings } from './pages/dashboard-craftsmen/settings/settings';
 export const routes: Routes = [
   {
     path: '',
@@ -27,10 +35,46 @@ export const routes: Routes = [
     data: { role: 'customer' },
   },
   {
-    path: 'craftsman-dashboard',
-    component: CraftsmanDashboardPlaceholder,
+    path: 'dashboard',
+    component: DashboardLayout,
     canActivate: [authGuard],
     data: { role: 'artisan' },
+
+    children: [
+      {
+        path: '',
+        redirectTo: 'home',
+        pathMatch: 'full',
+      },
+      {
+        path: 'home',
+        component: DashboardHome,
+      },
+      {
+        path: 'available-requests',
+        component: AvailableRequests,
+      },
+      {
+        path: 'sent-offers',
+        component: SentOffers,
+      },
+      {
+        path: 'my-jobs',
+        component: MyJobs,
+      },
+      {
+        path: 'earnings',
+        component: Earnings,
+      },
+      {
+        path: 'profile',
+        component: Profile,
+      },
+      {
+        path: 'settings',
+        component: Settings,
+      },
+    ],
   },
   {
     path: 'register',
@@ -60,6 +104,10 @@ export const routes: Routes = [
   {
     path: 'jobs-market',
     component: JobsMarket,
+  },
+  {
+    path: 'developers',
+    component: Developers,
   },
   {
     path: 'privacy-policy',

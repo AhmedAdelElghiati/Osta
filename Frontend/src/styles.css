@@ -15,6 +15,7 @@
   --font-family-base: 'Cairo', sans-serif;
 }
 
+
 body {
   font-family: var(--font-family-base);
   background-color: #ffffff;

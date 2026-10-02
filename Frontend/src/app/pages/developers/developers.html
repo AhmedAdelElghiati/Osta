@@ -1,0 +1,442 @@
+<!-- شريط تقدم السكرول -->
+<div class="scroll-progress" #progress aria-hidden="true"></div>
+
+<!-- =========================================================
+     HERO — لوحة رسم هندسي (Blueprint)
+========================================================= -->
+
+<section class="dev-hero" #hero>
+
+  <canvas #particlesCanvas class="particles-canvas" aria-hidden="true"></canvas>
+
+  <div class="hero-grid" aria-hidden="true"></div>
+
+  <!-- crosshair بيمشي ورا الماوس -->
+  <div class="xh-v" #crossV aria-hidden="true"></div>
+  <div class="xh-h" #crossH aria-hidden="true"></div>
+  <div class="xh-read" #crossRead aria-hidden="true"></div>
+
+  <div class="container position-relative hero-container">
+
+    <div class="hero-layout">
+
+      <div class="hero-content">
+
+        <div class="hero-badge">
+          <span class="badge-dot"></span>
+          فريق التطوير الرسمي لمنصة الاسطي
+        </div>
+
+        <h1 class="hero-title">
+          <span class="hero-title-lead">إحنا</span>
+          <span class="hero-typed">
+            <span class="typed-text">{{ typedText }}</span><span class="typing-cursor" aria-hidden="true"></span>
+          </span>
+        </h1>
+
+        <p class="hero-description">
+          3 عقول مختلفة، شغف واحد، ومنصة واحدة بنبنيها من الصفر.
+          بنجمع بين <strong>التصميم</strong> و<strong>البرمجة</strong> و<strong>التجربة</strong>
+          عشان نطلع منتج يستاهل اسم <span class="highlight">الأسطى.</span>
+        </p>
+
+        <div class="hero-actions">
+          <a href="/contact-us" class="hero-btn hero-btn-primary">
+            <span>تواصل معانا </span>
+            <i class="bi bi-arrow-down-circle"></i>
+          </a>
+          <a href="/how-it-works" class="hero-btn hero-btn-ghost">
+            <span>إزاي بنشتغل؟</span>
+            <i class="bi bi-arrow-left"></i>
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Title block زي اللوحات الهندسية -->
+      <aside class="title-block" aria-label="بيانات المشروع">
+        <div class="title-block-head">
+          <i class="bi bi-rulers"></i>
+          <span>بطاقة اللوحة</span>
+        </div>
+
+        <dl class="title-block-body">
+          <div class="tb-row" *ngFor="let row of titleBlock; trackBy: trackByKey">
+            <dt>{{ row.key }}</dt>
+            <dd>{{ row.value }}</dd>
+          </div>
+        </dl>
+
+        <div class="title-block-stamp">معتمد للتنفيذ</div>
+      </aside>
+
+    </div>
+
+  </div>
+
+  <a href="#stats" class="hero-scroll" aria-label="انزل لتحت">
+    <span>انزل شوف</span>
+    <i class="bi bi-chevron-down"></i>
+  </a>
+
+</section>
+
+
+<!-- =========================================================
+     STATS
+========================================================= -->
+
+<section class="stats-section" id="stats" #statsSection>
+  <div class="container">
+    <div class="stats-grid">
+
+      <div
+        class="stat-card"
+        *ngFor="let counter of counters; let i = index; trackBy: trackByCounterLabel">
+
+        <i [class]="'stat-icon bi ' + counter.icon" aria-hidden="true"></i>
+
+        <div class="stat-number">
+          <span class="stat-value">{{ fmt(displayCounters[i]) }}</span><span class="stat-suffix">{{ counter.suffix }}</span>
+        </div>
+
+        <div class="stat-label">{{ counter.label }}</div>
+
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================================================
+     INTRO
+========================================================= -->
+
+<section class="intro-section">
+  <div class="container">
+    <div class="intro-grid">
+
+      <div class="intro-content reveal">
+
+        <h2>
+          <span class="intro-soft">مش مجرد مطورين.</span>
+          <span class="intro-strong">إحنا بنبني تجربة.</span>
+        </h2>
+
+        <p>
+          فريق الأسطى هو مجموعة من المطورين والمصممين
+          اللي اجتمعوا على هدف واحد:
+          <b>نخلي التكنولوجيا أبسط، أسرع، وأجمل.</b>
+        </p>
+
+        <p>
+          من أول الـ wireframe لحد آخر سطر كود،
+          كل تفصيلة بتعدي علينا عشان المنتج النهائي
+          يكون سريع، واضح، وقابل للتطور.
+        </p>
+
+      </div>
+
+      <!-- دايرتين متقاطعتين: التصميم + البرمجة + التجربة -->
+      <div class="intro-visual reveal" role="img" aria-label="التصميم والبرمجة والتجربة بيتقاطعوا في منتج الأسطى">
+        <div class="venn venn-design"><span>التصميم</span></div>
+        <div class="venn venn-code"><span>البرمجة</span></div>
+        <div class="venn venn-ux"><span>التجربة</span></div>
+        <div class="venn-core">
+          <i class="bi bi-tools"></i>
+          <span>الأسطى</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================================================
+     TEAM
+========================================================= -->
+
+<section class="team-section" id="team">
+  <div class="container">
+
+    <div class="section-heading text-center reveal">
+      <h2>قابل الناس اللي ورا الكود</h2>
+      <p>
+        كل واحد فينا عنده دور مختلف،
+        لكن كلنا بنشتغل على نفس الهدف.
+      </p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+
+      <div
+        class="col-md-6 col-xl-4 reveal"
+        [style.--d]="(i * 110) + 'ms'"
+        *ngFor="let dev of developers; let i = index; trackBy: trackByDevName">
+
+        <article
+          class="dev-card"
+          [style.--card-gradient]="dev.gradient"
+          [style.--card-glow]="dev.glow"
+          (mousemove)="onCardMove($event)"
+          (mouseleave)="onCardLeave($event)">
+
+          <div class="card-band"></div>
+          <div class="card-shine"></div>
+
+          <div class="dev-avatar-wrap">
+
+            <div class="dev-avatar" [style.background]="dev.gradient">
+
+              <img
+                *ngFor="let image of dev.images; trackBy: trackByImage"
+                [src]="image"
+                [alt]="dev.name"
+                class="dev-img"
+                [class.active]="currentImages[i] === image">
+
+              <span class="avatar-initial">{{ dev.name.charAt(0) }}</span>
+
+            </div>
+
+            <span class="status-dot" title="متاح"></span>
+
+          </div>
+
+          <div class="dev-info text-center">
+
+            <div class="dev-role">{{ dev.role }}</div>
+
+            <h3>{{ dev.name }}</h3>
+
+            <p>{{ dev.bio }}</p>
+
+            <div class="skills">
+              <span
+                *ngFor="let skill of dev.skills; trackBy: trackBySkillName"
+                class="skill">
+                {{ skill.name }}
+              </span>
+            </div>
+
+            <div class="dev-social">
+              <a *ngIf="dev.social.github" [href]="dev.social.github" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+                <i class="bi bi-github"></i>
+              </a>
+              <a *ngIf="dev.social.linkedin" [href]="dev.social.linkedin" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <i class="bi bi-linkedin"></i>
+              </a>
+              <a *ngIf="dev.social.email" [href]="'mailto:' + dev.social.email" aria-label="Email">
+                <i class="bi bi-envelope"></i>
+              </a>
+            </div>
+
+            <button type="button" class="profile-btn" (click)="openDev(dev)">
+              <span>شوف الملف الكامل</span>
+              <i class="bi bi-arrow-up-left"></i>
+            </button>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- =========================================================
+     WORKFLOW — ترتيب فعلي، فالأرقام هنا مقصودة
+========================================================= -->
+
+<section class="workflow-section" id="workflow">
+  <div class="container">
+
+    <div class="section-heading text-center reveal">
+      <h2>من أول فكرة لحد الإطلاق</h2>
+      <p>طريقة شغل واضحة، منظمة، وبدون تعقيد.</p>
+    </div>
+
+    <ol class="workflow-grid">
+      <li
+        class="workflow-item reveal"
+        [style.--d]="(i * 140) + 'ms'"
+        *ngFor="let item of workflow; let i = index; trackBy: trackByWorkflowNumber">
+
+        <div class="workflow-node">
+          <span class="workflow-number">{{ item.number }}</span>
+        </div>
+
+        <div class="workflow-body">
+          <i [class]="'workflow-icon bi ' + item.icon" aria-hidden="true"></i>
+          <h3>{{ item.title }}</h3>
+          <p>{{ item.text }}</p>
+        </div>
+
+      </li>
+    </ol>
+
+  </div>
+</section>
+
+
+<!-- =========================================================
+     TOOLS — شنطة العدة
+========================================================= -->
+
+<section class="tech-section" aria-label="الأدوات اللي بنشتغل بيها">
+
+  <div class="container">
+    <div class="section-heading text-center reveal">
+      <h2>شنطة عدة الأسطى</h2>
+      <p>أدوات حديثة، معمارية نضيفة، ونتايج بجد.</p>
+    </div>
+  </div>
+
+  <div class="marquee" dir="ltr">
+    <div class="marquee-track">
+      <div
+        class="tool"
+        *ngFor="let tech of marqueeItems; trackBy: trackByIndex"
+        [style.--tech-color]="tech.color">
+        <i [class]="'bi ' + tech.icon" aria-hidden="true"></i>
+        <span>{{ tech.name }}</span>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- =========================================================
+     CTA
+========================================================= -->
+
+<section class="cta-section">
+  <div class="container">
+
+    <div class="cta-box reveal">
+
+      <h2>
+        عندك فكرة؟
+        <span>خلينا نبنيها.</span>
+      </h2>
+
+      <p>
+        سواء محتاج موقع، تطبيق، نظام كامل
+        أو مجرد استشارة تقنية، فريق الأسطى جاهز.
+      </p>
+
+      <div class="cta-actions">
+        <a [href]="'mailto:' + contactEmail" class="cta-main-btn">
+          <i class="bi bi-envelope-fill"></i>
+          كلم الفريق
+        </a>
+
+        <button type="button" class="cta-copy-btn" (click)="copyEmail()">
+          <i class="bi bi-clipboard"></i>
+          انسخ الإيميل
+        </button>
+
+        <a href="https://github.com/" target="_blank" rel="noopener noreferrer" class="cta-github-btn">
+          <i class="bi bi-github"></i>
+          GitHub
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- إشعار النسخ -->
+<div class="toast" [class.show]="toastVisible" role="status" aria-live="polite">
+  <i class="bi bi-check-circle-fill"></i>
+  اتنسخ الإيميل: {{ contactEmail }}
+</div>
+
+
+<!-- =========================================================
+     MODAL
+========================================================= -->
+
+<div
+  class="profile-modal"
+  [class.open]="!!selectedDev"
+  [attr.aria-hidden]="!selectedDev"
+  (click)="closeDev()">
+
+  <div
+    class="profile-dialog"
+    *ngIf="selectedDev"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="selectedDev.name"
+    (click)="$event.stopPropagation()">
+
+    <button type="button" class="modal-close" (click)="closeDev()" aria-label="إغلاق">
+      <i class="bi bi-x-lg"></i>
+    </button>
+
+    <div class="modal-cover" [style.background]="selectedDev.gradient">
+      <div class="modal-cover-glow"></div>
+    </div>
+
+    <div class="modal-content">
+
+      <div class="modal-avatar">
+        <span class="modal-avatar-initial" [style.background]="selectedDev.gradient">{{ selectedDev.name.charAt(0) }}</span>
+      </div>
+
+      <div class="text-center">
+        <span class="modal-role">{{ selectedDev.role }}</span>
+        <h2>{{ selectedDev.name }}</h2>
+      </div>
+
+      <div class="quote-box">
+        <i class="bi bi-quote"></i>
+        <p>{{ selectedDev.quote }}</p>
+      </div>
+
+      <p class="modal-bio">{{ selectedDev.longBio }}</p>
+
+      <div class="modal-skills">
+        <h4>المهارات</h4>
+
+        <div class="modal-skill" *ngFor="let skill of selectedDev.skills; let k = index; trackBy: trackBySkillName">
+          <div class="skill-head">
+            <span>{{ skill.name }}</span>
+            <span>{{ skill.level }}%</span>
+          </div>
+          <div class="skill-track">
+            <div class="skill-fill"
+              [style.--w]="skill.level + '%'"
+              [style.animation-delay]="(k * 90) + 'ms'"
+              [style.background]="selectedDev.gradient">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-social">
+        <a *ngIf="selectedDev.social.github" [href]="selectedDev.social.github" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+          <i class="bi bi-github"></i>
+        </a>
+        <a *ngIf="selectedDev.social.linkedin" [href]="selectedDev.social.linkedin" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+          <i class="bi bi-linkedin"></i>
+        </a>
+        <a *ngIf="selectedDev.social.email" [href]="'mailto:' + selectedDev.social.email" aria-label="Email">
+          <i class="bi bi-envelope"></i>
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
