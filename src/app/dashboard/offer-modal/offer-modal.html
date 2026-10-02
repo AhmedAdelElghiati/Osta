@@ -1,0 +1,61 @@
+<div class="modal-overlay" (click)="closed.emit()">
+  <div class="modal-box offer-box" dir="rtl" (click)="$event.stopPropagation()">
+
+    <div class="offer-head">
+      <div>
+        <h3>تقديم عرض على «{{ request.title }}»</h3>
+        <p>
+          العميل: <b>{{ request.client }}</b> •
+          الميزانية المتوقعة: <b>{{ request.budget ? (request.budget | number) + ' ج.م' : 'مرنة' }}</b>
+        </p>
+      </div>
+      <button class="x-btn" (click)="closed.emit()" aria-label="إغلاق">✕</button>
+    </div>
+
+    <div class="rows-head">
+      <label>بنود المقايسة</label>
+      <button class="link-btn" (click)="addRow()">+ إضافة بند</button>
+    </div>
+
+    <div class="om-row" *ngFor="let row of rows; let i = index">
+      <input class="form-control form-control-sm" placeholder="وصف البند" [(ngModel)]="row.desc">
+      <input class="form-control form-control-sm amt" type="number" min="0" placeholder="0" [(ngModel)]="row.amount">
+      <button class="x-btn" (click)="removeRow(i)" aria-label="حذف البند">✕</button>
+    </div>
+
+    <div class="total-box">
+      <span>الإجمالي</span>
+      <strong>{{ total | number }} <small>ج.م</small></strong>
+    </div>
+
+    <div class="two-cols">
+      <div>
+        <label>مدة التنفيذ</label>
+        <select class="form-select form-select-sm" [(ngModel)]="duration">
+          <option *ngFor="let d of durations" [value]="d">{{ d }}</option>
+        </select>
+      </div>
+      <div>
+        <label>ضمان الشغل</label>
+        <select class="form-select form-select-sm" [(ngModel)]="warranty">
+          <option *ngFor="let w of warranties" [value]="w">{{ w }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="msg-box">
+      <label>رسالة للعميل <span>(اختياري)</span></label>
+      <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="msg"
+        placeholder="مثال: هزور النهاردة أو بكرة الصبح وأحدد السعر النهائي بعد المعاينة مجاناً"></textarea>
+    </div>
+
+    <p class="terms">بالتقديم أنا أوافق إن عمولة المنصة 3% تُخصم من قيمة الشغلانة وقت تحرير الضمان فقط.</p>
+    <p class="error" *ngIf="error">{{ error }}</p>
+
+    <div class="actions">
+      <button class="btn btn-dark btn-sm flex-fill" (click)="submit()">إرسال العرض للعميل</button>
+      <button class="btn btn-light btn-sm" (click)="closed.emit()">إلغاء</button>
+    </div>
+
+  </div>
+</div>

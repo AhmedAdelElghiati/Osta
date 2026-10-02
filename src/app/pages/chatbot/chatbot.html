@@ -1,0 +1,89 @@
+<button
+  class="btn btn-warning rounded-circle position-fixed bottom-0 start-0 m-4 shadow-lg
+         d-flex justify-content-center align-items-center chatbot-fab"
+  style="width: 60px; height: 60px; z-index: 1050; font-size: 24px;"
+  (click)="toggleChat()"
+  title="مساعد الأسطى الذكي"
+>
+  {{ isOpen ? '✖' : '👷' }}
+</button>
+
+<div
+  *ngIf="isOpen"
+  class="card position-fixed bottom-0 start-0 m-4 shadow-lg rounded-4 overflow-hidden chatbot-window"
+  style="
+    width: 370px;
+    height: 520px;
+    z-index: 1050;
+    bottom: 80px !important;
+    display: flex;
+    flex-direction: column;
+  "
+>
+  <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center p-3">
+    <div class="d-flex align-items-center gap-2">
+      <span style="font-size: 22px;">👷</span>
+      <div>
+        <h6 class="m-0 fw-bold">الأسطى</h6>
+        <small style="font-size: 11px; opacity: .8;">مساعدك الذكي للحرف والخدمات</small>
+      </div>
+    </div>
+    <button type="button" class="btn-close" (click)="toggleChat()" aria-label="إغلاق"></button>
+  </div>
+
+  <div #scrollContainer class="card-body overflow-auto p-3" style="flex: 1; background: #f8f9fa;">
+    <div
+      *ngFor="let msg of messages"
+      class="mb-3 d-flex"
+      [class.justify-content-end]="msg.sender === 'user'"
+    >
+      <div
+        class="p-2 px-3 rounded-3 shadow-sm message-bubble"
+        style="max-width: 80%; white-space: pre-wrap; line-height: 1.5;"
+        [ngClass]="msg.sender === 'user' ? 'bg-primary text-white' : 'bg-white text-dark'"
+      >
+        {{ msg.text }}
+      </div>
+    </div>
+
+    <div *ngIf="loading" class="d-flex mb-3">
+      <div class="bg-white text-muted shadow-sm p-2 px-3 rounded-3 small d-flex align-items-center gap-2">
+        <span class="typing-dots"><span></span><span></span><span></span></span>
+        <span>الأسطى بيكتب...</span>
+      </div>
+    </div>
+
+    <div *ngIf="messages.length <= 2 && !loading" class="d-flex flex-wrap gap-2 mt-2">
+      <button
+        *ngFor="let q of quickReplies"
+        type="button"
+        class="btn btn-sm btn-outline-warning rounded-pill"
+        (click)="sendQuickReply(q)"
+      >
+        {{ q }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card-footer bg-white border-top p-2">
+    <form (ngSubmit)="sendMessage()" class="d-flex gap-2">
+      <input
+        type="text"
+        class="form-control form-control-sm rounded-pill"
+        placeholder="اسأل عن فني، خدمة، أو سعر..."
+        [(ngModel)]="userInput"
+        name="userInput"
+        autocomplete="off"
+        [disabled]="loading"
+      >
+      <button
+        type="submit"
+        class="btn btn-warning btn-sm rounded-circle d-flex justify-content-center align-items-center"
+        style="width: 38px; height: 38px; flex-shrink: 0;"
+        [disabled]="loading || !userInput.trim()"
+      >
+        ➤
+      </button>
+    </form>
+  </div>
+</div>

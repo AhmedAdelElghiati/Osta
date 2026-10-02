@@ -1,0 +1,76 @@
+<nav class="navbar dashboard-navbar">
+
+  <div class="navbar-inner">
+
+    <!-- Mobile Menu -->
+    <button
+      class="menu-btn d-lg-none"
+      type="button"
+      (click)="onToggleSidebar()"
+      aria-label="القائمة">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <!-- Search (يمين) -->
+    <div class="dashboard-search d-none d-md-block">
+      <input
+  type="text"
+  class="search-input"
+  placeholder="بحث في الطلبات المتاحة..."
+  [(ngModel)]="searchText">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <!-- Actions (يسار) -->
+    <div class="navbar-right">
+
+      <!-- Availability -->
+      <button
+        class="availability-btn"
+        [class.available]="isAvailable"
+        [class.unavailable]="!isAvailable"
+        (click)="toggleAvailability()">
+        <span class="status-dot"></span>
+        <span>{{ isAvailable ? 'متاح' : 'غير متاح' }}</span>
+      </button>
+
+      <!-- Notifications -->      <!-- Notifications -->
+      <div class="notif-wrapper">
+        <button
+          class="icon-btn"
+          (click)="toggleNotifications($event)"
+          aria-label="الإشعارات">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span *ngIf="hasNew" class="notification-dot"></span>
+        </button>
+
+        <div class="notification-menu" [class.open]="notificationsOpen" (click)="$event.stopPropagation()">
+          <div class="notification-header">
+            <strong>الإشعارات</strong>
+            <button class="link-btn" (click)="markNotificationsRead()">تعليم الكل كمقروء</button>
+          </div>
+          <div class="notification-list">
+            <div
+              *ngFor="let notification of notifications"
+              class="notification-item"
+              [class.read]="notification.read"
+              (click)="openNotification(notification)">
+              <strong>{{ notification.title }}</strong>
+              <small>{{ notification.message }}</small>
+            </div>
+            <div *ngIf="!notifications.length" class="notification-empty">مفيش إشعارات جديدة</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</nav>

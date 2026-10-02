@@ -1,0 +1,97 @@
+<div dir="rtl">
+
+  <div class="page-header">
+    <h1>عروضي المرسلة</h1>
+    <p>تابع ردود العملاء على عروضك — أول ما عميل يقبل عرضك بيتحول لشغلانة ومبلغك بيتحجز في الضمان</p>
+  </div>
+
+  <div class="tabs mb-4">
+    <button
+      *ngFor="let tab of tabs"
+      [class.active]="activeTab === tab.key"
+      (click)="activeTab = tab.key">
+      {{ tab.label }} ({{ count(tab.key) }})
+    </button>
+  </div>
+
+  <div
+    *ngFor="let offer of filteredOffers"
+    class="offer-card mb-3"
+    [class.closed]="offer.status === 'rejected' || offer.status === 'withdrawn'">
+
+    <div>
+
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <h3>{{ offer.title }}</h3>
+        <span class="status" [ngClass]="offer.status">
+          {{ statusLabels[offer.status] }}
+        </span>
+      </div>
+
+      <p class="meta">
+        {{ offer.client }}
+        • {{ offer.area }}
+        • مدة التنفيذ: {{ offer.duration }}
+        • ضمان {{ offer.warranty }}
+        • أُرسل {{ offer.sent }}
+      </p>
+
+      <p class="rejected-note" *ngIf="offer.status === 'rejected'">
+        اختار العميل عرضاً آخر — حاول تظبط سعرك أو مدة التنفيذ في المرة الجاية.
+      </p>
+
+      <p class="accepted-note" *ngIf="offer.status === 'accepted' && offer.jobId">
+        اتحولت لشغلانة — <span dir="ltr">#{{ offer.jobId }}</span>
+      </p>
+
+    </div>
+
+    <div class="offer-side">
+
+      <div class="text-lg-start">
+        <small>سعر عرضك</small>
+        <h4>{{ offer.price | number }} ج.م</h4>
+      </div>
+
+      <div class="offer-actions">
+        <button
+          *ngIf="offer.status === 'pending'"
+          class="withdraw-btn"
+          (click)="askWithdraw(offer)">
+          سحب العرض
+        </button>
+
+        <button
+          *ngIf="offer.status === 'accepted'"
+          class="btn btn-dark btn-sm"
+          (click)="openJob()">
+          فتح الشغلانة
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div *ngIf="!filteredOffers.length" class="offers-empty">
+    مفيش عروض في هذا التصنيف
+  </div>
+
+</div>
+
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" *ngIf="confirmOffer" (click)="closeConfirm()">
+  <div class="modal-box modal-sm" dir="rtl" (click)="$event.stopPropagation()">
+    <h3>سحب العرض</h3>
+    <p>هل تريد سحب عرضك؟ لن يستطيع العميل رؤيته أو قبوله بعد السحب.</p>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm flex-fill" (click)="confirmWithdraw()">سحب العرض</button>
+      <button class="btn btn-light btn-sm" (click)="closeConfirm()">رجوع</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="app-toast" *ngIf="toast">{{ toast }}</div>

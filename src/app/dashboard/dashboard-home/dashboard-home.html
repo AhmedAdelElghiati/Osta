@@ -1,0 +1,147 @@
+<div dir="rtl">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>أهلاً يا أسطى إبراهيم 👋</h1>
+      <p>عندك شغل جديد مستني — شوف الطلبات المناسبة لصنعتك</p>
+    </div>
+    <span>{{ today }}</span>
+  </div>
+
+  <!-- Statistics -->
+  <div class="row g-3 mb-5">
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <small>عروض بانتظار الرد</small>
+        <strong>{{ pendingOffers }}</strong>
+        <span>عرض</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <small>شغلانات جارية</small>
+        <strong>{{ activeJobs.length }}</strong>
+        <span>شغلانة</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <small>أرباح الشهر</small>
+        <strong>{{ monthlyEarnings | number }}</strong>
+        <span>ج.م</span>
+      </div>
+    </div>
+
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <small>تقييمك</small>
+        <strong>4.8</strong>
+        <span class="rating">★</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- New Requests -->
+  <section class="mb-5">
+
+    <div class="section-title">
+      <h2>طلبات جديدة مناسبة لصنعتك</h2>
+      <a routerLink="/dashboard/available-requests">كل الطلبات المتاحة</a>
+    </div>
+
+    <div class="row g-3">
+
+      <div class="col-md-4" *ngFor="let request of requests">
+        <div class="request-card" [class.fresh]="request.fresh">
+
+          <div>
+            <div class="d-flex justify-content-between gap-2">
+              <h5>{{ request.title }}</h5>
+              <span *ngIf="request.fresh" class="new-badge">جديد</span>
+            </div>
+
+            <small>{{ request.area }} • {{ request.dist }} • {{ request.posted }}</small>
+
+            <p>{{ shortDesc(request.desc) }}</p>
+          </div>
+
+          <div class="card-footer-custom">
+            <strong *ngIf="request.budget; else flexible">
+              {{ request.budget | number }} ج.م
+            </strong>
+            <ng-template #flexible>
+              <span class="flex-budget">ميزانية مرنة</span>
+            </ng-template>
+
+            <button class="btn btn-dark btn-sm" (click)="openOffer(request)">
+              قدّم عرض
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-12" *ngIf="!requests.length">
+        <div class="home-empty">
+          مفيش طلبات جديدة حالياً — هنبلغك أول ما ينزل طلب في تخصصك
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- Active Jobs -->
+  <section>
+
+    <div class="section-title">
+      <h2>شغلاناتك الجارية</h2>
+      <a routerLink="/dashboard/my-jobs">كل الشغلانات</a>
+    </div>
+
+    <div class="active-jobs">
+
+      <div class="job-row" *ngFor="let job of activeJobs">
+
+        <div>
+          <h5>{{ job.title }}</h5>
+          <p>
+            {{ job.client }} • {{ job.note }}
+            <ng-container *ngIf="job.escrow">
+              • <b class="escrow-text">{{ job.escrow | number }} ج.م في الضمان</b>
+            </ng-container>
+          </p>
+        </div>
+
+        <span class="job-status" [ngClass]="phaseClass[job.phase]">
+          {{ phaseLabels[job.phase] }}
+        </span>
+
+        <a routerLink="/dashboard/my-jobs" class="btn btn-light btn-sm">إدارة الشغلانة</a>
+
+      </div>
+
+      <div class="home-empty border-0" *ngIf="!activeJobs.length">
+        مفيش شغلانات جارية حالياً
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+
+<app-offer-modal
+  *ngIf="selectedRequest"
+  [request]="selectedRequest"
+  (closed)="closeOffer()"
+  (sent)="onOfferSent($event)">
+</app-offer-modal>
+
+<div class="app-toast" *ngIf="toast">{{ toast }}</div>
