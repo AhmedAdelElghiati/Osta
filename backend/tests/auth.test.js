@@ -134,6 +134,27 @@ describe('Auth API', () => {
     expect(response.body.data.email).toBe('alice@example.com');
   });
 
+  test('refreshes the session using the refresh cookie without a request body', async () => {
+    const loginResponse = await request(app)
+      .post('/api/auth/login')
+      .send({
+        email: 'alice@example.com',
+        password: 'StrongPass123!',
+      });
+
+    const cookies = loginResponse.headers['set-cookie'].map((cookie) => cookie.split(';')[0]);
+
+    const response = await request(app)
+      .post('/api/auth/refresh')
+      .set('Cookie', cookies)
+      .send({})
+      .expect(200);
+
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.accessToken).toBeTruthy();
+    expect(response.body.data.user.email).toBe('alice@example.com');
+  });
+
   test('requires authentication for profile route', async () => {
     const response = await request(app).get('/api/auth/me').expect(401);
     expect(response.body.success).toBe(false);

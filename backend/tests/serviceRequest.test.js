@@ -4,6 +4,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 const app = require('../src/app');
 const { connectDatabase } = require('../src/config/database');
 const Craft = require('../src/models/Craft');
+const ServiceRequest = require('../src/models/ServiceRequest');
 
 jest.setTimeout(30000);
 
@@ -59,6 +60,26 @@ describe('Service Requests API', () => {
     expect(created.body.data.status).toBe('DRAFT');
   });
 
+  test('accepts a craft slug and stores the matching craft id', async () => {
+    const created = await request(app)
+      .post('/api/v1/requests')
+      .set('Cookie', [customerCookie])
+      .send({ ...requestBody(), craftId: craft.slug, title: 'Slug craft request', description: 'اختبار تحويل الحرفة من slug إلى ObjectId قبل الحفظ.' })
+      .expect(201);
+
+    expect(created.body.data.craftId._id).toBe(craft._id.toString());
+  });
+
+  test('creates default crafts while creating a request when needed', async () => {
+    const created = await request(app)
+      .post('/api/v1/requests')
+      .set('Cookie', [customerCookie])
+      .send({ ...requestBody(), craftId: 'plumbing', title: 'Default craft request', description: 'اختبار تجهيز كتالوج الحرف الافتراضي وقت إنشاء الطلب.' })
+      .expect(201);
+
+    expect(created.body.data.craftId.slug).toBe('plumbing');
+  });
+
   test('enforces ownership and lifecycle transitions', async () => {
     await request(app).get(`/api/v1/requests/${requestId}`).set('Cookie', [otherCustomerCookie]).expect(404);
     await request(app).post(`/api/v1/requests/${requestId}/publish`).set('Cookie', [customerCookie]).expect(200);
@@ -77,6 +98,26 @@ describe('Service Requests API', () => {
     expect(timeline.body.data.map((event) => event.type)).toEqual([
       'REQUEST_CREATED', 'REQUEST_PUBLISHED', 'REQUEST_CANCELLED', 'REQUEST_REPUBLISHED',
     ]);
+  });
+
+  test('keeps the public market available when a legacy request has an invalid customer id', async () => {
+    await ServiceRequest.collection.insertOne({
+      customerId: 'legacy-customer-id',
+      title: 'Legacy market request',
+      description: 'طلب قديم ببيانات مالك غير صالحة للاختبار.',
+      craftId: craft._id.toString(),
+      location: { city: 'القاهرة', area: 'المعادي', address: 'شارع الاختبار' },
+      budget: { min: 100, max: 200, currency: 'EGP' },
+      receiveMode: 'OFFERS',
+      status: 'PUBLISHED',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    const market = await request(app).get('/api/v1/market?limit=50').expect(200);
+
+    expect(market.body.success).toBe(true);
+    expect(market.body.data.items.some((item) => item.title === 'Legacy market request')).toBe(false);
   });
 
   test('uploads and deletes allowed images while rejecting unsupported MIME types', async () => {

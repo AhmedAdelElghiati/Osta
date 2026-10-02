@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 
 import { Auth, CurrentUser } from '../../services/auth';
 import { Craft, RequestVm, ServiceRequests } from '../../services/service-requests';
+import { Marketplace } from '../../services/marketplace';
 
 import { DashboardHome } from './components/dashboard-home/dashboard-home';
 import { DashboardRequests } from './components/dashboard-requests/dashboard-requests';
@@ -35,6 +36,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private auth: Auth,
     private requestsApi: ServiceRequests,
+    private marketplace: Marketplace,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -56,6 +58,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
   requestsLoading = true;
   requestsError = '';
   crafts: Craft[] = [];
+  craftsLoading = false;
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
@@ -87,7 +90,10 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     );
 
     this.reloadRequests();
-    this.requestsApi.loadCrafts().subscribe();
+    this.loadCrafts();
+    this.loadWallet();
+    this.loadNotifications();
+    this.loadRecentOffers();
   }
 
   ngOnDestroy(): void {
@@ -110,87 +116,27 @@ export class CustomerDashboard implements OnInit, OnDestroy {
       },
     });
   }
-  // لسه مفيش endpoint للعروض في الباك اند، فبنسيب الحقل فاضي هنا.
+
+  loadCrafts(): void {
+    this.craftsLoading = true;
+    this.requestsApi.loadCrafts().subscribe({
+      next: (crafts) => {
+        this.craftsLoading = false;
+        if (
+          this.selectedCraft &&
+          !crafts.some((craft) => craft.id === this.selectedCraft || craft.slug === this.selectedCraft)
+        ) {
+          this.selectedCraft = '';
+        }
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.craftsLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
   requestDetails: any = {};
-  offerGroup = 'g-kitchen';
-  offerGroups = [
-    {
-      id: 'g-kitchen',
-      title: 'تجديد مطبخ أرو أمريكي',
-      status: '3 عروض',
-      budget: 12000,
-      location: 'مدينة نصر',
-      photos: 4,
-      expires: 'متبقي 3 أيام',
-    },
-    {
-      id: 'g-ac',
-      title: 'تركيب تكييفين سبليت',
-      status: '2 عروض',
-      budget: 20000,
-      location: 'مدينة نصر',
-      photos: 2,
-      expires: 'متبقي يومين',
-    },
-    {
-      id: 'g-bath',
-      title: 'صيانة سباكة ومحابس الحمام',
-      status: 'مقبول',
-      budget: 1400,
-      location: 'مدينة نصر',
-      photos: 0,
-      expires: '',
-    },
-  ];
-  kitchenOffers = [
-    {
-      name: 'الأسطى محمود الشريف',
-      subtitle: 'كبير نجارين معتمد',
-      rating: 4.9,
-      price: 10500,
-      duration: '8 أيام',
-      warranty: 'سنة',
-      disassembly: 'متاح',
-    },
-    {
-      name: 'ورشة الأمانة للديكور',
-      subtitle: 'موبيليا معتمدة',
-      rating: 4.7,
-      price: 9800,
-      duration: '10 أيام',
-      warranty: '6 شهور',
-      disassembly: 'متاح',
-    },
-    {
-      name: 'ورشة حديث للموبيليا',
-      subtitle: 'نجارة وديكور',
-      rating: 4.6,
-      price: 11200,
-      duration: '7 أيام',
-      warranty: 'سنة',
-      disassembly: 'غير متاح',
-    },
-  ];
-  acOffers = [
-    {
-      name: 'شركة برنس للتكييف',
-      subtitle: 'متخصص تكييف وتبريد',
-      rating: 4.8,
-      price: 17900,
-      duration: 'يوم واحد',
-      warranty: 'سنتين',
-      installation: 'شامل التركيب',
-    },
-    {
-      name: 'الأسطى سيد التكييفات',
-      subtitle: 'فني تكييف معتمد',
-      rating: 4.6,
-      price: 18600,
-      duration: 'يومين',
-      warranty: 'سنة',
-      installation: 'شامل التركيب',
-    },
-  ];
   selectedCraft = ''; // craftId الحقيقي
   newRequestTitle = '';
   newRequestDescription = '';
@@ -221,52 +167,48 @@ export class CustomerDashboard implements OnInit, OnDestroy {
   activePage = 'home';
   sidebarOpen = false;
   notificationsOpen = false;
-  notifications = [
-    {
-      icon: 'bi-tag',
-      title: 'عرض جديد',
-      description: 'على «تركيب تكييفين سبليت»',
-      details: 'الأسطى سيد التكييفات · 18,600 ج.م',
-      time: 'قبل 10 دقائق',
-      read: false,
-    },
-    {
-      icon: 'bi-chat',
-      title: 'رسالة جديدة',
-      description: 'من الأسطى إبراهيم صقر',
-      details: '"هرجع أحدثك بعد الضهر"',
-      time: 'قبل ساعة',
-      read: false,
-    },
-    {
-      icon: 'bi-calendar-check',
-      title: 'تأكيد موعد المعاينة',
-      description: 'تأسيس إضاءة سمارت هوم',
-      details: 'اليوم 6:00 م',
-      time: '',
-      read: true,
-    },
-    {
-      icon: 'bi-file-earmark-text',
-      title: 'مقايسة جديدة',
-      description: 'من ورشة الأمانة',
-      details: 'تجديد مطبخ أرو أمريكي · 9,800 ج.م',
-      time: 'أمس',
-      read: true,
-    },
-  ];
+  notifications: any[] = [];
+  notificationsLoading = false;
+
+  loadNotifications() {
+    this.notificationsLoading = true;
+    this.marketplace.notifications().subscribe({
+      next: (res) => {
+        this.notifications = res.data || [];
+        this.notificationsLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.notificationsLoading = false;
+        this.cdr.markForCheck();
+      }
+    });
+  }
 
   get unreadNotificationsCount() {
-    return this.notifications.filter((notification) => !notification.read).length;
+    return this.notifications.filter((notification) => !notification.isRead).length;
   }
   closeNotifications() {
     this.notificationsOpen = false;
   }
+  
   markAllNotificationsRead() {
-    this.notifications.forEach((notification) => {
-      notification.read = true;
+    this.marketplace.markAllNotificationsRead().subscribe(() => {
+      this.notifications.forEach((notification) => {
+        notification.isRead = true;
+      });
+      this.cdr.markForCheck();
     });
   }
+
+  markNotificationRead(notification: any) {
+    if (notification.isRead) return;
+    this.marketplace.markNotificationRead(notification._id).subscribe(() => {
+      notification.isRead = true;
+      this.cdr.markForCheck();
+    });
+  }
+
   requestFilter = 'all';
   selectedRequest: any = null;
 
@@ -308,9 +250,44 @@ export class CustomerDashboard implements OnInit, OnDestroy {
   get completedJobsCount() {
     return this.requests.filter((request) => request.status === 'done').length;
   }
-  // مفيش endpoint للمحفظة/الضمان في الباك اند لسه.
+  // Wallet functionality
   escrowAmount = 0;
   walletBalance = 0;
+  transactions: any[] = [];
+
+  loadWallet() {
+    this.marketplace.wallet().subscribe((res) => {
+      this.walletBalance = res.data.availableBalance || 0;
+      this.escrowAmount = res.data.escrowBalance || 0;
+      this.transactions = res.data.transactions || [];
+      this.cdr.markForCheck();
+    });
+  }
+
+  recentOffers: any[] = [];
+  offersCount = 0;
+  loadRecentOffers() {
+    this.marketplace.myOffers().subscribe((res) => {
+      const data = res?.data;
+      this.recentOffers = Array.isArray(data) ? data : data?.items ?? [];
+      this.offersCount = this.recentOffers.length;
+      this.cdr.markForCheck();
+    });
+  }
+
+  acceptOffer(offerId: string) {
+    this.marketplace.acceptOffer(offerId).subscribe({
+      next: () => {
+        this.showToast('تم قبول العرض بنجاح.', 'success');
+        this.reloadRequests();
+        this.loadRecentOffers();
+        this.loadWallet();
+      },
+      error: (error) => {
+        this.showToast(error?.error?.message || 'تعذر قبول العرض.', 'error');
+      }
+    });
+  }
 
   get activeRequests() {
     return this.requests.filter((request) => request.status === 'active');
@@ -343,10 +320,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     if (savedLocation) {
       this.newRequestCity = savedLocation;
     }
-    // لو قائمة الحرف لسه فاضية نحاول نجيبها تاني
-    if (!this.crafts.length) {
-      this.requestsApi.loadCrafts().subscribe();
-    }
+    this.loadCrafts();
   }
 
   // تاريخ بكرة (محلي) بصيغة YYYY-MM-DD
@@ -445,6 +419,14 @@ export class CustomerDashboard implements OnInit, OnDestroy {
       return;
     }
 
+    const selectedCraft = this.crafts.find((craft) => craft.id === this.selectedCraft || craft.slug === this.selectedCraft);
+    if (!selectedCraft) {
+      this.newRequestError = 'نوع الخدمة مش متاح دلوقتي. جددنا القائمة، اختار نوع الخدمة مرة تانية.';
+      this.selectedCraft = '';
+      this.loadCrafts();
+      return;
+    }
+
     let preferredDate: string | undefined;
     let preferredTime: string | undefined;
     if (this.newRequestWhen === 'غدًا') {
@@ -464,7 +446,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
         {
           title: this.newRequestTitle.trim(),
           description: this.newRequestDescription.trim(),
-          craftId: this.selectedCraft,
+          craftId: selectedCraft.id,
           location: {
             city: this.newRequestCity.trim(),
             area: this.newRequestLocation.trim(),
@@ -490,6 +472,10 @@ export class CustomerDashboard implements OnInit, OnDestroy {
         error: (error) => {
           this.newRequestSubmitting = false;
           this.newRequestError = error?.error?.message || 'تعذر نشر الطلب، حاول مرة أخرى.';
+          if (this.newRequestError.includes('نوع الخدمة')) {
+            this.selectedCraft = '';
+            this.loadCrafts();
+          }
           // ممكن الطلب يكون اتحفظ كمسودة (مثلًا فشل رفع الصور) فنحدّث القائمة
           this.reloadRequests();
           this.cdr.markForCheck();
@@ -517,39 +503,8 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     return this.requests.length;
   }
 
-  offerWasAccepted(groupId: string) {
-    const group = this.offerGroups.find((item) => item.id === groupId);
-    if (group) {
-      group.status = 'مقبول';
-    }
-  }
-  get offersCount() {
-    return this.offerGroups.filter((group) => group.status.includes('عروض')).length;
-  }
-  //////////////Accept Offer Modal.
-  acceptModalOpen = false;
-  selectedOffer = {
-    name: '',
-    price: 0,
-    duration: '',
-  };
-
-  openAccept(name: string, price: number, duration: string) {
-    this.selectedOffer = {
-      name,
-      price,
-      duration,
-    };
-    this.acceptModalOpen = true;
-  }
-
-  closeAcceptModal() {
-    this.acceptModalOpen = false;
-  }
-
-  confirmAccept() {
-    console.log('Accepted offer:', this.selectedOffer);
-    this.acceptModalOpen = false;
+  offerWasAccepted(_requestId: string) {
+    this.reloadRequests();
   }
 
   ///////////////////Quote Modal

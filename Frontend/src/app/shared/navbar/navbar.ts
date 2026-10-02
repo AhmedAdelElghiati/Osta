@@ -1,33 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { Auth } from '../../services/auth';
+import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-navbar',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './navbar.html',
-  styleUrls: ['./navbar.css'],
+  imports: [RouterModule],
+  templateUrl: './navbar.component.html',
+  styleUrl: './navbar.component.css'
 })
-export class NavbarComponent implements OnInit {
-  currentUser$;
-
-  constructor(
-    private auth: Auth,
-    private router: Router,
-  ) {
-    this.currentUser$ = this.auth.currentUser$;
-  }
-
-  ngOnInit(): void {
-    this.auth.fetchCurrentUser().subscribe();
-  }
-
-  logout(): void {
-    this.auth.logout().subscribe({
-      next: () => this.router.navigate(['/']),
-      error: () => this.router.navigate(['/']),
-    });
-  }
-}
+export class Navbar {}

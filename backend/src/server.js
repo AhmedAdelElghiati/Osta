@@ -7,7 +7,7 @@ dotenv.config();
 const startServer = async () => {
   try {
     await connectDatabase();
-    const port = Number(5001);
+    const port = Number(5009);
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });

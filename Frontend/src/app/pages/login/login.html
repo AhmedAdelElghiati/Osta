@@ -76,13 +76,13 @@
       <div class="mb-4">
 
         <label class="form-label-custom">
-          البريد الإلكتروني
+          البريد الإلكتروني أو رقم الهاتف
         </label>
 
         <div class="form-input-wrapper">
 
-          <input type="email" [(ngModel)]="emailOrPhone" name="emailOrPhone" #emailOrPhoneInput="ngModel"
-            class="form-input-custom" placeholder="email@example.com" required email>
+          <input type="text" [(ngModel)]="emailOrPhone" name="emailOrPhone" #emailOrPhoneInput="ngModel"
+            class="form-input-custom" placeholder="email@example.com" required>
 
           <span class="form-input-icon">
 
@@ -100,7 +100,7 @@
         </div>
 
         <small class="validation-message" *ngIf="emailOrPhoneInput.touched && emailOrPhoneInput.invalid">
-          يرجى إدخال بريد إلكتروني صحيح.
+          يرجى إدخال البريد الإلكتروني أو رقم الهاتف.
         </small>
 
       </div>

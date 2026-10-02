@@ -1,31 +1,17 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, of, switchMap, tap } from 'rxjs';
 import { API_BASE_URL } from '../core/api.config';
+
 export interface CurrentUser {
   id: string;
   name: string;
   email: string;
   phone: string;
   role: 'customer' | 'artisan' | 'admin';
-  profileImage: string;
   location: string;
-  isActive: boolean;
-  emailVerified: boolean;
-  createdAt: string;
-  updatedAt: string;
-  artisan: {
-    userId: string;
-    profession: string;
-    bio: string;
-    experienceYears: number;
-    skills: string[];
-    serviceAreas: string[];
-    hourlyRate: number;
-    isVerified: boolean;
-    rating: number;
-    totalReviews: number;
-  } | null;
+  profileImage?: string;
+  artisan?: any;
 }
 
 @Injectable({
@@ -33,77 +19,74 @@ export interface CurrentUser {
 })
 export class Auth {
   private apiUrl = `${API_BASE_URL}/auth`;
-
-  // حالة اليوزر الحالي في الذاكرة (مش localStorage). بتتحدث بعد login
-  // ناجح، أو بعد ما نجيب /me، وبترجع null بعد logout.
+  private accessToken = '';
   private currentUserSubject = new BehaviorSubject<CurrentUser | null>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    this.accessToken = localStorage.getItem('accessToken') || '';
+  }
 
-  get currentUserValue(): CurrentUser | null {
+  get currentUserValue() {
     return this.currentUserSubject.value;
   }
 
   login(email: string, password: string) {
     return this.http
-      .post<any>(`${this.apiUrl}/login`, { email, password }, { withCredentials: true })
+      .post<any>(
+        `${this.apiUrl}/login`,
+        {
+          email,
+          password,
+        },
+        {
+          withCredentials: true,
+        },
+      )
       .pipe(
         tap((response) => {
-          if (response?.data?.user) {
-            this.currentUserSubject.next(response.data.user);
-          }
+          this.accessToken = response.data.accessToken;
+          localStorage.setItem('accessToken', this.accessToken);
+          this.currentUserSubject.next(response.data.user);
         }),
       );
+  }
+
+  getAccessToken() {
+    return this.accessToken;
   }
 
   register(data: any) {
     return this.http.post(`${this.apiUrl}/register`, data);
   }
 
-  // بتتنادى عند فتح التطبيق (أو جوه الـ Guard) عشان نتأكد هل فيه
-  // كوكيز صالحة من قبل كده، ونملي بيانات اليوزر من غير ما نعمل login تاني.
-  fetchCurrentUser(): Observable<CurrentUser | null> {
-    return this.http.get<any>(`${this.apiUrl}/me`, { withCredentials: true }).pipe(
-      map((response) => response?.data ?? null),
-      tap((user) => this.currentUserSubject.next(user)),
-      catchError(() => {
-        this.currentUserSubject.next(null);
-        return of(null);
+  fetchCurrentUser() {
+    const request = () =>
+      this.http.get<any>(`${this.apiUrl}/me`, { withCredentials: true }).pipe(
+        map((response) => response.data as CurrentUser),
+        tap((user) => this.currentUserSubject.next(user)),
+      );
+
+    return request().pipe(
+      catchError((error) => {
+        if (error?.status !== 401) {
+          this.clearCurrentUser();
+          return of(null);
+        }
+
+        return this.http.post<any>(`${this.apiUrl}/refresh`, {}, { withCredentials: true }).pipe(
+          tap((response) => {
+            this.accessToken = response.data.accessToken;
+            localStorage.setItem('accessToken', this.accessToken);
+          }),
+          switchMap(() => request()),
+          catchError(() => {
+            this.clearCurrentUser();
+            return of(null);
+          }),
+        );
       }),
     );
-  }
-
-  // الباك اند بيطلب refreshToken في الـ body (Joi) حتى لو الكوكي موجودة، لكن الكنترولر
-  // بيقرا الكوكي الأول. والـ refreshToken httpOnly مش بنقدر نقراه من JS، فبنبعت قيمة
-  // placeholder عشان الـ validation يعدّي، والباك اند هيستخدم الكوكي الحقيقية.
-  refresh(): Observable<any> {
-    return this.http
-      .post<any>(
-        `${this.apiUrl}/refresh`,
-        { refreshToken: 'cookie' },
-        { withCredentials: true },
-      )
-      .pipe(
-        tap((response) => {
-          if (response?.data?.user) {
-            this.currentUserSubject.next(response.data.user);
-          }
-        }),
-      );
-  }
-
-  // تجديد واحد بس في نفس الوقت: لو كذا طلب فشلوا بـ 401 مع بعض، كلهم يستنوا
-  // نفس التجديد (الباك اند بيعمل rotate للـ refresh token فمينفعش نطلبه مرتين).
-  private refreshInFlight$: Observable<any> | null = null;
-  refreshOnce(): Observable<any> {
-    if (!this.refreshInFlight$) {
-      this.refreshInFlight$ = this.refresh().pipe(
-        finalize(() => (this.refreshInFlight$ = null)),
-        shareReplay(1),
-      );
-    }
-    return this.refreshInFlight$;
   }
 
   changePassword(currentPassword: string, newPassword: string) {
@@ -115,14 +98,14 @@ export class Auth {
   }
 
   logout() {
-    return this.http
-      .post<any>(`${this.apiUrl}/logout`, {}, { withCredentials: true })
-      .pipe(tap(() => this.currentUserSubject.next(null)));
+    return this.http.post<any>(`${this.apiUrl}/logout`, {}, { withCredentials: true }).pipe(
+      tap(() => this.clearCurrentUser()),
+    );
   }
 
-  // بتتنادى من الـ interceptor لما محاولة تجديد التوكين تفشل، عشان
-  // نصفّي حالة اليوزر في الفرونت من غير ما نعمل استدعاء تاني للباك اند.
-  clearCurrentUser(): void {
+  clearCurrentUser() {
+    this.accessToken = '';
+    localStorage.removeItem('accessToken');
     this.currentUserSubject.next(null);
   }
 }

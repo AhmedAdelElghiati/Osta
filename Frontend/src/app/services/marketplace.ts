@@ -5,6 +5,7 @@ import {
   API_BASE_URL,
   ARTISANS_ENDPOINT,
   CONTACT_ENDPOINT,
+  JOBS_ENDPOINT,
   MARKET_ENDPOINT,
   OFFERS_ENDPOINT,
   REVIEWS_BASE,
@@ -88,6 +89,16 @@ export class Marketplace {
     return this.http.get<any>(`${OFFERS_ENDPOINT}/mine`, { withCredentials: true });
   }
 
+  approveJob(jobId: string): Observable<any> {
+    return this.http.patch<any>(`${JOBS_ENDPOINT}/${jobId}/status`, { status: 'COMPLETED' }, { withCredentials: true });
+  }
+
+  offersForRequest(requestId: string): Observable<any> {
+    return this.http.get<any>(`${API_BASE_URL}/v1/requests/${requestId}/offers`, {
+      withCredentials: true,
+    });
+  }
+
   sentOffers(): Observable<any> {
     return this.http.get<any>(`${OFFERS_ENDPOINT}/sent`, { withCredentials: true });
   }
@@ -118,6 +129,18 @@ export class Marketplace {
     return this.http.patch<any>(`${USERS_ENDPOINT}/me`, body, { withCredentials: true });
   }
 
+  updateArtisanProfile(body: any): Observable<any> {
+    return this.http.patch<any>(`${ARTISANS_ENDPOINT}/me/profile`, body, { withCredentials: true });
+  }
+
+  myJobs(params: Record<string, string | number> = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== '' && v !== undefined && v !== null) httpParams = httpParams.set(k, String(v));
+    });
+    return this.http.get<any>(`${JOBS_ENDPOINT}/me`, { params: httpParams, withCredentials: true });
+  }
+
   deleteAccount(): Observable<any> {
     return this.http.delete<any>(`${USERS_ENDPOINT}/me`, { withCredentials: true });
   }
@@ -142,5 +165,18 @@ export class Marketplace {
 
   withdraw(amount: number): Observable<any> {
     return this.http.post<any>(`${WALLET_ENDPOINT}/withdraw`, { amount }, { withCredentials: true });
+  }
+
+  // ===== Notifications =====
+  notifications(): Observable<any> {
+    return this.http.get<any>(`${API_BASE_URL}/v1/notifications`, { withCredentials: true });
+  }
+
+  markNotificationRead(id: string): Observable<any> {
+    return this.http.patch<any>(`${API_BASE_URL}/v1/notifications/${id}/read`, {}, { withCredentials: true });
+  }
+
+  markAllNotificationsRead(): Observable<any> {
+    return this.http.patch<any>(`${API_BASE_URL}/v1/notifications/read-all`, {}, { withCredentials: true });
   }
 }

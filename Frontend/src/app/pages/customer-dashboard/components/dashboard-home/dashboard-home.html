@@ -155,10 +155,10 @@
 
                         </div>
 
-                        <span class="status-badge" [ngClass]="request.id === 'REQ-2411'
+                        <span class="status-badge" [ngClass]="request.status === 'active'
                         ? 'status-active'
                         : 'status-inspection'">
-                            {{ request.id === 'REQ-2411' ? 'جاري التنفيذ' : 'معاينة' }}
+                            {{ request.statusText }}
                         </span>
 
                     </div>
@@ -221,7 +221,7 @@
                             </span>
 
                             <strong class="job-info-value">
-                                {{ request.id === 'REQ-2411' ? '1,400' : '1,000' }} ج.م
+                                {{ request.budget | number }} ج.م
                             </strong>
 
                         </div>
@@ -235,24 +235,18 @@
                         <div class="d-flex justify-content-between mb-2">
 
                             <span class="progress-label">
-                                {{ request.id === 'REQ-2411'
-                                ? 'حالة التنفيذ'
-                                : 'المرحلة الحالية' }}
+                                الحالة
                             </span>
 
                             <strong class="progress-value">
-                                {{ request.id === 'REQ-2411'
-                                ? 'قيد التنفيذ'
-                                : 'تحديد موعد المعاينة' }}
+                                {{ request.statusText }}
                             </strong>
 
                         </div>
 
                         <div class="custom-progress">
 
-                            <span [style.width]="request.id === 'REQ-2411'
-                            ? '65%'
-                            : '35%'">
+                            <span [style.width]="'50%'">
                             </span>
 
                         </div>
@@ -308,16 +302,11 @@
             <!-- Request Header -->
             <div class="offer-request-header">
                 <div>
-                    <span class="job-number">
-                        REQ-2418
-                    </span>
                     <h3>
-                        تجديد مطبخ أرو أمريكي
+                        عروض تحتاج مراجعة
                     </h3>
-                    <span class="job-category">
-                        نجارة ومطابخ · مدينة نصر
-                    </span>
                 </div>
+            </div>
                 <div class="offer-summary">
                     <span>
                         {{ kitchenOffers.length }} عروض
@@ -326,7 +315,6 @@
                         حتى 12,000 ج.م
                     </strong>
                 </div>
-            </div>
             <!-- Offers -->
             <div class="row g-0">
                 <!-- Offer Card -->
@@ -338,17 +326,17 @@
                         <div class="d-flex align-items-center gap-2">
 
                             <div class="offer-avatar">
-                                {{ offer.name.charAt(0) }}
+                                {{ offer.artisanId?.name?.charAt(0) || 'أ' }}
                             </div>
 
                             <div>
 
                                 <h4>
-                                    {{ offer.name }}
+                                    {{ offer.artisanId?.name }}
                                 </h4>
 
                                 <span>
-                                    {{ offer.subtitle }}
+                                    {{ offer.requestId?.title }}
                                 </span>
 
                                 <div class="offer-rating">
@@ -356,7 +344,7 @@
                                     <i class="bi bi-star-fill"></i>
 
                                     <strong>
-                                        {{ offer.rating }}
+                                        4.8
                                     </strong>
 
                                     <span>
@@ -414,36 +402,20 @@
 
                         <!-- Description -->
                         <div class="offer-description">
-
-                            <span>
-                                يشمل:
-                            </span>
-
-                            <p>
-                                خشب زان روماني · مفصلات Blum · فك وتركيب وتسليم
-                            </p>
-
+                            <span>ملاحظات الأسطى:</span>
+                            <p>{{ offer.notes || 'لا توجد ملاحظات إضافية' }}</p>
                         </div>
-
 
                         <!-- Actions -->
                         <div class="d-flex gap-2 mt-3">
 
                             <button type="button" class="btn-primary-custom flex-fill" (click)="openAccept(
-                                offer.name,
+                                offer._id,
+                                offer.artisanId?.name,
                                 offer.price,
                                 offer.duration
                             )">
-
                                 قبول العرض
-
-                            </button>
-
-
-                            <button type="button" class="btn-outline-custom flex-fill" (click)="openQuote(offer.name)">
-
-                                عرض المقايسة
-
                             </button>
 
                         </div>
@@ -554,104 +526,4 @@
 </div>
 }
 
-<!-- QUOTE MODAL -->
-@if (quoteModalOpen) {
-<div class="modal-backdrop-custom" (click)="closeQuoteModal()">
 
-    <div class="quote-modal" (click)="$event.stopPropagation()">
-
-        <!-- Header -->
-        <div class="quote-modal-header">
-
-            <div>
-                <h3>
-                    تفاصيل عرض السعر
-                </h3>
-
-                <p>
-                    {{ selectedQuote.name }}
-                </p>
-            </div>
-
-            <button type="button" class="modal-close-btn" (click)="closeQuoteModal()">
-
-                <i class="bi bi-x-lg"></i>
-
-            </button>
-
-        </div>
-
-
-        <!-- Subtitle -->
-        <div class="quote-subtitle">
-            {{ selectedQuote.subtitle }}
-        </div>
-
-
-        <!-- Quote Items -->
-        <div class="quote-items">
-
-            @for (item of selectedQuote.items; track item.name) {
-
-            <div class="quote-item">
-
-                <span>
-                    {{ item.name }}
-                </span>
-
-                <strong>
-                    {{ item.price | number }} ج.م
-                </strong>
-
-            </div>
-
-            }
-
-        </div>
-
-
-        <!-- Total -->
-        <div class="quote-total">
-
-            <span>
-                الإجمالي
-            </span>
-
-            <strong>
-                {{ selectedQuote.total | number }} ج.م
-            </strong>
-
-        </div>
-
-
-        <!-- Note -->
-        <div class="quote-note">
-
-            <i class="bi bi-info-circle"></i>
-
-            <p>
-                أي أعمال إضافية غير مذكورة في العرض يتم تنفيذها بعد اعتماد مقايسة إضافية.
-            </p>
-
-        </div>
-
-
-        <!-- Actions -->
-        <div class="modal-actions">
-
-            <button type="button" class="btn-outline-custom" (click)="closeQuoteModal()">
-
-                إغلاق
-
-            </button>
-
-            <button type="button" class="btn-primary-custom" (click)="acceptQuote()">
-                قبول العرض
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-}

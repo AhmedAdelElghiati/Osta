@@ -17,7 +17,7 @@ const serviceRequestSchema = new mongoose.Schema(
     customerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     title: { type: String, required: true, trim: true, minlength: 3, maxlength: 200 },
     description: { type: String, required: true, trim: true, minlength: 10, maxlength: 5000 },
-    craftId: { type: mongoose.Schema.Types.ObjectId, ref: 'Craft', required: true, index: true },
+    craftId: { type: String, ref: 'Craft', required: true, index: true },
     location: {
       city: { type: String, required: true, trim: true, maxlength: 100 },
       area: { type: String, required: true, trim: true, maxlength: 100 },

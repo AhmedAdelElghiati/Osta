@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
-
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 * {
   font-family: 'Cairo', sans-serif;
 }
@@ -70,43 +70,4 @@ a {
 
 .section-bg {
   background-color: var(--color-bg);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-.modal-backdrop-custom {
-  position: fixed !important;
-  top: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  left: 0 !important;
-
-  width: 100vw !important;
-  height: 100vh !important;
-
-  z-index: 99999 !important;
-
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  padding: 1rem;
-  background: rgba(15, 23, 42, 0.5);
-
-  overflow-y: auto;
-}
-
-.modal-backdrop-custom .modal-dialog {
-  position: relative !important;
-  width: 100%;
-  margin: 0 !important;
 }

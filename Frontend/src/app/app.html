@@ -1,5 +1,13 @@
-<app-navbar></app-navbar>
+@if (!hidePublicShell) {
+  <app-navbar></app-navbar>
+}
 
 <router-outlet></router-outlet>
 
-<app-footer></app-footer>
+@if (!hidePublicShell) {
+  <app-footer></app-footer>
+}
+
+@if (!hidePublicShell) {
+  <app-chatbot></app-chatbot>
+}

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+﻿import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -22,6 +22,7 @@ export class DashboardHome {
   @Output() pageChange = new EventEmitter<string>();
 
   @Output() requestDetails = new EventEmitter<string>();
+  @Output() acceptOfferEvent = new EventEmitter<string>();
 
   get firstName(): string {
     return (this.userName || '').trim().split(/\s+/)[0] || '';
@@ -50,13 +51,15 @@ export class DashboardHome {
   acceptModalOpen = false;
 
   selectedOffer = {
+    id: '',
     name: '',
     price: 0,
     duration: '',
   };
 
-  openAccept(name: string, price: number, duration: string) {
+  openAccept(id: string, name: string, price: number, duration: string) {
     this.selectedOffer = {
+      id,
       name,
       price,
       duration,
@@ -70,69 +73,14 @@ export class DashboardHome {
   }
 
   confirmAccept() {
-    console.log('Accepted offer:', this.selectedOffer);
-
+    if (this.selectedOffer.id) {
+      this.acceptOfferEvent.emit(this.selectedOffer.id);
+    }
     this.closeAcceptModal();
-  }
-
-  // =========================
-  // Quote Modal
-  // =========================
-
-  quoteModalOpen = false;
-
-  selectedQuote = {
-    name: '',
-    subtitle: '',
-    items: [] as {
-      name: string;
-      price: number;
-    }[],
-    total: 0,
-  };
-
-  openQuote(name: string) {
-    this.selectedQuote = {
-      name: name,
-
-      subtitle: 'تفاصيل عرض السعر',
-
-      items: [
-        {
-          name: 'فك وتركيب المطبخ',
-          price: 2500,
-        },
-        {
-          name: 'أعمال النجارة والتجديد',
-          price: 5200,
-        },
-        {
-          name: 'المفصلات والإكسسوارات',
-          price: 1200,
-        },
-        {
-          name: 'التسليم والتركيب النهائي',
-          price: 900,
-        },
-      ],
-
-      total: 9800,
-    };
-
-    this.quoteModalOpen = true;
-  }
-
-  closeQuoteModal() {
-    this.quoteModalOpen = false;
-  }
-
-  acceptQuote() {
-    this.quoteModalOpen = false;
-
-    this.openAccept(this.selectedQuote.name, this.selectedQuote.total, '8 أيام');
   }
 
   getRequestDetails(requestId: string) {
     return this.detailsData[requestId];
   }
 }
+

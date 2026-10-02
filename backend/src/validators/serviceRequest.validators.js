@@ -2,10 +2,10 @@ const Joi = require('joi');
 const mongoose = require('mongoose');
 const { REQUEST_STATUSES, RECEIVE_MODES } = require('../modules/serviceRequests.constants');
 
-const objectId = Joi.string().custom((value, helpers) => {
-  if (!mongoose.isValidObjectId(value)) return helpers.error('any.invalid');
-  return value;
-}, 'MongoDB ObjectId');
+const craftRef = Joi.string().trim().custom((value, helpers) => {
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) return value;
+  return helpers.error('any.invalid');
+}, 'Craft ObjectId or slug');
 
 const location = Joi.object({
   city: Joi.string().trim().min(2).max(100).required().messages({ 'any.required': 'من فضلك اكتب المحافظة.' }),
@@ -29,7 +29,7 @@ const preferredDate = Joi.date().iso().min('now').optional().messages({
 const requestFields = {
   title: Joi.string().trim().min(3).max(200).required().messages({ 'any.required': 'من فضلك اكتب عنوان الطلب.' }),
   description: Joi.string().trim().min(10).max(5000).required().messages({ 'any.required': 'من فضلك اكتب تفاصيل الطلب.' }),
-  craftId: objectId.required().messages({ 'any.required': 'من فضلك اختار نوع الخدمة.', 'any.invalid': 'نوع الخدمة غير صحيح.' }),
+  craftId: craftRef.required().messages({ 'any.required': 'من فضلك اختار نوع الخدمة.', 'any.invalid': 'نوع الخدمة غير صحيح.' }),
   location,
   preferredDate,
   preferredTime: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).optional().messages({ 'string.pattern.base': 'الوقت المطلوب غير صحيح.' }),
@@ -53,7 +53,7 @@ const listQuerySchema = Joi.object({
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(10),
   status: Joi.string().valid(...REQUEST_STATUSES),
-  craftId: objectId,
+  craftId: craftRef,
   search: Joi.string().trim().max(100),
   sortBy: Joi.string().valid('createdAt', 'updatedAt', 'title', 'status').default('createdAt'),
   sortOrder: Joi.string().valid('asc', 'desc').default('desc'),

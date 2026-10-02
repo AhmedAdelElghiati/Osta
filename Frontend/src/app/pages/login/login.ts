@@ -1,8 +1,8 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
-import { Auth } from '../../services/auth';
-import { Router, RouterModule } from '@angular/router';
-import { FormsModule, NgForm } from '@angular/forms';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule, NgForm } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { Auth } from '../../services/auth';
 
 @Component({
   standalone: true,
@@ -24,9 +24,10 @@ export class Login {
 
   constructor(
     private auth: Auth,
-    private router: Router,
     private cdr: ChangeDetectorRef,
+    private router: Router,
   ) {}
+
   switchTab(tab: 'client' | 'craftsman'): void {
     this.activeTab = tab;
   }
@@ -41,42 +42,34 @@ export class Login {
       return;
     }
 
-    // الباك اند بيدوّر بالإيميل بس دلوقتي، فمؤقتًا الحقل بيتبعت كإيميل
-    // (التوضيح ده انعمل في الـ label والـ placeholder بدل الوعد بدعم
-    // رقم الهاتف اللي لسه مش موجود).
     this.auth.login(this.emailOrPhone, this.password).subscribe({
       next: (response: any) => {
         this.toastIcon = '✓';
         this.toastTitle = 'تم تسجيل الدخول';
-        this.toastMessage = response.message;
+        this.toastMessage = response?.message || 'أهلًا بيك في أُسطى';
         this.showSuccessMessage = true;
-
         this.cdr.detectChanges();
 
-        const role = response?.data?.user?.role;
-
         setTimeout(() => {
+          const role = this.auth.currentUserValue?.role ?? response?.data?.user?.role;
+          const target = role === 'artisan' ? '/dashboard/home' : '/customer-dashboard';
+
           this.showSuccessMessage = false;
+          form.resetForm();
+          this.emailOrPhone = '';
+          this.password = '';
+          this.rememberMe = false;
+          this.showPassword = false;
 
-          if (role === 'artisan') {
-            this.router.navigate(['/craftsman-dashboard']);
-          } else {
-            this.router.navigate(['/customer-dashboard']);
-          }
-        }, 1500);
+          void this.router.navigateByUrl(target);
+        }, 700);
       },
-
       error: (error) => {
         this.toastIcon = '✕';
         this.toastTitle = 'تعذر تسجيل الدخول';
-        this.toastMessage = error?.error?.message || 'حدث خطأ أثناء تسجيل الدخول، حاول مرة أخرى.';
+        this.toastMessage = error?.error?.message || 'راجع بيانات الدخول وحاول تاني.';
         this.showSuccessMessage = true;
-
         this.cdr.detectChanges();
-
-        setTimeout(() => {
-          this.showSuccessMessage = false;
-        }, 3000);
       },
     });
   }

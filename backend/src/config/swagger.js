@@ -29,7 +29,7 @@ const swaggerDefinition = {
     version: '1.0.0',
     description: 'Authentication, authorization, and customer service-request API for the Osta marketplace.',
   },
-  servers: [{ url: 'http://localhost:5001', description: 'Local development server' }],
+  servers: [{ url: 'http://localhost:5009', description: 'Local development server' }],
   tags: [
     { name: 'Health', description: 'Service availability' },
     { name: 'Authentication', description: 'Registration, sessions, and account security' },

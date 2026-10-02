@@ -44,7 +44,8 @@ export interface RequestVm {
   photos: string[];
   photoCount: number;
   timeline: TimelineStep[];
-  craftsman: any; // لسه مفيش أسطى مرتبط بالطلب في الباك اند (null)
+  craftsman: any; // Now populated from artisanId
+  acceptedPrice?: number;
   preferredDate?: string;
   preferredTime?: string;
   cancellationReason?: string;
@@ -165,13 +166,14 @@ export class ServiceRequests {
         min === max
           ? `${max.toLocaleString('en-US')} ج.م`
           : `${min.toLocaleString('en-US')} - ${max.toLocaleString('en-US')} ج.م`,
-      offers: 0, // الباك اند لسه مفيهوش عروض
+      offers: raw.offerCount || 0,
       icon: CRAFT_ICONS[craft?.slug] ?? 'bi-tools',
       description: raw.description ?? '',
       photos: images.map((img) => toAbsoluteUrl(img.url)),
       photoCount: images.length,
       timeline: this.defaultTimeline(raw),
-      craftsman: null,
+      craftsman: raw.artisanId || null,
+      acceptedPrice: raw.acceptedPrice,
       preferredDate: raw.preferredDate,
       preferredTime: raw.preferredTime,
       cancellationReason: raw.cancellationReason,
@@ -253,13 +255,13 @@ export class ServiceRequests {
         const data = response?.data;
         const items: any[] = Array.isArray(data) ? data : (data?.items ?? []);
         return items.map((item) => ({
-          id: String(item._id ?? item.id),
+          id: String(item._id ?? item.id ?? item.slug),
           name: item.name,
           slug: item.slug,
         }));
       }),
       tap((crafts) => {
-        if (crafts.length) this.craftsSubject.next(crafts);
+        this.craftsSubject.next(crafts);
       }),
       catchError(() => of(this.craftsSubject.value)),
     );

@@ -2,7 +2,6 @@
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Marketplace } from '../../services/marketplace';
 
 @Component({
   selector: 'app-contact-us',
@@ -23,9 +22,6 @@ export class ContactUs {
   submitted = false;
   successMessage = '';
   errorMessage = '';
-  sending = false;
-
-  constructor(private api: Marketplace) {}
 
   // =========================
   // Coverage Areas
@@ -107,7 +103,7 @@ export class ContactUs {
   }
 
   // =========================
-  // Submit — POST /api/v1/contact
+  // Submit
   // =========================
 
   submitForm(form: NgForm) {
@@ -156,37 +152,80 @@ export class ContactUs {
       return;
     }
 
-    this.sending = true;
-    this.api
-      .sendContact({
-        fullName: cleanName,
-        phone: cleanPhone,
-        contactType: this.contactType,
-        subject: this.subject,
-        partNumber: cleanPartNumber,
-        message: cleanMessage,
-      })
-      .subscribe({
-        next: (res: any) => {
-          this.sending = false;
-          this.successMessage = res?.message || 'تم إرسال رسالتك بنجاح، وهنتواصل معاك في أقرب وقت.';
-          this.errorMessage = '';
-          form.resetForm({
-            contactType: 'business',
-            fullName: '',
-            phone: '',
-            subject: '',
-            partNumber: '',
-            message: '',
-          });
-          this.contactType = 'business';
-          this.submitted = false;
-        },
-        error: (err) => {
-          this.sending = false;
-          this.errorMessage = err?.error?.message || 'تعذر إرسال الرسالة، حاول مرة أخرى.';
-        },
-      });
+    // =========================
+    // Data Object
+    // =========================
+
+    const contactMessage = {
+      id: Date.now(),
+
+      fullName: cleanName,
+
+      phone: '+20' + cleanPhone.substring(1),
+
+      contactType: this.contactType,
+
+      subject: this.subject,
+
+      partNumber: cleanPartNumber,
+
+      message: cleanMessage,
+
+      createdAt: new Date().toISOString(),
+    };
+
+    // =========================
+    // Local Storage
+    // =========================
+
+    const oldMessages = localStorage.getItem('ostaContactMessages');
+
+    let messages: any[] = [];
+
+    if (oldMessages) {
+      try {
+        const parsedMessages = JSON.parse(oldMessages);
+
+        if (Array.isArray(parsedMessages)) {
+          messages = parsedMessages;
+        }
+      } catch {
+        messages = [];
+      }
+    }
+
+    messages.push(contactMessage);
+
+    localStorage.setItem('ostaContactMessages', JSON.stringify(messages));
+
+    // =========================
+    // Success
+    // =========================
+
+    this.successMessage = 'تم إرسال رسالتك بنجاح، وهنتواصل معاك في أقرب وقت.';
+
+    this.errorMessage = '';
+
+    // =========================
+    // Reset
+    // =========================
+
+    form.resetForm({
+      contactType: 'business',
+
+      fullName: '',
+
+      phone: '',
+
+      subject: '',
+
+      partNumber: '',
+
+      message: '',
+    });
+
+    this.contactType = 'business';
+
+    this.submitted = false;
   }
 }
-

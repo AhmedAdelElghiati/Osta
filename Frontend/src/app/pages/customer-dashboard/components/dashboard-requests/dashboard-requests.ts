@@ -32,6 +32,7 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
   @Output() pageChange = new EventEmitter<string>();
   @Output() retry = new EventEmitter<void>();
   @Output() toast = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
+  @Output() walletChanged = new EventEmitter<void>();
 
   constructor(
     private requestsApi: ServiceRequests,
@@ -151,12 +152,15 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
   // =========================
   detailsLoading = false;
   detailsError = '';
+  approvalJobId = '';
+  approvalLoading = false;
 
   openRequestDetails(request: RequestVm) {
     this.selectedRequest = request;
     this.showDetails = true;
     this.detailsLoading = true;
     this.detailsError = '';
+    this.approvalJobId = '';
 
     // نحمّل التفاصيل الكاملة: التايم لاين الحقيقي + الصور
     this.requestsApi.loadDetails(request.id).subscribe({
@@ -170,6 +174,53 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
       error: (error) => {
         this.detailsLoading = false;
         this.detailsError = error?.error?.message || 'تعذر تحميل تفاصيل الطلب.';
+        this.cdr.markForCheck();
+      },
+    });
+
+    this.marketplace.offersForRequest(request.id).subscribe({
+      next: (response) => {
+        const offers = Array.isArray(response?.data) ? response.data : [];
+        if (this.selectedRequest?.id === request.id) {
+          this.selectedRequest = { ...this.selectedRequest, offers: offers.length };
+        }
+        const index = this.requests.findIndex((item) => item.id === request.id);
+        if (index !== -1) {
+          const next = [...this.requests];
+          next[index] = { ...next[index], offers: offers.length };
+          this.requests = next;
+        }
+        this.cdr.markForCheck();
+      },
+    });
+
+    this.marketplace.myJobs().subscribe({
+      next: (response) => {
+        const jobs = response?.data?.items ?? [];
+        const job = jobs.find((item: any) => {
+          const requestId = typeof item.requestId === 'object' ? item.requestId?._id : item.requestId;
+          return String(requestId) === request.id;
+        });
+        this.approvalJobId = job?._id ? String(job._id) : '';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  approveDelivery(): void {
+    if (!this.approvalJobId || this.approvalLoading) return;
+    this.approvalLoading = true;
+    this.marketplace.approveJob(this.approvalJobId).subscribe({
+      next: () => {
+        this.approvalLoading = false;
+        this.toast.emit({ message: 'تم اعتماد الشغلانة وتحويل المبلغ للأسطى.', type: 'success' });
+        this.walletChanged.emit();
+        this.closeRequestDetails();
+        this.requestsApi.loadRequests();
+      },
+      error: (error) => {
+        this.approvalLoading = false;
+        this.toast.emit({ message: error?.error?.message || 'تعذر اعتماد الشغلانة.', type: 'error' });
         this.cdr.markForCheck();
       },
     });

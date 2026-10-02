@@ -98,11 +98,18 @@ const updateStatus = async (req, res, next) => {
       await ServiceRequest.findByIdAndUpdate(job.requestId, { status: 'COMPLETED', completedAt: new Date() });
       await RequestEvent.create({ requestId: job.requestId, actorId: req.user.id, type: 'JOB_COMPLETED' });
       await Transaction.create({
+        userId: job.customerId,
+        type: 'escrow_release',
+        amount: job.price,
+        title: 'إغلاق ضمان شغلانة',
+        meta: { direction: 'debit', jobId: String(job._id), requestId: String(job.requestId), offerId: String(job.offerId) },
+      });
+      await Transaction.create({
         userId: job.artisanId,
         type: 'escrow_release',
         amount: job.price,
         title: 'تحرير ضمان شغلانة',
-        meta: { jobId: String(job._id), requestId: String(job.requestId), offerId: String(job.offerId) },
+        meta: { direction: 'credit', jobId: String(job._id), requestId: String(job.requestId), offerId: String(job.offerId) },
       });
     }
 

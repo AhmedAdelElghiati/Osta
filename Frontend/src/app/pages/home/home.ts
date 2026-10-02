@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Marketplace } from '../../services/marketplace';
 
 @Component({
   selector: 'app-home',
@@ -11,16 +10,11 @@ import { Marketplace } from '../../services/marketplace';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home implements OnInit {
+export class Home {
   searchSpecialty = '';
   searchLocation = '';
-  stats: any = null;
 
-  constructor(private router: Router, private api: Marketplace) {}
-
-  ngOnInit(): void {
-    this.api.marketStats().subscribe({ next: (r: any) => (this.stats = r?.data ?? null) });
-  }
+  constructor(private router: Router) {}
 
   searchCraftsman(): void {
     this.router.navigate(['/craftsmen-guide'], {
@@ -49,11 +43,5 @@ export class Home implements OnInit {
 
   goToCraftsmanRegister(): void {
     this.router.navigate(['/craftsman-register']);
-  }
-
-  openNewRequest() {
-    this.router.navigate(['/customer-dashboard'], {
-      queryParams: { newRequest: 'true' },
-    });
   }
 }

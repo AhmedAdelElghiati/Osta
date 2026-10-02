@@ -35,7 +35,7 @@ export class DashboardWallet implements OnInit {
             amount: ['withdraw', 'payment'].includes(t.type) ? -Math.abs(t.amount) : Math.abs(t.amount),
             status: t.status,
           }));
-          if (txs.length) this.transactions = txs;
+          this.transactions = txs;
         }
         this.walletLoading = false;
         this.cdr.markForCheck();

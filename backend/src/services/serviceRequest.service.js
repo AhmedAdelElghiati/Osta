@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
+﻿const mongoose = require('mongoose');
 const ServiceRequest = require('../models/ServiceRequest');
 const RequestEvent = require('../models/RequestEvent');
-const Craft = require('../models/Craft');
 const { TRANSITIONS, EDITABLE_STATUSES } = require('../modules/serviceRequests.constants');
 const { saveImage, removeImage } = require('./requestStorage.service');
+const { findActiveCraft } = require('./craftCatalog.service');
 
 const fail = (statusCode, message) => {
   const error = new Error(message);
@@ -16,7 +16,7 @@ const ensureId = (id) => {
 };
 
 const ensureCraft = async (craftId) => {
-  const craft = await Craft.findOne({ _id: craftId, isActive: true }).lean();
+  const craft = await findActiveCraft(craftId);
   if (!craft) throw fail(400, 'نوع الخدمة غير موجود أو مش متاح دلوقتي.');
   return craft;
 };
@@ -38,8 +38,8 @@ const validatePublishable = (request) => {
 };
 
 const createRequest = async (customerId, input) => {
-  await ensureCraft(input.craftId);
-  const request = await ServiceRequest.create({ ...input, customerId, status: 'DRAFT' });
+  const craft = await ensureCraft(input.craftId);
+  const request = await ServiceRequest.create({ ...input, craftId: craft._id, customerId, status: 'DRAFT' });
   await addEvent(request._id, customerId, 'REQUEST_CREATED');
   return getOwnedRequest(request._id, customerId, true);
 };
@@ -63,7 +63,10 @@ const getRequest = (requestId, customerId) => getOwnedRequest(requestId, custome
 const updateRequest = async (requestId, customerId, input) => {
   const request = await getOwnedRequest(requestId, customerId);
   if (!EDITABLE_STATUSES.includes(request.status)) throw fail(409, 'مينفعش تعدّل الطلب ده في حالته الحالية.');
-  if (input.craftId) await ensureCraft(input.craftId);
+  if (input.craftId) {
+    const craft = await ensureCraft(input.craftId);
+    input.craftId = craft._id;
+  }
   Object.assign(request, input);
   await request.save();
   await addEvent(request._id, customerId, 'REQUEST_UPDATED', { fields: Object.keys(input) });
@@ -139,3 +142,4 @@ const deleteImage = async (requestId, customerId, imageId) => {
 };
 
 module.exports = { createRequest, listRequests, getRequest, updateRequest, publishRequest, cancelRequest, republishRequest, getTimeline, addImages, deleteImage };
+

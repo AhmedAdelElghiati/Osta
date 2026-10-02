@@ -58,7 +58,11 @@ const listMine = async (req, res, next) => {
   try {
     const myRequests = await ServiceRequest.find({ customerId: req.user.id }).select('_id title status').lean();
     const ids = myRequests.map((r) => r._id);
-    const offers = await Offer.find({ requestId: { $in: ids } }).populate('artisanId', 'name phone profileImage').populate('requestId', 'title status').sort({ createdAt: -1 }).lean();
+    const offers = await Offer.find({ requestId: { $in: ids } })
+      .populate('artisanId', 'name phone profileImage')
+      .populate('requestId', 'title status location budget')
+      .sort({ createdAt: -1 })
+      .lean();
     return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', offers);
   } catch (error) { next(error); }
 };
@@ -67,7 +71,10 @@ const listMine = async (req, res, next) => {
 const listSent = async (req, res, next) => {
   try {
     const offers = await Offer.find({ artisanId: req.user.id }).populate('requestId', 'title status location budget').sort({ createdAt: -1 }).lean();
-    return sendResponse(res, 200, true, 'تم جلب عروضك بنجاح.', offers);
+    const jobs = await Job.find({ offerId: { $in: offers.map((offer) => offer._id) }, artisanId: req.user.id }).select('_id offerId requestId status').lean();
+    const jobByOffer = new Map(jobs.map((job) => [String(job.offerId), job]));
+    const mapped = offers.map((offer) => ({ ...offer, job: jobByOffer.get(String(offer._id)) || null }));
+    return sendResponse(res, 200, true, 'تم جلب عروضك بنجاح.', mapped);
   } catch (error) { next(error); }
 };
 
@@ -107,11 +114,11 @@ const setStatus = async (req, res, next, target) => {
         }
       }
       await Transaction.create({
-        userId: offer.artisanId,
+        userId: requestDoc.customerId,
         type: 'escrow_hold',
         amount: offer.price,
         title: 'حجز ضمان شغلانة',
-        meta: { jobId: String(job._id), requestId: String(requestDoc._id), offerId: String(offer._id) },
+        meta: { direction: 'debit', jobId: String(job._id), requestId: String(requestDoc._id), offerId: String(offer._id) },
       });
       await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_ACCEPTED', metadata: { offerId: String(offer._id) } });
       await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'JOB_CREATED', metadata: { jobId: String(job._id) } });

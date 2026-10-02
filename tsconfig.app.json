@@ -6,9 +6,9 @@
     "types": []
   },
   "include": [
-    "src/**/*.ts"
+    "Frontend/src/**/*.ts"
   ],
   "exclude": [
-    "src/**/*.spec.ts"
+    "Frontend/src/**/*.spec.ts"
   ]
 }

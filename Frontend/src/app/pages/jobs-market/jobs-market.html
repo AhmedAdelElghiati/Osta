@@ -1,0 +1,285 @@
+<main class="page-bg">
+  <section class="jobs-hero">
+    <div class="container">
+      <div class="breadcrumb-custom"><span class="breadcrumb-link">سوق الشغلانات</span></div>
+      <h1 class="jobs-hero-title">اختار الشغلانة اللي تناسبك</h1>
+      <p class="jobs-hero-subtitle">
+        استكشف طلبات العملاء وقدم عرضك على الشغلانات المناسبة لمهاراتك.
+      </p>
+      <div class="jobs-hero-info">
+        <span class="info-item">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"></path>
+            <circle cx="12" cy="10" r="2"></circle>
+          </svg>
+          طلبات في مناطق مختلفة
+        </span>
+        <span class="info-item">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H7"></path>
+          </svg>
+          ميزانيات واضحة
+        </span>
+        <span class="info-item">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path
+              d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"
+            ></path>
+          </svg>
+          تعاملات موثوقة
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="jobs-tabs" role="tablist" aria-label="تصنيف الشغلانات">
+      @for (tab of tabs; track tab.key) {
+        <button
+          type="button"
+          class="jobs-tab"
+          [class.active]="activeTab() === tab.key"
+          (click)="setTab(tab.key)"
+          role="tab"
+          [attr.aria-selected]="activeTab() === tab.key"
+        >
+          {{ tab.label }}
+          <span class="jobs-count">{{ tab.count }}</span>
+        </button>
+      }
+    </div>
+
+    <form class="jobs-filters" (submit)="$event.preventDefault()" aria-label="فلترة الشغلانات">
+      <div class="filter-item">
+        <label for="job-category">نوع الخدمة</label>
+        <select
+          id="job-category"
+          class="form-select"
+          [value]="selectedCategory()"
+          (change)="selectedCategory.set($any($event.target).value); currentPage.set(1)"
+        >
+          <option value="all">كل الخدمات</option>
+          @for (category of categories(); track category) {
+            <option [value]="category">{{ category }}</option>
+          }
+        </select>
+      </div>
+      <div class="filter-item">
+        <label for="job-location">المحافظة أو المنطقة</label>
+        <input
+          id="job-location"
+          class="form-select"
+          type="search"
+          placeholder="ابحث بالمكان"
+          [value]="selectedLocation()"
+          (input)="selectedLocation.set($any($event.target).value); currentPage.set(1)"
+        />
+      </div>
+      <div class="filter-item">
+        <label for="job-budget">الميزانية</label>
+        <select
+          id="job-budget"
+          class="form-select"
+          [value]="selectedBudget()"
+          (change)="selectedBudget.set($any($event.target).value); currentPage.set(1)"
+        >
+          <option value="all">أي ميزانية</option>
+          <option value="1000">حتى 1,000 ج.م</option>
+          <option value="5000">حتى 5,000 ج.م</option>
+          <option value="10000">حتى 10,000 ج.م</option>
+          <option value="20000+">أكثر من 20,000 ج.م</option>
+        </select>
+      </div>
+      <button type="button" class="apply-filter-btn" (click)="currentPage.set(1)">
+        عرض النتائج
+      </button>
+    </form>
+
+    <div class="jobs-layout">
+      <section class="jobs-list" aria-labelledby="jobs-list-title">
+        <div class="jobs-list-header">
+          <h2 id="jobs-list-title">الشغلانات المتاحة ({{ filteredJobs().length }})</h2>
+          <label class="sort-inline">
+            ترتيب:
+            <select
+              class="sort-select"
+              [value]="sortBy()"
+              (change)="sortBy.set($any($event.target).value); currentPage.set(1)"
+            >
+              <option value="newest">الأحدث</option>
+              <option value="budget">الأعلى ميزانية</option>
+            </select>
+          </label>
+        </div>
+
+        @if (loading()) {
+          <div class="sidebar-card">جاري تحميل الشغلانات...</div>
+        } @else if (error()) {
+          <div class="sidebar-card">
+            <p class="sidebar-text">{{ error() }}</p>
+            <button type="button" class="btn-primary" (click)="loadJobs()">إعادة المحاولة</button>
+          </div>
+        } @else if (!paginatedJobs().length) {
+          <div class="sidebar-card">
+            <h3 class="sidebar-title">مفيش نتائج مطابقة</h3>
+            <p class="sidebar-text">جرب تغيّر الفلاتر أو ارجع لكل الشغلانات.</p>
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="
+                activeTab.set('all');
+                selectedCategory.set('all');
+                selectedLocation.set('');
+                selectedBudget.set('all');
+                currentPage.set(1)
+              "
+            >
+              مسح الفلاتر
+            </button>
+          </div>
+        } @else {
+          @for (job of paginatedJobs(); track job.id) {
+            <article class="job-card">
+              <div class="job-card-header">
+                <div class="job-tags">
+                  @for (tag of job.tags; track tag) {
+                    <span class="job-tag">{{ tag }}</span>
+                  }
+                  <span class="job-dot">•</span>
+                  <span>{{ job.postedAt }}</span>
+                </div>
+                <h3 class="job-title">{{ job.title }}</h3>
+                <p class="job-description">{{ job.description }}</p>
+              </div>
+
+              @if (job.images?.length) {
+                <div class="job-images">
+                  @for (image of job.images; track image) {
+                    <img [src]="image" [alt]="job.title" />
+                  }
+                  @if (job.imagesCount > job.images.length) {
+                    <span class="more-images">+{{ job.imagesCount - job.images.length }}</span>
+                  }
+                </div>
+              }
+
+              <div class="job-top">
+                <div class="job-budget-box">
+                  <span class="budget-label">الميزانية المتوقعة</span>
+                  <span class="budget-value"
+                    >{{ job.budgetMin | number }} - {{ job.budgetMax | number }} ج.م</span
+                  >
+                </div>
+              </div>
+              <div class="job-footer">
+                <span class="job-stats">{{ job.offers }} عروض · {{ job.location }}</span>
+                <button type="button" class="btn-primary" (click)="openArtisanDashboard()">
+                  شوف الطلبات
+                </button>
+              </div>
+            </article>
+          }
+        }
+
+        @if (!loading() && !error() && filteredJobs().length) {
+          <nav class="pagination" aria-label="صفحات الشغلانات">
+            <button
+              type="button"
+              class="page-btn arrow"
+              (click)="previousPage()"
+              [disabled]="currentPage() === 1"
+              aria-label="الصفحة السابقة"
+            >
+              ‹
+            </button>
+            @for (page of pages(); track page) {
+              <button
+                type="button"
+                class="page-btn"
+                [class.active]="currentPage() === page"
+                (click)="goToPage(page)"
+              >
+                {{ page }}
+              </button>
+            }
+            <button
+              type="button"
+              class="page-btn arrow"
+              (click)="nextPage()"
+              [disabled]="currentPage() === totalPages()"
+              aria-label="الصفحة التالية"
+            >
+              ›
+            </button>
+          </nav>
+        }
+      </section>
+
+      <aside class="jobs-sidebar">
+        <section class="sidebar-card">
+          <div class="sidebar-head">
+            <span class="shield-icon">🛡</span>
+            <h3>اشتغل بأمان</h3>
+          </div>
+          <p class="sidebar-text">
+            اختار الطلبات المناسبة ليك واتفق على كل التفاصيل قبل بداية الشغل.
+          </p>
+          <ul class="sidebar-list">
+            <li>راجع بيانات العميل</li>
+            <li>اتفق على السعر والموعد</li>
+            <li>خلي التواصل داخل المنصة</li>
+          </ul>
+          <a class="sidebar-link" routerLink="/how-it-works">اعرف أكتر</a>
+        </section>
+        <section class="sidebar-card">
+          <h3 class="sidebar-title">نصائح لعرض أفضل</h3>
+          <div class="tip-item">
+            <span class="tip-num">1</span>
+            <div>
+              <strong>اكتب عرض واضح</strong>
+              <p>وضح خبرتك والسعر والمدة المتوقعة.</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <span class="tip-num">2</span>
+            <div>
+              <strong>اختار السعر المناسب</strong>
+              <p>خلي عرضك منافس ومنطقي.</p>
+            </div>
+          </div>
+          <div class="tip-item">
+            <span class="tip-num">3</span>
+            <div>
+              <strong>رد بسرعة</strong>
+              <p>الرد السريع يزيد فرص قبول عرضك.</p>
+            </div>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </div>
+</main>

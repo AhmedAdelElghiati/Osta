@@ -84,6 +84,16 @@ describe('Offer acceptance to job workflow', () => {
       .expect(201);
 
     const offerId = offered.body.data._id;
+    const customerOffers = await request(app)
+      .get('/api/v1/offers/mine')
+      .set('Cookie', [customerCookie])
+      .expect(200);
+    expect(customerOffers.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ _id: offerId, requestId: expect.objectContaining({ title: 'إصلاح تسريب في الحمام' }) }),
+      ]),
+    );
+
     const accepted = await request(app)
       .post(`/api/v1/offers/${offerId}/accept`)
       .set('Cookie', [customerCookie])
@@ -92,6 +102,13 @@ describe('Offer acceptance to job workflow', () => {
     expect(accepted.body.data.offer.status).toBe('ACCEPTED');
     expect(accepted.body.data.job.requestId).toBe(requestId);
     expect(accepted.body.data.job.price).toBe(900);
+    await expect(Transaction.find({ userId: accepted.body.data.job.customerId }).lean()).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'escrow_hold', amount: 900, meta: expect.objectContaining({ direction: 'debit' }) }),
+      ]),
+    );
+    const customerWalletAfterAccept = await request(app).get('/api/v1/wallet').set('Cookie', [customerCookie]).expect(200);
+    expect(customerWalletAfterAccept.body.data.escrowBalance).toBe(900);
 
     await request(app)
       .post(`/api/v1/offers/${offerId}/accept`)
@@ -128,6 +145,20 @@ describe('Offer acceptance to job workflow', () => {
 
     expect(completed.body.data.status).toBe('COMPLETED');
     await expect(Job.findById(jobId).lean()).resolves.toMatchObject({ paymentStatus: 'RELEASED' });
-    await expect(Transaction.find({ userId: completed.body.data.artisanId._id }).lean()).resolves.toHaveLength(2);
+    await expect(Transaction.find({ userId: completed.body.data.customerId._id }).lean()).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'escrow_hold', amount: 900 }),
+        expect.objectContaining({ type: 'escrow_release', amount: 900 }),
+      ]),
+    );
+    await expect(Transaction.find({ userId: completed.body.data.artisanId._id }).lean()).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ type: 'escrow_release', amount: 900, meta: expect.objectContaining({ direction: 'credit' }) }),
+      ]),
+    );
+    const customerWalletAfterCompletion = await request(app).get('/api/v1/wallet').set('Cookie', [customerCookie]).expect(200);
+    const artisanWalletAfterCompletion = await request(app).get('/api/v1/wallet').set('Cookie', [artisanCookie]).expect(200);
+    expect(customerWalletAfterCompletion.body.data.escrowBalance).toBe(0);
+    expect(artisanWalletAfterCompletion.body.data.availableBalance).toBe(900);
   });
 });
