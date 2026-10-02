@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Marketplace } from '../../services/marketplace';
 
 @Component({
   selector: 'app-home',
@@ -10,11 +11,16 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home {
+export class Home implements OnInit {
   searchSpecialty = '';
   searchLocation = '';
+  stats: any = null;
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private api: Marketplace) {}
+
+  ngOnInit(): void {
+    this.api.marketStats().subscribe({ next: (r: any) => (this.stats = r?.data ?? null) });
+  }
 
   searchCraftsman(): void {
     this.router.navigate(['/craftsmen-guide'], {

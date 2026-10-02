@@ -1,7 +1,8 @@
-﻿import { Component } from '@angular/core';
+﻿import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Marketplace } from '../../services/marketplace';
 
 @Component({
   selector: 'app-craftsmen-guide',
@@ -10,13 +11,74 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './craftsmen-guide.html',
   styleUrl: './craftsmen-guide.css',
 })
-export class CraftsmenGuide {
-  constructor(private route: ActivatedRoute) {
+export class CraftsmenGuide implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    private api: Marketplace,
+    private cdr: ChangeDetectorRef,
+  ) {
     this.route.queryParams.subscribe((params) => {
       this.searchSpecialty = params['specialty'] || '';
       this.searchLocation = params['location'] || '';
       this.currentPage = 1;
+      this.loadFromApi();
     });
+  }
+
+  ngOnInit(): void {
+    this.loadFromApi();
+  }
+
+  // ===== API state — GET /api/v1/artisans =====
+  apiLoading = false;
+  apiError = '';
+  apiCraftsmen: any[] = [];
+
+  loadFromApi(): void {
+    this.apiLoading = true;
+    this.apiError = '';
+    this.api
+      .listArtisans({
+        search: this.searchSpecialty,
+        area: this.searchLocation,
+        limit: 50,
+      })
+      .subscribe({
+        next: (res: any) => {
+          const items = res?.data?.items ?? [];
+          this.apiCraftsmen = items.map((a: any) => ({
+            id: a.id,
+            name: a.name,
+            title: a.profession,
+            verified: a.isVerified,
+            specialty: a.profession,
+            rating: a.rating,
+            reviewCount: a.totalReviews,
+            responseTime: '—',
+            location: (a.serviceAreas || []).join('، ') || a.location,
+            distance: '',
+            distanceValue: 0,
+            priceFrom: a.hourlyRate,
+            experience: `${a.experienceYears || 0} سنوات`,
+            guarantee: null,
+            photosCount: 0,
+            tags: a.skills || [],
+            photos: [],
+            avatar: a.avatar || 'craftsman-hassan.jpg',
+            available: true,
+            credentials: [],
+            bio: a.bio,
+          }));
+          this.apiLoading = false;
+          this.currentPage = 1;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          this.apiLoading = false;
+          this.apiError = err?.error?.message || 'تعذر تحميل الأسطوات، معروض بيانات تجريبية.';
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   searchSpecialty = '';
@@ -267,18 +329,19 @@ export class CraftsmenGuide {
   // =========================
 
   get filteredCraftsmen() {
-    let result = [...this.craftsmen];
+    // لو الـ API رجّع أسطوات حقيقيين استخدمهم، غير كده البيانات التجريبية
+    let result: any[] = this.apiCraftsmen.length ? [...this.apiCraftsmen] : [...this.craftsmen];
 
     // Specialty filter
     if (this.selectedSpecialty) {
       const specialtyWords = this.selectedSpecialty
         .toLowerCase()
         .split(/[،,\s]+/)
-        .filter((word) => word.length > 2);
+        .filter((word: string) => word.length > 2);
 
-      result = result.filter((c) =>
+      result = result.filter((c: any) =>
         specialtyWords.some(
-          (word) =>
+          (word: string) =>
             c.specialty.toLowerCase().includes(word) || c.title.toLowerCase().includes(word),
         ),
       );
@@ -289,39 +352,39 @@ export class CraftsmenGuide {
       const locationWords = this.selectedLocation
         .toLowerCase()
         .split(/[،,\s]+/)
-        .filter((word) => word.length > 2);
+        .filter((word: string) => word.length > 2);
 
-      result = result.filter((c) =>
-        locationWords.some((word) => c.location.toLowerCase().includes(word)),
+      result = result.filter((c: any) =>
+        locationWords.some((word: string) => c.location.toLowerCase().includes(word)),
       );
     }
 
     // Distance
-    result = result.filter((c) => c.distanceValue <= this.distanceRange);
+    result = result.filter((c: any) => c.distanceValue <= this.distanceRange);
 
     // Price
     result = result.filter(
-      (c) => (c.priceFrom ?? 0) >= this.priceMin && (c.priceFrom ?? 0) <= this.priceMax,
+      (c: any) => (c.priceFrom ?? 0) >= this.priceMin && (c.priceFrom ?? 0) <= this.priceMax,
     );
 
     // Security check
     if (this.credentialsFilters.securityChecked) {
-      result = result.filter((c) => c.credentials.includes('فيش وتشبيه مفحوص أمنياً'));
+      result = result.filter((c: any) => c.credentials.includes('فيش وتشبيه مفحوص أمنياً'));
     }
 
     // Skill certificate
     if (this.credentialsFilters.skillCertificate) {
-      result = result.filter((c) => c.credentials.includes('شهادة قياس مهارة وخبرة'));
+      result = result.filter((c: any) => c.credentials.includes('شهادة قياس مهارة وخبرة'));
     }
 
     // Experience
     if (this.credentialsFilters.experience7Years) {
-      result = result.filter((c) => this.getExperienceYears(c.experience) >= 7);
+      result = result.filter((c: any) => this.getExperienceYears(c.experience) >= 7);
     }
 
     // Guarantee
     if (this.credentialsFilters.invoiceGuarantee) {
-      result = result.filter((c) => !!c.guarantee);
+      result = result.filter((c: any) => !!c.guarantee);
     }
 
     // Search specialty
@@ -330,15 +393,15 @@ export class CraftsmenGuide {
         .trim()
         .toLowerCase()
         .split(/[،,\s]+/)
-        .filter((word) => word.length > 1);
+        .filter((word: string) => word.length > 1);
 
-      result = result.filter((c) =>
+      result = result.filter((c: any) =>
         searchWords.some(
-          (word) =>
+          (word: string) =>
             c.name.toLowerCase().includes(word) ||
             c.title.toLowerCase().includes(word) ||
             c.specialty.toLowerCase().includes(word) ||
-            c.tags.some((tag) => tag.toLowerCase().includes(word)),
+            c.tags.some((tag: string) => tag.toLowerCase().includes(word)),
         ),
       );
     }
@@ -349,35 +412,35 @@ export class CraftsmenGuide {
         .trim()
         .toLowerCase()
         .split(/[،,\s]+/)
-        .filter((word) => word.length > 1);
+        .filter((word: string) => word.length > 1);
 
-      result = result.filter((c) =>
-        locationWords.some((word) => c.location.toLowerCase().includes(word)),
+      result = result.filter((c: any) =>
+        locationWords.some((word: string) => c.location.toLowerCase().includes(word)),
       );
     }
 
     // Sorting
     switch (this.sortBy) {
       case 'الأفضل تقييماً':
-        result.sort((a, b) => b.rating - a.rating);
+        result.sort((a: any, b: any) => b.rating - a.rating);
 
         break;
 
       case 'الأقرب إليك':
-        result.sort((a, b) => a.distanceValue - b.distanceValue);
+        result.sort((a: any, b: any) => a.distanceValue - b.distanceValue);
 
         break;
 
       case 'الأسرع رداً':
         result.sort(
-          (a, b) =>
+          (a: any, b: any) =>
             this.getResponseMinutes(a.responseTime) - this.getResponseMinutes(b.responseTime),
         );
 
         break;
 
       case 'الأقل سعراً':
-        result.sort((a, b) => (a.priceFrom ?? 999999) - (b.priceFrom ?? 999999));
+        result.sort((a: any, b: any) => (a.priceFrom ?? 999999) - (b.priceFrom ?? 999999));
 
         break;
     }
@@ -451,6 +514,7 @@ export class CraftsmenGuide {
 
   search(): void {
     this.currentPage = 1;
+    this.loadFromApi();
   }
 
   applyFilters(): void {

@@ -1,0 +1,112 @@
+const mongoose = require('mongoose');
+const { sendResponse } = require('../utils/apiResponse');
+const ServiceRequest = require('../models/ServiceRequest');
+const Offer = require('../models/Offer');
+const RequestEvent = require('../models/RequestEvent');
+
+const fail = (code, message) => { const e = new Error(message); e.statusCode = code; return e; };
+
+const ensureOwnedRequest = async (requestId, customerId) => {
+  if (!mongoose.isValidObjectId(requestId)) throw fail(404, 'الطلب ده مش موجود.');
+  const request = await ServiceRequest.findOne({ _id: requestId, customerId });
+  if (!request) throw fail(404, 'الطلب ده مش موجود.');
+  return request;
+};
+
+// ARTISAN: POST /api/v1/offers { requestId, price, duration?, warranty?, notes?, items? }
+const create = async (req, res, next) => {
+  try {
+    const { requestId, price, duration = '', warranty = '', notes = '', items = [] } = req.body;
+    if (!requestId || price === undefined) return sendResponse(res, 400, false, 'requestId والسعر مطلوبين.');
+    if (!mongoose.isValidObjectId(requestId)) return sendResponse(res, 400, false, 'رقم الطلب غير صحيح.');
+    if (Number(price) < 0) return sendResponse(res, 400, false, 'السعر غير صحيح.');
+
+    const requestDoc = await ServiceRequest.findById(requestId);
+    if (!requestDoc || !['PUBLISHED', 'OFFER_RECEIVED'].includes(requestDoc.status)) {
+      return sendResponse(res, 409, false, 'الطلب ده مش متاح لاستقبال العروض دلوقتي.');
+    }
+    const exists = await Offer.findOne({ requestId, artisanId: req.user.id, status: 'PENDING' });
+    if (exists) return sendResponse(res, 409, false, 'انت باعت عرض على الطلب ده قبل كده.');
+
+    const offer = await Offer.create({
+      requestId, artisanId: req.user.id, price: Number(price), duration, warranty, notes, items,
+    });
+
+    if (requestDoc.status === 'PUBLISHED') {
+      requestDoc.status = 'OFFER_RECEIVED';
+      await requestDoc.save();
+      await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_RECEIVED' });
+    }
+
+    return sendResponse(res, 201, true, 'تم إرسال العرض بنجاح.', offer);
+  } catch (error) { next(error); }
+};
+
+// CUSTOMER: GET /api/v1/requests/:id/offers
+const listForRequest = async (req, res, next) => {
+  try {
+    const requestDoc = await ensureOwnedRequest(req.params.id, req.user.id);
+    const offers = await Offer.find({ requestId: requestDoc._id }).populate('artisanId', 'name phone profileImage location').sort({ createdAt: -1 }).lean();
+    return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', offers);
+  } catch (error) { next(error); }
+};
+
+// CUSTOMER: GET /api/v1/offers/mine (all offers across my requests)
+const listMine = async (req, res, next) => {
+  try {
+    const myRequests = await ServiceRequest.find({ customerId: req.user.id }).select('_id title status').lean();
+    const ids = myRequests.map((r) => r._id);
+    const offers = await Offer.find({ requestId: { $in: ids } }).populate('artisanId', 'name phone profileImage').populate('requestId', 'title status').sort({ createdAt: -1 }).lean();
+    return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', offers);
+  } catch (error) { next(error); }
+};
+
+// ARTISAN: GET /api/v1/offers/sent
+const listSent = async (req, res, next) => {
+  try {
+    const offers = await Offer.find({ artisanId: req.user.id }).populate('requestId', 'title status location budget').sort({ createdAt: -1 }).lean();
+    return sendResponse(res, 200, true, 'تم جلب عروضك بنجاح.', offers);
+  } catch (error) { next(error); }
+};
+
+const setStatus = async (req, res, next, target) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return sendResponse(res, 404, false, 'العرض ده مش موجود.');
+    const offer = await Offer.findById(id);
+    if (!offer) return sendResponse(res, 404, false, 'العرض ده مش موجود.');
+    const requestDoc = await ensureOwnedRequest(String(offer.requestId), req.user.id);
+    if (offer.status !== 'PENDING') return sendResponse(res, 409, false, 'العرض ده اتقفل قبل كده.');
+
+    if (target === 'ACCEPTED') {
+      offer.status = 'ACCEPTED';
+      await offer.save();
+      await Offer.updateMany({ requestId: offer.requestId, _id: { $ne: offer._id }, status: 'PENDING' }, { $set: { status: 'REJECTED' } });
+      requestDoc.status = 'OFFER_ACCEPTED';
+      await requestDoc.save();
+      await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_ACCEPTED', metadata: { offerId: String(offer._id) } });
+      return sendResponse(res, 200, true, 'تم قبول العرض بنجاح.', offer);
+    }
+    offer.status = 'REJECTED';
+    await offer.save();
+    await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_REJECTED', metadata: { offerId: String(offer._id) } });
+    return sendResponse(res, 200, true, 'تم رفض العرض.', offer);
+  } catch (error) { next(error); }
+};
+
+const accept = (req, res, next) => setStatus(req, res, next, 'ACCEPTED');
+const reject = (req, res, next) => setStatus(req, res, next, 'REJECTED');
+
+// ARTISAN withdraw own pending offer
+const withdraw = async (req, res, next) => {
+  try {
+    const offer = await Offer.findOne({ _id: req.params.id, artisanId: req.user.id });
+    if (!offer) return sendResponse(res, 404, false, 'العرض ده مش موجود.');
+    if (offer.status !== 'PENDING') return sendResponse(res, 409, false, 'مينفعش تسحب العرض ده دلوقتي.');
+    offer.status = 'WITHDRAWN';
+    await offer.save();
+    return sendResponse(res, 200, true, 'تم سحب العرض بنجاح.', offer);
+  } catch (error) { next(error); }
+};
+
+module.exports = { create, listForRequest, listMine, listSent, accept, reject, withdraw };

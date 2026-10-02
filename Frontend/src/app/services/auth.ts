@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, catchError, finalize, map, of, shareReplay, tap } from 'rxjs';
 import { API_BASE_URL } from '../core/api.config';
-
 export interface CurrentUser {
   id: string;
   name: string;

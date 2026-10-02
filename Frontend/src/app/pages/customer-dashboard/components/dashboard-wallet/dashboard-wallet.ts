@@ -1,16 +1,55 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Marketplace } from '../../../../services/marketplace';
 @Component({
   selector: 'app-dashboard-wallet',
   imports: [CommonModule, FormsModule],
   templateUrl: './dashboard-wallet.html',
   styleUrl: './dashboard-wallet.css',
 })
-export class DashboardWallet {
+export class DashboardWallet implements OnInit {
+  constructor(private api: Marketplace, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.loadWallet();
+  }
+
+  // Wallet Summary — GET /api/v1/wallet
+  walletLoading = false;
+  walletError = '';
+
+  loadWallet(): void {
+    this.walletLoading = true;
+    this.api.wallet().subscribe({
+      next: (res: any) => {
+        const data = res?.data;
+        if (data) {
+          this.availableBalance = data.availableBalance ?? 0;
+          this.escrowBalance = data.escrowBalance ?? 0;
+          const txs = (data.transactions ?? []).map((t: any) => ({
+            id: String(t._id).slice(-6).toUpperCase(),
+            title: t.title,
+            date: t.createdAt,
+            type: t.type,
+            amount: ['withdraw', 'payment'].includes(t.type) ? -Math.abs(t.amount) : Math.abs(t.amount),
+            status: t.status,
+          }));
+          if (txs.length) this.transactions = txs;
+        }
+        this.walletLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.walletLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   // Wallet Summary
-  availableBalance = 2300;
-  escrowBalance = 4850;
+  availableBalance = 0;
+  escrowBalance = 0;
   // Payment Methods
   paymentMethods = [
     {
@@ -160,8 +199,7 @@ export class DashboardWallet {
     this.resetModal();
   }
 
-  // Deposit
-
+  // Deposit — POST /api/v1/wallet/deposit
   confirmDeposit() {
     this.modalError = '';
 
@@ -179,27 +217,16 @@ export class DashboardWallet {
       return;
     }
 
-    this.availableBalance += amount;
-
-    this.transactions.unshift({
-      id: `TRX-${Date.now()}`,
-
-      title: 'إيداع في المحفظة',
-
-      date: 'اليوم',
-
-      type: 'deposit',
-
-      amount: amount,
-
-      status: 'مكتمل',
+    this.api.deposit(amount).subscribe({
+      next: () => {
+        this.closeModals();
+        this.loadWallet();
+      },
+      error: (err) => (this.modalError = err?.error?.message || 'تعذر تنفيذ الإيداع.'),
     });
-
-    this.closeModals();
   }
 
-  // Withdraw
-
+  // Withdraw — POST /api/v1/wallet/withdraw
   confirmWithdraw() {
     this.modalError = '';
 
@@ -223,20 +250,12 @@ export class DashboardWallet {
       return;
     }
 
-    this.availableBalance -= amount;
-
-    this.transactions.unshift({
-      id: `TRX-${Date.now()}`,
-
-      title: 'سحب من المحفظة',
-
-      date: 'اليوم',
-
-      type: 'withdraw',
-
-      amount: -amount,
-
-      status: 'مكتمل',
+    this.api.withdraw(amount).subscribe({
+      next: () => {
+        this.closeModals();
+        this.loadWallet();
+      },
+      error: (err) => (this.modalError = err?.error?.message || 'تعذر تنفيذ السحب.'),
     });
 
     this.closeModals();

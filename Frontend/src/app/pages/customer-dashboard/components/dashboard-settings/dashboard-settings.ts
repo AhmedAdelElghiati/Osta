@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Router } from '@angular/router';
 import { Auth } from '../../../../services/auth';
+import { Marketplace } from '../../../../services/marketplace';
 
 @Component({
   selector: 'app-dashboard-settings',
@@ -15,6 +16,7 @@ export class DashboardSettings implements OnInit {
 
   constructor(
     private auth: Auth,
+    private api: Marketplace,
     private router: Router,
     private cdr: ChangeDetectorRef,
   ) {}
@@ -42,15 +44,29 @@ export class DashboardSettings implements OnInit {
   }
 
   profileMessage = '';
+  profileLoading = false;
 
-  // الباك اند مفيهوش endpoint لتعديل البيانات الشخصية لسه، فمش هنوهم اليوزر إنها اتحفظت.
+  // PATCH /api/users/me
   saveProfile() {
-    this.profileMessage = 'تعديل البيانات الشخصية هيتفعّل قريبًا.';
-
-    setTimeout(() => {
-      this.profileMessage = '';
-      this.cdr.markForCheck();
-    }, 2500);
+    this.profileMessage = '';
+    this.profileLoading = true;
+    this.api.updateProfile({ name: this.profile.name, phone: this.profile.phone, location: this.profile.city }).subscribe({
+      next: (res: any) => {
+        this.profileLoading = false;
+        this.profileMessage = res?.message || 'تم حفظ بياناتك بنجاح.';
+        this.auth.fetchCurrentUser().subscribe();
+        this.cdr.markForCheck();
+        setTimeout(() => {
+          this.profileMessage = '';
+          this.cdr.markForCheck();
+        }, 2500);
+      },
+      error: (err) => {
+        this.profileLoading = false;
+        this.profileMessage = err?.error?.message || 'تعذر حفظ البيانات، حاول مرة أخرى.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   // Password
@@ -232,8 +248,18 @@ export class DashboardSettings implements OnInit {
 
   deleteAccountError = '';
 
-  // مفيش endpoint لحذف الحساب في الباك اند لسه، فمش هنعرض شاشة "تم الحذف" زيف.
+  // DELETE /api/users/me
   confirmDeleteAccount() {
-    this.deleteAccountError = 'حذف الحساب هيتفعّل قريبًا. تواصل مع الدعم لو محتاج تحذف حسابك.';
+    this.deleteAccountError = '';
+    this.api.deleteAccount().subscribe({
+      next: () => {
+        this.auth.clearCurrentUser();
+        this.accountDeleted.emit();
+      },
+      error: (err) => {
+        this.deleteAccountError = err?.error?.message || 'تعذر حذف الحساب، حاول مرة أخرى.';
+        this.cdr.markForCheck();
+      },
+    });
   }
 }

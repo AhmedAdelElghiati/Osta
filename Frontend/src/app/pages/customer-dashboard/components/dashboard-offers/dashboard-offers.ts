@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, OnInit, Output, ChangeDetectorRef } from '@angular/core';
+import { Marketplace } from '../../../../services/marketplace';
 
 @Component({
   selector: 'app-dashboard-offers',
@@ -7,11 +8,60 @@ import { Component, EventEmitter, Output } from '@angular/core';
   templateUrl: './dashboard-offers.html',
   styleUrl: './dashboard-offers.css',
 })
-export class DashboardOffers {
+export class DashboardOffers implements OnInit {
   @Output() pageChange = new EventEmitter<string>();
   @Output() newRequest = new EventEmitter<void>();
   @Output() requestDetails = new EventEmitter<string>();
   @Output() offerAccepted = new EventEmitter<string>();
+
+  constructor(private api: Marketplace, private cdr: ChangeDetectorRef) {}
+
+  ngOnInit(): void {
+    this.loadOffers();
+  }
+
+  // ===== Real offers — GET /api/v1/offers/mine =====
+  offersLoading = false;
+  offersError = '';
+  realOffers: any[] = [];
+
+  loadOffers(): void {
+    this.offersLoading = true;
+    this.offersError = '';
+    this.api.myOffers().subscribe({
+      next: (res: any) => {
+        this.realOffers = res?.data ?? [];
+        this.offersLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.offersLoading = false;
+        this.offersError = err?.error?.message || 'تعذر تحميل العروض.';
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  acceptReal(offer: any): void {
+    this.api.acceptOffer(offer._id).subscribe({
+      next: () => {
+        this.showToast('تم قبول العرض بنجاح');
+        this.loadOffers();
+        this.offerAccepted.emit(offer.requestId?._id || offer.requestId);
+      },
+      error: (err) => this.showToast(err?.error?.message || 'تعذر قبول العرض'),
+    });
+  }
+
+  rejectReal(offer: any): void {
+    this.api.rejectOffer(offer._id).subscribe({
+      next: () => {
+        this.showToast('تم رفض العرض');
+        this.loadOffers();
+      },
+      error: (err) => this.showToast(err?.error?.message || 'تعذر رفض العرض'),
+    });
+  }
   // Selected Offer Group
   offerGroup = 'g-kitchen';
   // Offer Groups

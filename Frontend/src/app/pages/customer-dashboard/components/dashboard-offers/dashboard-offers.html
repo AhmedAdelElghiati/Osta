@@ -22,7 +22,35 @@
 </div>
 
 <div class="row g-4">
-    <!-- Offer Groups -->
+    <!-- Real offers from backend -->
+    <div class="col-12" *ngIf="realOffers.length || offersLoading || offersError">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">العروض الحقيقية ({{ realOffers.length }})</h5>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" (click)="loadOffers()">تحديث</button>
+                </div>
+                <div *ngIf="offersLoading" class="text-secondary small">جاري تحميل العروض...</div>
+                <div *ngIf="offersError" class="alert alert-danger small">{{ offersError }}</div>
+                <div class="d-flex flex-column gap-2" *ngIf="!offersLoading">
+                    <div *ngFor="let o of realOffers" class="border rounded-3 p-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <div class="fw-bold">{{ o.artisanId?.name || 'أسطى' }} · {{ o.price | number }} ج.م</div>
+                            <div class="text-secondary small">{{ o.requestId?.title || '' }} · {{ o.status }} · {{ o.duration }} · ضمان: {{ o.warranty }}</div>
+                            <div class="text-secondary small" *ngIf="o.notes">{{ o.notes }}</div>
+                        </div>
+                        <div class="d-flex gap-2" *ngIf="o.status === 'PENDING'">
+                            <button type="button" class="btn btn-sm btn-success" (click)="acceptReal(o)">قبول</button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" (click)="rejectReal(o)">رفض</button>
+                        </div>
+                        <span *ngIf="o.status !== 'PENDING'" class="badge bg-light text-secondary">{{ o.status }}</span>
+                    </div>
+                    <div *ngIf="!realOffers.length && !offersError" class="text-secondary small">لسه مفيش عروض على طلباتك. أول ما أسطى يبعت عرض هيظهر هنا.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Offer Groups (demo) -->
     <div class="col-12 col-lg-4">
 
         <div class="card border-0 shadow-sm h-100">

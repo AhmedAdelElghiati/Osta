@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { Observable, Subscription } from 'rxjs';
 
 import { RequestVm, ServiceRequests } from '../../../../services/service-requests';
+import { Marketplace } from '../../../../services/marketplace';
 
 @Component({
   selector: 'app-dashboard-requests',
@@ -34,6 +35,7 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     private requestsApi: ServiceRequests,
+    private marketplace: Marketplace,
     private cdr: ChangeDetectorRef,
   ) {}
 
@@ -326,11 +328,17 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
 
     const requestId = this.selectedRatingRequest.id;
 
-    this.rated[requestId] = true;
-
-    this.closeRating();
-
-    this.showToast('تم إرسال تقييمك بنجاح');
+    // POST /api/v1/requests/:id/review
+    this.marketplace.submitReview(requestId, this.selectedRating, this.ratingComment).subscribe({
+      next: () => {
+        this.rated[requestId] = true;
+        this.closeRating();
+        this.showToast('تم إرسال تقييمك بنجاح');
+      },
+      error: (err) => {
+        this.showToast(err?.error?.message || 'تعذر إرسال التقييم');
+      },
+    });
   }
 
   // =========================

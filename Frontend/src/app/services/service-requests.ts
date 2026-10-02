@@ -227,7 +227,7 @@ export class ServiceRequests {
   }
 
   private deriveCrafts(rawItems: any[]): void {
-    if (CRAFTS_ENDPOINT) return;
+    // fallback: لو endpoint الحرف فشل، استخرج الحرف من الطلبات نفسها
     const map = new Map<string, Craft>();
     this.craftsSubject.value.forEach((craft) => map.set(craft.id, craft));
     rawItems.forEach((raw) => {
@@ -240,17 +240,14 @@ export class ServiceRequests {
         });
       }
     });
-    this.craftsSubject.next(Array.from(map.values()));
+    if (map.size) this.craftsSubject.next(Array.from(map.values()));
   }
 
   // =========================
-  // Crafts
+  // Crafts — GET /api/v1/crafts
   // =========================
 
   loadCrafts(): Observable<Craft[]> {
-    if (!CRAFTS_ENDPOINT) {
-      return of(this.craftsSubject.value);
-    }
     return this.http.get<any>(CRAFTS_ENDPOINT, { withCredentials: true }).pipe(
       map((response) => {
         const data = response?.data;
@@ -261,7 +258,9 @@ export class ServiceRequests {
           slug: item.slug,
         }));
       }),
-      tap((crafts) => this.craftsSubject.next(crafts)),
+      tap((crafts) => {
+        if (crafts.length) this.craftsSubject.next(crafts);
+      }),
       catchError(() => of(this.craftsSubject.value)),
     );
   }
