@@ -1,6 +1,5 @@
 import { Injectable, inject } from '@angular/core';
 import { Subject } from 'rxjs';
-import { Job, JobsService } from './jobs.service';
 import { RequestsService } from './requests.service';
 
 export type OfferStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
@@ -25,12 +24,11 @@ export interface Offer {
 @Injectable({ providedIn: 'root' })
 export class OffersService {
 
-  private jobsService = inject(JobsService);
   private requests = inject(RequestsService);
 
   private seq = 79;
 
-  accepted$ = new Subject<{ offer: Offer; job: Job }>();
+  accepted$ = new Subject<{ offer: Offer }>();
   withdrawn$ = new Subject<Offer>();
 
   offers: Offer[] = [
@@ -73,8 +71,6 @@ export class OffersService {
     this.offers.unshift(offer);
     this.requests.setApplied(data.reqId, true);
 
-    // محاكاة قبول العميل بعد 14 ثانية
-    offer.timer = setTimeout(() => this.clientAccepts(offer.id), 14000);
     return offer;
   }
 
@@ -89,17 +85,4 @@ export class OffersService {
     this.withdrawn$.next(offer);
   }
 
-  private clientAccepts(id: string) {
-    const offer = this.offers.find(o => o.id === id);
-    if (!offer || offer.status !== 'pending') return;
-
-    const job = this.jobsService.addFromOffer(offer);
-
-    offer.status = 'accepted';
-    offer.jobId = job.id;
-    offer.timer = null;
-    this.requests.markAssigned(offer.reqId);
-
-    this.accepted$.next({ offer, job });
-  }
 }

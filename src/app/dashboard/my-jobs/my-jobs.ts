@@ -149,17 +149,7 @@ export class MyJobs {
     this.typing = true;
     this.scrollChat();
 
-    setTimeout(() => {
-      this.jobsService.addMessage(job.id, {
-        me: false,
-        text: CLIENT_REPLIES[Math.floor(Math.random() * CLIENT_REPLIES.length)],
-        time: this.jobsService.nowTime()
-      });
-      if (this.chatJob?.id === job.id) {
-        this.typing = false;
-        this.scrollChat();
-      }
-    }, 1500);
+    this.typing = false;
   }
 
   private scrollChat() {

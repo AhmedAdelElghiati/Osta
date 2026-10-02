@@ -1,0 +1,71 @@
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4" dir="rtl">
+  <div>
+    <h1 class="h3 fw-bold mb-1">العروض</h1>
+    <p class="text-secondary mb-0">راجع العروض المرسلة على طلباتك واختر الأنسب.</p>
+  </div>
+  <button type="button" class="btn btn-primary" (click)="newRequest.emit()">
+    <i class="bi bi-plus-lg ms-1"></i> طلب صنايعي جديد
+  </button>
+</div>
+
+<section class="card border-0 shadow-sm" dir="rtl" aria-labelledby="offers-title">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 id="offers-title" class="h5 fw-bold mb-0">العروض المرسلة ({{ offers.length }})</h2>
+      <button
+        type="button"
+        class="btn btn-sm btn-outline-secondary"
+        [disabled]="loading"
+        (click)="loadOffers()"
+      >
+        تحديث
+      </button>
+    </div>
+
+    <div *ngIf="notice" class="alert alert-success" role="status">{{ notice }}</div>
+    <div *ngIf="error" class="alert alert-danger" role="alert">{{ error }}</div>
+    <div *ngIf="loading" class="text-secondary small">جاري تحميل العروض...</div>
+
+    <div *ngFor="let offer of offers" class="border rounded-3 p-3 mb-3">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+        <div>
+          <h3 class="h6 fw-bold mb-2">{{ offer.artisanId?.name || 'أسطى' }}</h3>
+          <div class="text-secondary small">{{ offer.requestId?.title || 'طلب خدمة' }}</div>
+          <div class="small mt-2">
+            {{ offer.price | number }} ج.م · {{ offer.duration }} · ضمان
+            {{ offer.warranty || 'غير محدد' }}
+          </div>
+          <p *ngIf="offer.notes" class="text-secondary small mb-0 mt-2">{{ offer.notes }}</p>
+        </div>
+        <span class="badge bg-light text-dark">{{ offer.status }}</span>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <button type="button" class="btn btn-sm btn-outline-secondary" (click)="openRequest(offer)">
+          عرض الطلب
+        </button>
+        <ng-container *ngIf="offer.status === 'PENDING'">
+          <button
+            type="button"
+            class="btn btn-sm btn-success"
+            [disabled]="actionId === offer._id"
+            (click)="accept(offer)"
+          >
+            قبول العرض
+          </button>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-danger"
+            [disabled]="actionId === offer._id"
+            (click)="reject(offer)"
+          >
+            رفض العرض
+          </button>
+        </ng-container>
+      </div>
+    </div>
+
+    <p *ngIf="!loading && !offers.length && !error" class="text-secondary mb-0">
+      لا توجد عروض محفوظة على طلباتك حتى الآن.
+    </p>
+  </div>
+</section>

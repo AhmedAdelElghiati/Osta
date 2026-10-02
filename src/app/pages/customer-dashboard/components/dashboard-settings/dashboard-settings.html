@@ -1,0 +1,551 @@
+<div class="settings-page">
+
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <div>
+            <h1>الإعدادات</h1>
+            <p>
+                إدارة بيانات حسابك وإعدادات الأمان والإشعارات.
+            </p>
+        </div>
+    </div>
+
+    <!-- ================= Profile ================= -->
+    <section class="settings-card mb-4">
+
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="bi bi-person"></i>
+            </div>
+
+            <div>
+                <h2>الملف الشخصي</h2>
+                <p>حدّث بياناتك الشخصية ومعلومات التواصل.</p>
+            </div>
+        </div>
+
+        <div class="profile-top mb-4">
+
+            <div class="profile-avatar">
+
+                <img *ngIf="profileImage" [src]="profileImage" alt="صورة الملف الشخصي">
+
+                <span *ngIf="!profileImage">
+                    أ ع
+                </span>
+
+                <label for="profileImageInput" class="avatar-edit" title="تغيير الصورة">
+
+                    <i class="bi bi-camera"></i>
+
+                </label>
+
+                <input id="profileImageInput" type="file" accept="image/*" hidden
+                    (change)="onProfileImageSelected($event)">
+
+            </div>
+
+            <div>
+                <h3>{{ profile.name }}</h3>
+                <p>عميل في منصة أُسطى</p>
+            </div>
+
+        </div>
+
+        <form (ngSubmit)="saveProfile()">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        الاسم
+                    </label>
+
+                    <input type="text" class="form-control" [(ngModel)]="profile.name" name="name">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        البريد الإلكتروني
+                    </label>
+
+                    <input type="email" class="form-control" [(ngModel)]="profile.email" name="email">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        رقم الموبايل
+                    </label>
+
+                    <input type="tel" class="form-control" [(ngModel)]="profile.phone" name="phone">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">
+                        المدينة
+                    </label>
+
+                    <select class="form-select" [(ngModel)]="profile.city" name="city">
+
+                        <option *ngIf="profile.city && !knownCities.includes(profile.city)" [value]="profile.city">
+                            {{ profile.city }}
+                        </option>
+
+                        <option value="مدينة نصر">
+                            مدينة نصر
+                        </option>
+
+                        <option value="مصر الجديدة">
+                            مصر الجديدة
+                        </option>
+
+                        <option value="المعادي">
+                            المعادي
+                        </option>
+
+                        <option value="التجمع الخامس">
+                            التجمع الخامس
+                        </option>
+
+                        <option value="6 أكتوبر">
+                            6 أكتوبر
+                        </option>
+
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="settings-actions mt-4">
+
+                <button type="submit" class="primary-btn">
+                    <i class="bi bi-check2"></i>
+                    حفظ التغييرات
+                </button>
+
+                <span *ngIf="profileMessage" class="success-message">
+                    <i class="bi bi-check-circle"></i>
+                    {{ profileMessage }}
+                </span>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- ================= Security ================= -->
+    <section class="settings-card mb-4">
+
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="bi bi-shield-lock"></i>
+            </div>
+
+            <div>
+                <h2>الأمان</h2>
+                <p>تحديث كلمة المرور الخاصة بحسابك.</p>
+            </div>
+        </div>
+
+        <form (ngSubmit)="changePassword()">
+
+            <div class="row g-3">
+
+                <!-- Current Password -->
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        كلمة المرور الحالية
+                    </label>
+
+                    <div class="password-field">
+
+                        <input [type]="showCurrentPassword ? 'text' : 'password'" class="form-control"
+                            [(ngModel)]="currentPassword" name="currentPassword">
+
+                        <button type="button" class="password-toggle"
+                            (click)="showCurrentPassword = !showCurrentPassword">
+
+                            <i class="bi" [ngClass]="showCurrentPassword
+                  ? 'bi-eye-slash'
+                  : 'bi-eye'">
+                            </i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- New Password -->
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        كلمة المرور الجديدة
+                    </label>
+
+                    <div class="password-field">
+
+                        <input [type]="showNewPassword ? 'text' : 'password'" class="form-control"
+                            [(ngModel)]="newPassword" name="newPassword">
+
+                        <button type="button" class="password-toggle" (click)="showNewPassword = !showNewPassword">
+
+                            <i class="bi" [ngClass]="showNewPassword
+                  ? 'bi-eye-slash'
+                  : 'bi-eye'">
+                            </i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Confirm Password -->
+                <div class="col-md-4">
+
+                    <label class="form-label">
+                        تأكيد كلمة المرور
+                    </label>
+
+                    <div class="password-field">
+
+                        <input [type]="showConfirmPassword ? 'text' : 'password'" class="form-control"
+                            [(ngModel)]="confirmPassword" name="confirmPassword">
+
+                        <button type="button" class="password-toggle"
+                            (click)="showConfirmPassword = !showConfirmPassword">
+
+                            <i class="bi" [ngClass]="showConfirmPassword
+                  ? 'bi-eye-slash'
+                  : 'bi-eye'">
+                            </i>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div *ngIf="passwordError" class="error-message mt-3">
+                <i class="bi bi-exclamation-circle"></i>
+                {{ passwordError }}
+            </div>
+
+            <div *ngIf="passwordMessage" class="success-message mt-3">
+                <i class="bi bi-check-circle"></i>
+                {{ passwordMessage }}
+            </div>
+
+
+            <div class="settings-actions mt-4">
+
+                <button type="submit" class="primary-btn" [disabled]="passwordLoading">
+                    <i class="bi bi-key"></i>
+                    تغيير كلمة المرور
+                </button>
+
+            </div>
+
+        </form>
+
+    </section>
+
+
+    <!-- ================= Notifications ================= -->
+    <section class="settings-card mb-4">
+
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="bi bi-bell"></i>
+            </div>
+
+            <div>
+                <h2>الإشعارات</h2>
+                <p>اختار الإشعارات التي تريد استقبالها.</p>
+            </div>
+        </div>
+
+
+        <div class="notification-list">
+
+            <div class="notification-row">
+
+                <div class="notification-info">
+                    <strong>طلبات جديدة</strong>
+                    <span>
+                        إشعارات عند إنشاء أو تحديث طلباتك.
+                    </span>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.requests">
+                </div>
+
+            </div>
+
+
+            <div class="notification-row">
+
+                <div class="notification-info">
+                    <strong>العروض الجديدة</strong>
+                    <span>
+                        إشعار عند وصول عرض جديد على طلباتك.
+                    </span>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.offers">
+                </div>
+
+            </div>
+
+
+            <div class="notification-row">
+
+                <div class="notification-info">
+                    <strong>رسائل الصنايعية</strong>
+                    <span>
+                        إشعارات عند وصول رسالة جديدة.
+                    </span>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.messages">
+                </div>
+
+            </div>
+
+
+            <div class="notification-row">
+
+                <div class="notification-info">
+                    <strong>تحديثات الطلبات</strong>
+                    <span>
+                        إشعارات بتحديثات حالة الشغلانات.
+                    </span>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.updates">
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= Addresses ================= -->
+    <section class="settings-card mb-4">
+
+        <div class="section-header">
+
+            <div class="section-icon">
+                <i class="bi bi-geo-alt"></i>
+            </div>
+
+            <div class="flex-grow-1">
+                <h2>العناوين المحفوظة</h2>
+                <p>إدارة العناوين التي تستخدمها في طلباتك.</p>
+            </div>
+
+            <button type="button" class="secondary-btn" (click)="openAddAddress()">
+                <i class="bi bi-plus"></i>
+                إضافة عنوان
+            </button>
+
+        </div>
+
+
+        <div class="addresses-list">
+
+            <div class="address-row" *ngFor="let address of addresses">
+
+                <div class="address-icon">
+                    <i class="bi bi-geo-alt"></i>
+                </div>
+
+                <div class="address-info">
+                    <strong>{{ address.title }}</strong>
+                    <span>{{ address.address }}</span>
+                </div>
+
+                <div class="address-actions">
+
+                    <button type="button" class="icon-btn" title="تعديل" (click)="openEditAddress(address)">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <button type="button" class="icon-btn danger-icon" title="حذف" (click)="deleteAddress(address.id)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div *ngIf="addresses.length === 0" class="empty-addresses">
+
+                <i class="bi bi-geo-alt"></i>
+
+                <p>
+                    لا توجد عناوين محفوظة.
+                </p>
+
+                <button type="button" class="secondary-btn" (click)="openAddAddress()">
+                    إضافة عنوان
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- ================= Danger Zone ================= -->
+    <section class="danger-card">
+
+        <div class="danger-info">
+
+            <div class="danger-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+
+            <div>
+                <h2>منطقة خطرة</h2>
+                <p>
+                    حذف الحساب سيؤدي إلى فقدان بياناتك وطلباتك.
+                </p>
+            </div>
+
+        </div>
+
+        <button type="button" class="danger-btn" (click)="openDeleteAccountModal()">
+            <i class="bi bi-trash"></i>
+            حذف الحساب
+        </button>
+
+    </section>
+
+
+    <!-- ================= Address Modal ================= -->
+    <div class="settings-modal-overlay" *ngIf="addressModalOpen" (click)="closeAddressModal()">
+
+        <div class="settings-modal" (click)="$event.stopPropagation()">
+
+            <div class="modal-header">
+
+                <div>
+                    <h3>
+                        {{ editingAddressId !== null
+                        ? 'تعديل العنوان'
+                        : 'إضافة عنوان جديد' }}
+                    </h3>
+
+                    <p>
+                        أدخل بيانات العنوان.
+                    </p>
+                </div>
+
+                <button type="button" class="modal-close" (click)="closeAddressModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        اسم العنوان
+                    </label>
+
+                    <input type="text" class="form-control" [(ngModel)]="addressTitle" placeholder="مثال: المنزل">
+
+                </div>
+
+
+                <div>
+
+                    <label class="form-label">
+                        العنوان بالتفصيل
+                    </label>
+
+                    <textarea class="form-control" rows="3" [(ngModel)]="addressText"
+                        placeholder="اكتب العنوان بالتفصيل">
+          </textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button type="button" class="secondary-btn" (click)="closeAddressModal()">
+                    إلغاء
+                </button>
+
+                <button type="button" class="primary-btn" (click)="saveAddress()">
+                    <i class="bi bi-check2"></i>
+                    حفظ العنوان
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================= Delete Account Modal ================= -->
+    <div class="settings-modal-overlay" *ngIf="deleteAccountModalOpen" (click)="closeDeleteAccountModal()">
+
+        <div class="settings-modal delete-modal" (click)="$event.stopPropagation()">
+
+            <div class="delete-modal-icon">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+
+            <h3>حذف الحساب؟</h3>
+
+            <p>
+                هل أنت متأكد من رغبتك في حذف الحساب؟
+                هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+
+            <p *ngIf="deleteAccountError" class="text-danger small">
+                {{ deleteAccountError }}
+            </p>
+
+            <div class="modal-footer">
+
+                <button type="button" class="secondary-btn" (click)="closeDeleteAccountModal()">
+                    إلغاء
+                </button>
+
+                <button type="button" class="danger-btn" (click)="confirmDeleteAccount()">
+                    نعم، حذف الحساب
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

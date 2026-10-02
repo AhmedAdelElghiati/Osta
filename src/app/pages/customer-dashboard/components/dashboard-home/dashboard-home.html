@@ -1,0 +1,529 @@
+<!-- Home -->
+<section>
+
+    <!-- Page Heading -->
+    <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-2 mb-4">
+
+        <div>
+            <h1 class="mb-1 fw-bold">
+                أهلاً {{ firstName }}
+            </h1>
+
+            <p class="mb-0 text-secondary small">
+                بنتمنالك يوم سعيد
+            </p>
+        </div>
+
+        <span class="current-date text-secondary">
+            {{ todayLabel }}
+        </span>
+
+    </div>
+
+
+    <!-- Stats -->
+    <div class="row g-3 mb-2">
+
+        <!-- Active Jobs -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-briefcase"></i>
+                </div>
+
+                <div>
+                    <span>الشغلانات الجارية</span>
+                    <strong>{{ activeJobsCount }}</strong>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Completed Jobs -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-check2-circle"></i>
+                </div>
+
+                <div>
+                    <span>الشغلانات المكتملة</span>
+                    <strong>{{ completedJobsCount }}</strong>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Escrow -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+
+                <div>
+                    <span>المبلغ في الضمان</span>
+                    <strong>{{ escrowAmount | number }} ج.م</strong>
+                </div>
+
+            </div>
+        </div>
+
+
+        <!-- Wallet -->
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="stat-card">
+
+                <div class="stat-icon">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+
+                <div>
+                    <span>رصيد المحفظة</span>
+                    <strong>{{ walletBalance | number }} ج.م</strong>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ACTIVE JOBS-->
+    <section class="dashboard-section">
+
+        <!-- Section Header -->
+        <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-2 mb-3">
+
+            <div>
+                <h2 class="section-title mb-1">
+                    الشغلانات الجارية
+                </h2>
+
+                <p class="section-subtitle mb-0">
+                    تابع حالة شغلك الحالي وتفاصيل التنفيذ
+                </p>
+            </div>
+
+            <button type="button" class="btn history-btn p-0" (click)="goToPage('requests')">
+                عرض السجل الكامل
+                <i class="bi bi-arrow-left"></i>
+            </button>
+
+        </div>
+
+
+        <!-- Jobs -->
+        <div class="row g-3">
+
+            <div class="col-12" *ngIf="activeRequests.length === 0">
+                <div class="job-card text-center text-secondary py-4">
+                    مفيش شغلانات جارية دلوقتي. لما تقبل عرض هتظهر هنا.
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6" *ngFor="let request of activeRequests">
+
+                <div class="job-card h-100">
+
+                    <!-- Job Header -->
+                    <div class="d-flex align-items-start gap-2">
+
+                        <div class="job-category-icon">
+                            <i class="bi" [ngClass]="request.category === 'سباكة'
+                            ? 'bi-droplet'
+                            : 'bi-lightbulb'"></i>
+                        </div>
+
+                        <div class="job-title flex-grow-1">
+
+                            <span class="job-number">
+                                {{ request.id }}
+                            </span>
+
+                            <h3>
+                                {{ request.title }}
+                            </h3>
+
+                            <span class="job-category">
+                                {{ request.category }} · {{ request.location }}
+                            </span>
+
+                        </div>
+
+                        <span class="status-badge" [ngClass]="request.status === 'active'
+                        ? 'status-active'
+                        : 'status-inspection'">
+                            {{ request.statusText }}
+                        </span>
+
+                    </div>
+
+
+                    <!-- Divider -->
+                    <div class="job-divider"></div>
+
+
+                    <!-- Job Information -->
+                    <div class="row g-3">
+
+                        <div class="col-6 col-md-3">
+
+                            <span class="job-info-label">
+                                الأسطى
+                            </span>
+
+                            <strong class="job-info-value">
+                                {{ getRequestDetails(request.id)?.craftsman?.name }}
+                            </strong>
+
+                        </div>
+
+
+                        <div class="col-6 col-md-3">
+
+                            <span class="job-info-label">
+                                التقييم
+                            </span>
+
+                            <strong class="job-info-value">
+
+                                <i class="bi bi-star-fill rating-star"></i>
+
+                                {{ getRequestDetails(request.id)?.craftsman?.rating }}
+
+                            </strong>
+
+                        </div>
+
+
+                        <div class="col-6 col-md-3">
+
+                            <span class="job-info-label">
+                                قيمة العمل
+                            </span>
+
+                            <strong class="job-info-value">
+                                {{ request.budget | number }} ج.م
+                            </strong>
+
+                        </div>
+
+
+                        <div class="col-6 col-md-3">
+
+                            <span class="job-info-label">
+                                الضمان
+                            </span>
+
+                            <strong class="job-info-value">
+                                {{ request.budget | number }} ج.م
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Progress -->
+                    <div class="job-progress">
+
+                        <div class="d-flex justify-content-between mb-2">
+
+                            <span class="progress-label">
+                                الحالة
+                            </span>
+
+                            <strong class="progress-value">
+                                {{ request.statusText }}
+                            </strong>
+
+                        </div>
+
+                        <div class="custom-progress">
+
+                            <span [style.width]="'50%'">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Actions -->
+                    <div class="d-flex gap-2 mt-3">
+
+                        <button type="button" class="btn-outline-custom flex-fill">
+
+                            <i class="bi bi-chat-dots"></i>
+
+                            مراسلة الأسطى
+
+                        </button>
+
+
+                        <button type="button" class="btn-primary-custom flex-fill" (click)="openRequest(request.id)">
+                            التفاصيل
+                            <i class="bi bi-arrow-left"></i>
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="dashboard-section">
+        <!-- Section Header -->
+        <div class="d-flex flex-column flex-md-row align-items-md-end justify-content-between gap-2 mb-3">
+            <div>
+                <h2 class="section-title mb-1">
+                    آخر المقايسات والعروض
+                </h2>
+                <p class="section-subtitle mb-0">
+                    عندك عروض جديدة محتاجة مراجعة
+                </p>
+            </div>
+            <button type="button" class="section-link" (click)="goToPage('offers')">
+                عرض كل العروض
+                <i class="bi bi-arrow-left"></i>
+            </button>
+        </div>
+        <!-- Request -->
+        <div class="offer-request-card">
+            <!-- Request Header -->
+            <div class="offer-request-header">
+                <div>
+                    <h3>
+                        عروض تحتاج مراجعة
+                    </h3>
+                </div>
+            </div>
+                <div class="offer-summary">
+                    <span>
+                        {{ kitchenOffers.length }} عروض
+                    </span>
+                    <strong>
+                        حتى 12,000 ج.م
+                    </strong>
+                </div>
+            </div>
+            <!-- Offers -->
+            <div class="row g-0">
+                <!-- Offer Card -->
+                <div class="col-12 col-md-6" *ngFor="let offer of kitchenOffers.slice(0, 2); let last = last">
+
+                    <div class="offer-card h-100" [class.offer-card-last]="last">
+
+                        <!-- User -->
+                        <div class="d-flex align-items-center gap-2">
+
+                            <div class="offer-avatar">
+                                {{ offer.artisanId?.name?.charAt(0) || 'أ' }}
+                            </div>
+
+                            <div>
+
+                                <h4>
+                                    {{ offer.artisanId?.name }}
+                                </h4>
+
+                                <span>
+                                    {{ offer.requestId?.title }}
+                                </span>
+
+                                <div class="offer-rating">
+
+                                    <i class="bi bi-star-fill"></i>
+
+                                    <strong>
+                                        4.8
+                                    </strong>
+
+                                    <span>
+                                        · تقييم الأسطى
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Details -->
+                        <div class="row g-2 mt-3">
+
+                            <div class="col-4">
+
+                                <span>
+                                    السعر
+                                </span>
+
+                                <strong class="offer-price">
+                                    {{ offer.price | number }} ج.م
+                                </strong>
+                            </div>
+
+                            <div class="col-4">
+
+                                <span>
+                                    مدة التنفيذ
+                                </span>
+
+                                <strong>
+                                    {{ offer.duration }}
+                                </strong>
+
+                            </div>
+
+
+                            <div class="col-4">
+
+                                <span>
+                                    الضمان
+                                </span>
+
+                                <strong>
+                                    {{ offer.warranty }}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Description -->
+                        <div class="offer-description">
+                            <span>ملاحظات الأسطى:</span>
+                            <p>{{ offer.notes || 'لا توجد ملاحظات إضافية' }}</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex gap-2 mt-3">
+
+                            <button type="button" class="btn-primary-custom flex-fill" (click)="openAccept(
+                                offer._id,
+                                offer.artisanId?.name,
+                                offer.price,
+                                offer.duration
+                            )">
+                                قبول العرض
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</section>
+
+<!-- =========================Accept Offer Modal========================= -->
+@if (acceptModalOpen) {
+<div class="modal-backdrop-custom" (click)="closeAcceptModal()">
+
+    <div class="accept-modal" (click)="$event.stopPropagation()">
+
+        <!-- Icon -->
+        <div class="accept-modal-icon">
+            <i class="bi bi-check2-circle"></i>
+        </div>
+
+
+        <!-- Title -->
+        <h3>
+            تأكيد قبول عرض
+        </h3>
+
+
+        <!-- Subtitle -->
+        <p class="accept-modal-subtitle">
+
+            هل أنت متأكد من قبول عرض
+
+            <strong>
+                {{ selectedOffer.name }}
+            </strong>؟
+
+        </p>
+
+
+        <!-- Summary -->
+        <div class="accept-summary">
+
+            <div>
+                <span>قيمة العرض</span>
+
+                <strong>
+                    {{ selectedOffer.price | number }} ج.م
+                </strong>
+            </div>
+
+            <div>
+                <span>مدة التنفيذ</span>
+
+                <strong>
+                    {{ selectedOffer.duration }}
+                </strong>
+            </div>
+
+            <div>
+                <span>طريقة الدفع</span>
+
+                <strong>
+                    ضمان المنصة
+                </strong>
+            </div>
+
+        </div>
+
+
+        <!-- Escrow Notice -->
+        <div class="escrow-notice">
+
+            <i class="bi bi-shield-check"></i>
+
+            <p>
+                سيتم حجز المبلغ في ضمان المنصة، ولن يتم تحويله للأسطى إلا بعد انتهاء العمل وموافقتك النهائية.
+            </p>
+
+        </div>
+
+
+        <!-- Actions -->
+        <div class="modal-actions">
+
+            <button type="button" class="btn-outline-custom" (click)="closeAcceptModal()">
+
+                رجوع
+
+            </button>
+
+            <button type="button" class="btn-primary-custom" (click)="confirmAccept()">
+
+                تأكيد قبول العرض
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+}
+

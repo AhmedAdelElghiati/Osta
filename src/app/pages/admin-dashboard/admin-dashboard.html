@@ -1,0 +1,155 @@
+<main class="admin-page container py-4" dir="rtl">
+  <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+      <p class="eyebrow mb-1">إدارة المنصة</p>
+      <h1 class="h2 fw-bold mb-1">لوحة الإدارة</h1>
+      <p class="text-secondary mb-0">
+        متابعة المستخدمين والرسائل ومؤشرات التشغيل من مصدرها الحقيقي.
+      </p>
+    </div>
+    <button class="btn btn-outline-dark" type="button" (click)="reload()">تحديث البيانات</button>
+  </header>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="loading" class="text-secondary py-4">جاري تحميل بيانات الإدارة...</div>
+
+  <section *ngIf="!loading" class="row g-3 mb-4">
+    <div
+      class="col-6 col-lg-3"
+      *ngFor="
+        let card of [
+          { label: 'المستخدمون', value: overview.users },
+          { label: 'الحرفيون', value: overview.artisans },
+          { label: 'طلبات الخدمة', value: overview.requests },
+          { label: 'رسائل جديدة', value: overview.unreadMessages },
+        ]
+      "
+    >
+      <div class="metric-card h-100">
+        <span>{{ card.label }}</span
+        ><strong>{{ card.value || 0 | number }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="h5 fw-bold mb-0">توثيق الحرفيين</h2>
+      <button class="btn btn-sm btn-outline-secondary" type="button" (click)="loadArtisans()">
+        تحديث
+      </button>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0">
+        <thead>
+          <tr>
+            <th>الحرفي</th>
+            <th>التخصص</th>
+            <th>الحالة</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let artisan of artisans">
+            <td>
+              <strong>{{ artisan.userId?.name }}</strong
+              ><small class="d-block text-secondary">{{ artisan.userId?.email }}</small>
+            </td>
+            <td>{{ artisan.profession }}</td>
+            <td>{{ artisan.isVerified ? 'موثق' : 'غير موثق' }}</td>
+            <td>
+              <button
+                class="btn btn-sm"
+                [class.btn-outline-danger]="artisan.isVerified"
+                [class.btn-outline-success]="!artisan.isVerified"
+                type="button"
+                (click)="toggleVerification(artisan)"
+              >
+                {{ artisan.isVerified ? 'إلغاء التوثيق' : 'توثيق' }}
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="!artisans.length">
+            <td colspan="4" class="text-secondary">لا يوجد حرفيون.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="row g-4">
+    <div class="col-xl-7">
+      <div class="panel">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <h2 class="h5 fw-bold mb-0">المستخدمون</h2>
+          <div class="d-flex gap-2">
+            <input class="form-control" [(ngModel)]="search" placeholder="بحث بالاسم أو البريد" />
+            <select class="form-select" [(ngModel)]="role">
+              <option value="">كل الأدوار</option>
+              <option value="customer">عميل</option>
+              <option value="artisan">حرفي</option>
+              <option value="admin">مدير</option>
+            </select>
+            <button class="btn btn-dark" type="button" (click)="loadUsers()">بحث</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>الاسم</th>
+                <th>الدور</th>
+                <th>الحالة</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let user of users">
+                <td>
+                  <strong>{{ user.name }}</strong
+                  ><small class="d-block text-secondary">{{ user.email }}</small>
+                </td>
+                <td>{{ user.role }}</td>
+                <td>{{ user.isActive ? 'نشط' : 'موقوف' }}</td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    type="button"
+                    (click)="toggleUser(user)"
+                  >
+                    {{ user.isActive ? 'إيقاف' : 'تفعيل' }}
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="!users.length">
+                <td colspan="4" class="text-secondary">لا توجد نتائج.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-xl-5">
+      <div class="panel">
+        <h2 class="h5 fw-bold mb-3">صندوق التواصل</h2>
+        <article class="message-row" *ngFor="let message of messages">
+          <div class="d-flex justify-content-between gap-2">
+            <strong>{{ message.fullName }}</strong
+            ><span class="badge text-bg-light">{{ message.status }}</span>
+          </div>
+          <div class="small text-secondary">{{ message.phone }}</div>
+          <p class="mb-2 mt-2">{{ message.message }}</p>
+          <button
+            *ngIf="message.status === 'NEW'"
+            class="btn btn-sm btn-outline-dark"
+            type="button"
+            (click)="markMessageRead(message)"
+          >
+            تحديد كمقروءة
+          </button>
+        </article>
+        <p *ngIf="!messages.length" class="text-secondary mb-0">لا توجد رسائل.</p>
+      </div>
+    </div>
+  </section>
+</main>

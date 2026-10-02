@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 const { sendResponse } = require('../utils/apiResponse');
 const ServiceRequest = require('../models/ServiceRequest');
 const Offer = require('../models/Offer');
+const Job = require('../models/Job');
 const RequestEvent = require('../models/RequestEvent');
+const Transaction = require('../models/Transaction');
 
 const fail = (code, message) => { const e = new Error(message); e.statusCode = code; return e; };
 
@@ -79,13 +81,41 @@ const setStatus = async (req, res, next, target) => {
     if (offer.status !== 'PENDING') return sendResponse(res, 409, false, 'العرض ده اتقفل قبل كده.');
 
     if (target === 'ACCEPTED') {
+      if (!['PUBLISHED', 'OFFER_RECEIVED'].includes(requestDoc.status)) {
+        return sendResponse(res, 409, false, 'الطلب ده اتقفل ومينفعش تقبل عليه عروض دلوقتي.');
+      }
       offer.status = 'ACCEPTED';
       await offer.save();
       await Offer.updateMany({ requestId: offer.requestId, _id: { $ne: offer._id }, status: 'PENDING' }, { $set: { status: 'REJECTED' } });
       requestDoc.status = 'OFFER_ACCEPTED';
       await requestDoc.save();
+      let job;
+      try {
+        job = await Job.create({
+          customerId: requestDoc.customerId,
+          artisanId: offer.artisanId,
+          requestId: requestDoc._id,
+          offerId: offer._id,
+          price: offer.price,
+          expectedCompletion: offer.duration ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) : undefined,
+        });
+      } catch (error) {
+        if (error.code === 11000) {
+          job = await Job.findOne({ requestId: requestDoc._id });
+        } else {
+          throw error;
+        }
+      }
+      await Transaction.create({
+        userId: offer.artisanId,
+        type: 'escrow_hold',
+        amount: offer.price,
+        title: 'حجز ضمان شغلانة',
+        meta: { jobId: String(job._id), requestId: String(requestDoc._id), offerId: String(offer._id) },
+      });
       await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_ACCEPTED', metadata: { offerId: String(offer._id) } });
-      return sendResponse(res, 200, true, 'تم قبول العرض بنجاح.', offer);
+      await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'JOB_CREATED', metadata: { jobId: String(job._id) } });
+      return sendResponse(res, 200, true, 'تم قبول العرض وإنشاء الشغلانة بنجاح.', { offer, job });
     }
     offer.status = 'REJECTED';
     await offer.save();

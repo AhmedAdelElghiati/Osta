@@ -1,0 +1,580 @@
+<div class="dashboard" (click)="closeNotifications()">
+  <div class="customer-dashboard" *ngIf="!accountDeleted">
+    <!-- Dashboard Layout -->
+    <div class="d-flex min-vh-100">
+      <!-- Sidebar -->
+      <aside class="sidebar bg-white border-end d-flex flex-column" [class.open]="sidebarOpen">
+        <!-- Brand -->
+        <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <div class="brand-name fw-bold fs-4">أُسطى</div>
+
+            <span class="client-badge badge rounded-pill"> العميل </span>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav flex-grow-1 p-3">
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end mb-2"
+            [class.active]="activePage === 'home'"
+            (click)="showPage('home')"
+          >
+            <i class="bi bi-house-door"></i>
+            <span>الرئيسية</span>
+          </button>
+
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end mb-2"
+            [class.active]="activePage === 'requests'"
+            (click)="showPage('requests')"
+          >
+            <i class="bi bi-clipboard-check"></i>
+
+            <span class="flex-grow-1"> طلباتي </span>
+
+            <span class="nav-count badge rounded-pill">
+              {{ requestsCount }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end mb-2"
+            [class.active]="activePage === 'offers'"
+            (click)="showPage('offers')"
+          >
+            <i class="bi bi-file-earmark-text"></i>
+
+            <span class="flex-grow-1"> المقايسات والعروض </span>
+
+            <span class="nav-count badge rounded-pill">
+              {{ offersCount }}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end mb-2"
+            [class.active]="activePage === 'wallet'"
+            (click)="showPage('wallet')"
+          >
+            <i class="bi bi-wallet2"></i>
+
+            <span> المحفظة والفواتير </span>
+          </button>
+
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end mb-2"
+            [class.active]="activePage === 'support'"
+            (click)="showPage('support')"
+          >
+            <i class="bi bi-headset"></i>
+
+            <span> المساعدة والدعم </span>
+          </button>
+
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end"
+            [class.active]="activePage === 'settings'"
+            (click)="showPage('settings')"
+          >
+            <i class="bi bi-gear"></i>
+
+            <span> الإعدادات </span>
+          </button>
+        </nav>
+
+        <!-- User -->
+        <div class="sidebar-user border-top p-3">
+          <div class="d-flex align-items-center gap-3">
+            <div class="user-avatar flex-shrink-0">
+              {{ userInitials }}
+            </div>
+
+            <div class="user-info flex-grow-1 overflow-hidden">
+              <strong class="d-block text-truncate">
+                {{ user.name }}
+              </strong>
+
+              <span class="d-block text-truncate">
+                {{ user.email }}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              class="user-settings btn btn-light flex-shrink-0"
+              (click)="showPage('settings')"
+            >
+              <i class="bi bi-gear"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+      <!-- Mobile Overlay -->
+      <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="closeSidebar()"></div>
+      <!-- Main -->
+      <div class="dashboard-main flex-grow-1 d-flex flex-column">
+        <!-- Header -->
+        <header
+          class="dashboard-header bg-white border-bottom d-flex align-items-center justify-content-between px-3 px-lg-4"
+        >
+          <!-- Right -->
+          <div class="header-right d-flex align-items-center gap-3">
+            <!-- Mobile Menu -->
+            <button type="button" class="mobile-menu-btn btn btn-light" (click)="toggleSidebar()">
+              <i class="bi bi-list"></i>
+            </button>
+
+            <!-- Search -->
+            <div class="global-search position-relative">
+              <i class="bi bi-search position-absolute"></i>
+
+              <input
+                type="text"
+                class="form-control"
+                placeholder="بحث في طلباتك..."
+                [(ngModel)]="globalSearch"
+                (input)="searchRequests()"
+              />
+            </div>
+          </div>
+
+          <!-- Left -->
+          <div class="header-left d-flex align-items-center gap-2">
+            <!-- Notifications -->
+            <div class="notification-wrapper position-relative" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="notification-btn btn btn-light position-relative"
+                (click)="toggleNotifications()"
+              >
+                <i class="bi bi-bell"></i>
+
+                <span
+                  *ngIf="unreadNotificationsCount > 0"
+                  class="notification-count position-absolute"
+                >
+                  {{ unreadNotificationsCount }}
+                </span>
+              </button>
+
+              <!-- Notifications Dropdown -->
+              <div
+                class="notification-dropdown bg-white border rounded-3 shadow"
+                *ngIf="notificationsOpen"
+              >
+                <!-- Header -->
+                <div
+                  class="notification-header d-flex align-items-center justify-content-between p-3 border-bottom"
+                >
+                  <strong> الإشعارات </strong>
+
+                  <button
+                    type="button"
+                    class="btn btn-link p-0 text-decoration-none notification-read-btn"
+                    (click)="markAllNotificationsRead()"
+                  >
+                    قراءة الكل
+                  </button>
+                </div>
+
+                <div
+                  *ngFor="let notification of notifications"
+                  class="notification-item d-flex gap-3 p-3 border-bottom"
+                  [class.bg-light]="!notification.isRead"
+                  (click)="markNotificationRead(notification)"
+                  style="cursor: pointer;"
+                >
+                  <div class="notification-icon flex-shrink-0">
+                    <i class="bi" [ngClass]="notification.icon || 'bi-bell'"> </i>
+                  </div>
+
+                  <div class="flex-grow-1">
+                    <strong class="d-block" [class.text-primary]="!notification.isRead">
+                      {{ notification.title }}
+                    </strong>
+
+                    <p class="mb-1">
+                      {{ notification.description }}
+                    </p>
+
+                    <small *ngIf="notification.details" class="d-block text-secondary">
+                      {{ notification.details }}
+                    </small>
+
+                    <span class="small text-secondary">
+                      {{ notification.createdAt | date:'short' }}
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Empty -->
+                <div *ngIf="notifications.length === 0" class="text-center text-secondary p-4">
+                  لا توجد إشعارات حاليًا
+                </div>
+              </div>
+            </div>
+
+            <!-- New Request -->
+            <button
+              type="button"
+              class="new-request-btn btn d-flex align-items-center gap-2"
+              (click)="openNewRequest()"
+            >
+              <i class="bi bi-plus-lg"></i>
+
+              <span> طلب صنايعي جديد </span>
+            </button>
+          </div>
+        </header>
+
+        <!-- Page Content -->
+        <main class="dashboard-content">
+          <!-- DASHBOARD HOME -->
+          <app-dashboard-home
+            *ngIf="activePage === 'home'"
+            [userName]="user.name"
+            [activeJobsCount]="activeJobsCount"
+            [completedJobsCount]="completedJobsCount"
+            [escrowAmount]="escrowAmount"
+            [walletBalance]="walletBalance"
+            [activeRequests]="activeRequests"
+            [kitchenOffers]="recentOffers"
+            [detailsData]="requestDetails"
+            (pageChange)="showPage($event)"
+            (requestDetails)="openRequestDetailsById($event)"
+            (acceptOfferEvent)="acceptOffer($event)"
+          >
+          </app-dashboard-home>
+
+          <!-- Other Pages -->
+          <!-- REQUESTS -->
+          <app-dashboard-requests
+            *ngIf="activePage === 'requests'"
+            [selectedRequestId]="selectedRequest?.id"
+            [searchTerm]="globalSearch"
+            [loading]="requestsLoading"
+            [loadError]="requestsError"
+            (pageChange)="handleRequestsPageChange($event)"
+            (retry)="reloadRequests()"
+            (toast)="showToast($event.message, $event.type)"
+          >
+          </app-dashboard-requests>
+
+          <!-- OFFERS -->
+          <app-dashboard-offers
+            *ngIf="activePage === 'offers'"
+            (pageChange)="showPage($event)"
+            (newRequest)="openNewRequest()"
+            (requestDetails)="openRequestDetailsById($event)"
+            (offerAccepted)="offerWasAccepted($event)"
+          >
+          </app-dashboard-offers>
+
+          <!-- wallet -->
+          <app-dashboard-wallet *ngIf="activePage === 'wallet'"> </app-dashboard-wallet>
+
+          <!-- support -->
+          <app-dashboard-support *ngIf="activePage === 'support'"> </app-dashboard-support>
+
+          <!-- settings -->
+          <app-dashboard-settings
+            *ngIf="activePage === 'settings'"
+            (accountDeleted)="deleteAccount()"
+          >
+          </app-dashboard-settings>
+        </main>
+      </div>
+      @if (newRequestOpen) {
+        <!-- Overlay -->
+        <div class="modal-backdrop-custom" (click)="closeNewRequest()">
+          <!-- Drawer -->
+          <div
+            class="bg-white shadow-lg h-100"
+            style="width: 100%; max-width: 520px; margin-right: auto; overflow-y: auto"
+            dir="rtl"
+            (click)="$event.stopPropagation()"
+          >
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center p-4 border-bottom">
+              <div>
+                <h5 class="fw-bold mb-1">طلب صنايعي جديد</h5>
+                <p class="text-secondary small mb-0">
+                  اكتب تفاصيل شغلك واستقبل عروض من أساطي معتمدين
+                </p>
+              </div>
+              <button
+                type="button"
+                class="btn btn-light rounded-circle"
+                (click)="closeNewRequest()"
+              >
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+            <!-- Body -->
+            <div class="p-4">
+              <!-- Craft -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold"> نوع الصنعة </label>
+                <div class="row g-2">
+                  @for (craft of crafts; track craft.id) {
+                    <div class="col-6">
+                      <button
+                        type="button"
+                        class="btn w-100 text-end border p-3"
+                        [class.border-primary]="selectedCraft === craft.id"
+                        [class.bg-primary-subtle]="selectedCraft === craft.id"
+                        (click)="selectedCraft = craft.id"
+                      >
+                        <i class="bi ms-2" [ngClass]="craftIcon(craft.slug)"></i>
+                        {{ craft.name }}
+                      </button>
+                    </div>
+                  }
+                </div>
+                @if (crafts.length === 0) {
+                  <div class="alert alert-warning small mt-2 mb-0">
+                    مفيش أنواع صنايع متاحة حاليًا. حاول تاني بعد شوية أو تواصل مع الدعم.
+                  </div>
+                }
+              </div>
+              <!-- Title -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold"> عنوان الطلب </label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="مثال: تسريب مياه تحت حوض المطبخ"
+                  [(ngModel)]="newRequestTitle"
+                />
+              </div>
+              <!-- Description -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold"> وصف الشغل </label>
+                <textarea
+                  class="form-control"
+                  rows="4"
+                  placeholder="اكتب تفاصيل المشكلة أو الشغل المطلوب..."
+                  [(ngModel)]="newRequestDescription"
+                >
+                </textarea>
+              </div>
+              <!-- Images -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold">
+                  صور الشغل
+                  <span class="text-secondary fw-normal small"> (اختياري) </span>
+                </label>
+                <div class="border rounded-3 p-4 text-center">
+                  <i class="bi bi-images fs-3 text-secondary"></i>
+                  <div class="small text-secondary mt-2">
+                    أضف حتى 10 صور JPG أو PNG أو WebP (5 ميجا للصورة)
+                  </div>
+                  <input
+                    #requestFiles
+                    type="file"
+                    class="d-none"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    (change)="onRequestFilesSelected($event)"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn-outline-secondary btn-sm mt-3"
+                    (click)="requestFiles.click()"
+                  >
+                    اختيار الصور
+                  </button>
+                  @if (newRequestFiles.length) {
+                    <ul class="list-unstyled small text-start mt-3 mb-0">
+                      @for (file of newRequestFiles; track $index) {
+                        <li class="d-flex justify-content-between align-items-center gap-2 mb-1">
+                          <span class="text-truncate">{{ file.name }}</span>
+                          <button
+                            type="button"
+                            class="btn btn-sm btn-link text-danger p-0"
+                            (click)="removeRequestFile($index)"
+                          >
+                            <i class="bi bi-x-lg"></i>
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+              </div>
+              <!-- Location -->
+              <div class="row g-2 mb-3">
+                <div class="col-6">
+                  <label class="form-label fw-semibold">المحافظة</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="مثال: القاهرة"
+                    [(ngModel)]="newRequestCity"
+                    name="requestCity"
+                  />
+                </div>
+                <div class="col-6">
+                  <label class="form-label fw-semibold">المنطقة</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    placeholder="مثال: مدينة نصر"
+                    [(ngModel)]="newRequestLocation"
+                    name="requestArea"
+                  />
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label fw-semibold">العنوان بالتفصيل</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="مثال: شارع مكرم عبيد، عمارة 5"
+                  [(ngModel)]="newRequestAddress"
+                  name="requestAddress"
+                />
+              </div>
+              <!-- When -->
+              <div class="mb-3">
+                <label class="form-label fw-semibold"> إمتى محتاج الشغل؟ </label>
+                <select class="form-select" [(ngModel)]="newRequestWhen" name="requestWhen">
+                  <option>بأسرع وقت ممكن</option>
+                  <option>غدًا</option>
+                  <option>خلال هذا الأسبوع</option>
+                  <option>أفضل تحديد موعد</option>
+                </select>
+              </div>
+              @if (newRequestWhen === 'أفضل تحديد موعد') {
+                <div class="row g-2 mb-3">
+                  <div class="col-7">
+                    <input
+                      type="date"
+                      class="form-control"
+                      [min]="minPreferredDate"
+                      [(ngModel)]="newRequestDate"
+                      name="requestDate"
+                    />
+                  </div>
+                  <div class="col-5">
+                    <input
+                      type="time"
+                      class="form-control"
+                      [(ngModel)]="newRequestTime"
+                      name="requestTime"
+                    />
+                  </div>
+                </div>
+              }
+              <!-- Budget -->
+              <div class="mb-4">
+                <label class="form-label fw-semibold"> الميزانية </label>
+                <div class="input-group">
+                  <span class="input-group-text">من</span>
+                  <input
+                    type="number"
+                    min="0"
+                    class="form-control"
+                    placeholder="الحد الأدنى"
+                    [(ngModel)]="newRequestBudgetMin"
+                    name="requestBudgetMin"
+                  />
+                  <span class="input-group-text">إلى</span>
+                  <input
+                    type="number"
+                    min="0"
+                    class="form-control"
+                    placeholder="الحد الأقصى"
+                    [(ngModel)]="newRequestBudget"
+                    name="requestBudgetMax"
+                  />
+                  <span class="input-group-text">ج.م</span>
+                </div>
+              </div>
+              <!-- Receive offers -->
+              <div class="small text-secondary mb-4">
+                <i class="bi bi-info-circle ms-1"></i>
+                هتستقبل عروض من الأساطي المتاحين في منطقتك.
+              </div>
+              <!-- Terms -->
+              <div class="form-check mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="requestTerms"
+                  [(ngModel)]="termsAccepted"
+                  name="requestTerms"
+                />
+                <label class="form-check-label small" for="requestTerms">
+                  أوافق على شروط استخدام المنصة وسياسة استقبال العروض.
+                </label>
+              </div>
+              @if (newRequestError) {
+                <div class="alert alert-danger small mb-0" role="alert">
+                  {{ newRequestError }}
+                </div>
+              }
+            </div>
+            <!-- Footer -->
+            <div class="border-top p-4 d-flex gap-2">
+              <button
+                type="button"
+                class="btn btn-primary flex-fill"
+                [disabled]="!canSubmitNewRequest"
+                (click)="submitNewRequest()"
+              >
+                @if (newRequestSubmitting) {
+                  <span class="spinner-border spinner-border-sm ms-1" aria-hidden="true"></span>
+                  جاري النشر...
+                } @else {
+                  <i class="bi bi-send ms-1"></i>
+                  نشر الطلب
+                }
+              </button>
+              <button type="button" class="btn btn-outline-secondary" (click)="closeNewRequest()">
+                إلغاء
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+  <!-- Toast -->
+  @if (toastOpen) {
+    <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 2000">
+      <div
+        class="alert shadow mb-0 d-flex align-items-center gap-2"
+        [class.alert-success]="toastType === 'success'"
+        [class.alert-danger]="toastType === 'error'"
+        role="status"
+      >
+        <i
+          class="bi"
+          [class.bi-check-circle-fill]="toastType === 'success'"
+          [class.bi-exclamation-triangle-fill]="toastType === 'error'"
+        ></i>
+        {{ toastMessage }}
+      </div>
+    </div>
+  }
+  <!-- accountDeleted -->
+  <div *ngIf="accountDeleted" class="account-deleted-section">
+    <div class="account-deleted-icon">
+      <i class="bi bi-check2-circle"></i>
+    </div>
+
+    <h2>تم حذف حسابك</h2>
+
+    <p>تم حذف حسابك وبياناتك من منصة أُسطى بنجاح.</p>
+
+    <button type="button" class="btn btn-danger" (click)="goToLogin()">العودة لتسجيل الدخول</button>
+  </div>
+</div>
