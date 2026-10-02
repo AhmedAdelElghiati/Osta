@@ -36,6 +36,13 @@ export class DashboardHome {
     });
   }
 
+  get maxOfferPrice(): number {
+    return this.kitchenOffers.reduce(
+      (max, offer) => Math.max(max, Number(offer.price) || 0),
+      0,
+    );
+  }
+
   goToPage(page: string) {
     this.pageChange.emit(page);
   }
@@ -83,4 +90,3 @@ export class DashboardHome {
     return this.detailsData[requestId];
   }
 }
-

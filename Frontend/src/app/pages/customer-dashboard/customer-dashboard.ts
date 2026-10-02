@@ -6,7 +6,7 @@ import { Subscription } from 'rxjs';
 
 import { Auth, CurrentUser } from '../../services/auth';
 import { Craft, RequestVm, ServiceRequests } from '../../services/service-requests';
-import { Marketplace } from '../../services/marketplace';
+import { Marketplace, OfferVm } from '../../services/marketplace';
 
 import { DashboardHome } from './components/dashboard-home/dashboard-home';
 import { DashboardRequests } from './components/dashboard-requests/dashboard-requests';
@@ -264,7 +264,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     });
   }
 
-  recentOffers: any[] = [];
+  recentOffers: OfferVm[] = [];
   offersCount = 0;
   loadRecentOffers() {
     this.marketplace.myOffers().subscribe((res) => {
@@ -273,6 +273,14 @@ export class CustomerDashboard implements OnInit, OnDestroy {
       this.offersCount = this.recentOffers.length;
       this.cdr.markForCheck();
     });
+  }
+
+  get offersForReview(): OfferVm[] {
+    return this.recentOffers.filter(
+      (offer) =>
+        offer.status === 'PENDING' &&
+        ['PUBLISHED', 'OFFER_RECEIVED'].includes(offer.requestId?.status),
+    );
   }
 
   acceptOffer(offerId: string) {

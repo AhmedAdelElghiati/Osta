@@ -18,4 +18,10 @@ describe('DashboardHome', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('shows the highest price among offers that need review', () => {
+    component.kitchenOffers = [{ price: 2563 }, { price: 5600 }];
+
+    expect(component.maxOfferPrice).toBe(5600);
+  });
 });
