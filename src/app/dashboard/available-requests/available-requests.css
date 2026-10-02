@@ -1,0 +1,431 @@
+/* =========================
+   Page Header
+========================= */
+
+.page-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.page-header p {
+  margin: 7px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+
+/* =========================
+   Availability Alert
+========================= */
+
+.alert-warning {
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 12px;
+  margin-bottom: 18px;
+}
+
+
+/* =========================
+   Search Chip
+========================= */
+
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #475569;
+}
+
+.search-chip b {
+  color: #0f172a;
+}
+
+.search-chip button {
+  border: 0;
+  background: none;
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 0;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.search-chip button:hover {
+  color: #e11d48;
+}
+
+
+/* =========================
+   Sorting
+========================= */
+
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.btn-group .btn {
+  border-radius: 7px !important;
+  font-size: 11px;
+  padding: 6px 12px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+}
+
+.btn-group .btn-dark {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #fff;
+}
+
+.btn-group .btn-light {
+  background: #fff;
+  color: #475569;
+}
+
+.btn-group .btn-light:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+
+/* =========================
+   Requests Card
+========================= */
+
+.request-full-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.request-full-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.06);
+  transform: translateY(-2px);
+}
+
+.request-full-card.fresh {
+  border-color: #fde68a;
+}
+
+
+/* =========================
+   Request Title
+========================= */
+
+.request-full-card h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.6;
+}
+
+
+/* =========================
+   Request Meta
+========================= */
+
+.request-meta {
+  color: #94a3b8;
+  font-size: 11px;
+  margin: 8px 0;
+  line-height: 1.8;
+}
+
+
+/* =========================
+   Description
+========================= */
+
+.request-full-card p {
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+
+
+/* =========================
+   New Badge
+========================= */
+
+.new-badge {
+  background: #fff7ed;
+  color: #b45309;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.applied-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+
+/* =========================
+   Info Badges
+========================= */
+
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  padding: 4px 8px;
+  font-size: 10px;
+  color: #64748b;
+}
+
+
+/* =========================
+   Budget
+========================= */
+
+.request-full-card h4 {
+  margin: 5px 0 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.flex-budget {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #94a3b8 !important;
+}
+
+
+/* =========================
+   Divider
+========================= */
+
+.request-full-card hr {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 18px 0;
+  opacity: 1;
+}
+
+
+/* =========================
+   Offer Button
+========================= */
+
+.request-full-card .btn-dark {
+  background: #0f172a;
+  border-color: #0f172a;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.request-full-card .btn-dark:hover {
+  background: #1e293b;
+  border-color: #1e293b;
+  transform: translateY(-1px);
+}
+
+
+/* =========================
+   Applied Status
+========================= */
+
+.request-full-card .badge.bg-light {
+  padding: 7px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+
+/* =========================
+   Empty State
+========================= */
+
+.requests-empty {
+  background: #fff;
+  border: 1px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 40px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+
+/* =========================
+   Toast
+========================= */
+
+.app-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+
+  background: #0f172a;
+  color: #fff;
+
+  font-size: 12px;
+  font-weight: 500;
+
+  padding: 10px 16px;
+  border-radius: 12px;
+
+  max-width: 90vw;
+  text-align: center;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 991px) {
+
+  .request-full-card {
+    padding: 17px;
+  }
+
+  .request-full-card h3 {
+    font-size: 14px;
+  }
+
+  .request-full-card h4 {
+    font-size: 16px;
+  }
+}
+
+
+@media (max-width: 767px) {
+
+  .page-header {
+    padding-bottom: 15px;
+    margin-bottom: 18px;
+  }
+
+  .page-header h1 {
+    font-size: 21px;
+  }
+
+  .page-header p {
+    font-size: 12px;
+  }
+
+  .request-full-card {
+    padding: 15px;
+    border-radius: 12px;
+  }
+
+  .request-full-card p {
+    font-size: 12px;
+  }
+
+  .request-meta {
+    font-size: 10px;
+  }
+
+  .btn-group {
+    width: 100%;
+  }
+
+  .btn-group .btn {
+    flex: 1;
+  }
+
+  .request-full-card .col-lg-3 {
+    text-align: right !important;
+  }
+
+  .app-toast {
+    bottom: 15px;
+    font-size: 11px;
+    padding: 9px 13px;
+  }
+}
+
+
+@media (max-width: 480px) {
+
+  .page-header h1 {
+    font-size: 19px;
+  }
+
+  .page-header p {
+    font-size: 11px;
+  }
+
+  .request-full-card {
+    padding: 13px;
+  }
+
+  .request-full-card h3 {
+    font-size: 13px;
+  }
+
+  .request-meta {
+    font-size: 9px;
+  }
+
+  .request-full-card p {
+    font-size: 11px;
+    line-height: 1.9;
+  }
+
+  .info-badge {
+    font-size: 9px;
+  }
+
+  .new-badge {
+    font-size: 9px;
+  }
+
+  .request-full-card .btn-dark {
+    width: 100%;
+    padding: 9px;
+  }
+
+  .requests-empty {
+    padding: 30px 15px;
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,76 @@
+.page-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.page-header h1 {
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.page-header p {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.settings-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 18px;
+}
+
+.settings-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.settings-card label {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.setting-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 12px;
+}
+
+.danger {
+  border-color: #fecdd3;
+}
+
+.danger h3 {
+  color: #be123c;
+}
+
+.danger p {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1050; padding: 16px;
+  background: rgba(15, 23, 42, .4); backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-box { background: #fff; border-radius: 16px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,.2); }
+.modal-sm { max-width: 380px; padding: 24px; }
+.modal-sm h3 { font-size: 14px; font-weight: 700; margin: 0; }
+.modal-sm p { font-size: 12px; color: #64748b; line-height: 1.7; margin: 8px 0 0; }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+
+.app-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 1100;
+  background: #0f172a; color: #fff; font-size: 12px; font-weight: 500;
+  padding: 10px 16px; border-radius: 12px; max-width: 90vw; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}

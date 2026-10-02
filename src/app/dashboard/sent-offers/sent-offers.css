@@ -1,0 +1,407 @@
+.page-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+
+.page-header h1 {
+  font-size: 25px;
+  font-weight: 800;
+  margin-bottom: 5px;
+}
+
+.page-header p {
+  color: #64748b;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+/* Tabs */
+.tabs {
+  background: white;
+  padding: 5px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.tabs button {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: 0.2s ease;
+  white-space: nowrap;
+}
+
+.tabs button:hover {
+  background: #f8fafc;
+}
+
+.tabs button.active {
+  background: #0f172a;
+  color: white;
+}
+
+/* Offer Card */
+.offer-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  transition: all 0.2s ease;
+}
+
+.offer-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+.offer-card h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 7px;
+}
+
+.meta {
+  color: #94a3b8;
+  font-size: 11px;
+  margin-bottom: 0;
+  line-height: 1.8;
+}
+
+/* Notes */
+.rejected-note {
+  color: #94a3b8;
+  font-size: 11px;
+  margin: 8px 0 0;
+}
+
+.accepted-note {
+  color: #047857;
+  font-size: 11px;
+  margin: 8px 0 0;
+}
+
+/* Status */
+.status {
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status.pending {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.status.accepted {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.status.rejected {
+  background: #f1f5f9;
+  color: #94a3b8;
+}
+
+.status.withdrawn {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+/* Offer Side */
+.offer-side {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.offer-card small {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.offer-card h4 {
+  font-weight: 800;
+  font-size: 17px;
+  margin: 4px 0 0;
+  white-space: nowrap;
+}
+
+/* Actions */
+.offer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Withdraw Button */
+.withdraw-btn {
+  border: 1px solid #fecaca;
+  background: #fff;
+  color: #dc2626;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.withdraw-btn:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.withdraw-btn:active {
+  transform: scale(0.97);
+}
+
+/* Empty */
+.offers-empty {
+  background: white;
+  border: 1px dashed #cbd5e1;
+  border-radius: 14px;
+  padding: 35px 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+}
+
+.modal-sm {
+  max-width: 380px;
+  padding: 24px;
+}
+
+.modal-sm h3 {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-sm p {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.7;
+  margin: 8px 0 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.modal-actions button {
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+/* Toast */
+.app-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  background: #0f172a;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 12px;
+  max-width: 90vw;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+/* =========================
+   Responsive - Tablet
+========================= */
+
+@media (max-width: 768px) {
+
+  .page-header h1 {
+    font-size: 22px;
+  }
+
+  .page-header p {
+    font-size: 12px;
+    line-height: 1.7;
+  }
+
+  .tabs {
+    display: flex;
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  .tabs button {
+    flex: 1;
+    padding: 8px 12px;
+  }
+
+  .offer-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .offer-card h3 {
+    font-size: 13px;
+  }
+
+  .meta {
+    line-height: 2;
+  }
+
+  .offer-side {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid #f1f5f9;
+  }
+
+  .offer-actions {
+    justify-content: flex-start;
+  }
+
+  .withdraw-btn {
+    padding: 9px 13px;
+  }
+}
+
+/* =========================
+   Responsive - Mobile
+========================= */
+
+@media (max-width: 480px) {
+
+  .page-header {
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .page-header p {
+    font-size: 11px;
+  }
+
+  .tabs {
+    margin-bottom: 16px;
+  }
+
+  .tabs button {
+    font-size: 11px;
+    padding: 8px 9px;
+  }
+
+  .offer-card {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .offer-card h3 {
+    font-size: 12px;
+  }
+
+  .meta {
+    font-size: 10px;
+    line-height: 2;
+  }
+
+  .status {
+    font-size: 9px;
+    padding: 4px 8px;
+  }
+
+  .offer-side {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .offer-side .text-lg-start {
+    text-align: right !important;
+  }
+
+  .offer-card h4 {
+    font-size: 16px;
+  }
+
+  .offer-actions {
+    width: 100%;
+  }
+
+  .withdraw-btn {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .offer-actions .btn {
+    width: 100%;
+  }
+
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal-sm {
+    padding: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  .app-toast {
+    bottom: 15px;
+    font-size: 11px;
+  }
+}
