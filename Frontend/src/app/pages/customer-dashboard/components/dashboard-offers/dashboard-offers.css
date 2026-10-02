@@ -1,0 +1,439 @@
+:host {
+  display: block;
+
+  --primary: #0f172a;
+  --primary-hover: #1e293b;
+
+  --orange: #ea580c;
+  --orange-hover: #c2410c;
+
+  --background: #f8fafc;
+  --text: #1e293b;
+  --muted: #64748b;
+  --border: #e2e8f0;
+}
+
+/* =========================
+   Primary Buttons
+   ========================= */
+
+:host ::ng-deep .btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+:host ::ng-deep .btn-primary:hover,
+:host ::ng-deep .btn-primary:focus {
+  background-color: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+/* =========================
+   Primary Text
+   ========================= */
+
+:host ::ng-deep .text-primary {
+  color: var(--primary) !important;
+}
+
+/* =========================
+   Primary Outline
+   ========================= */
+
+:host ::ng-deep .btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+:host ::ng-deep .btn-outline-primary:hover,
+:host ::ng-deep .btn-outline-primary:focus {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+/* =========================
+   Offer Group Buttons
+   ========================= */
+
+.offer-group-btn {
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+.offer-group-btn:hover {
+  border-color: var(--primary) !important;
+}
+
+.offer-group-btn.selected {
+  border-color: var(--primary) !important;
+  background-color: #f1f5f9;
+}
+
+/* =========================
+   Offer Cards
+   ========================= */
+
+.offer-card {
+  background-color: #fff;
+  transition: box-shadow 0.2s ease;
+}
+
+.offer-card:hover {
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+/* =========================
+   Offer Icon
+   ========================= */
+
+.offer-icon {
+  width: 48px;
+  height: 48px;
+  background-color: #f1f5f9;
+  color: var(--primary);
+}
+
+/* =========================
+   Escrow
+   ========================= */
+
+.escrow-box {
+  background-color: #f1f5f9;
+}
+
+.escrow-icon {
+  width: 42px;
+  height: 42px;
+}
+
+/* =========================
+   Progress
+   ========================= */
+
+.progress-icon {
+  width: 32px;
+  height: 32px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.progress-done {
+  background-color: #198754;
+  color: #fff;
+}
+
+.progress-pending {
+  background-color: #f1f5f9;
+  color: var(--muted);
+}
+
+/* =========================
+   Quote Total
+   ========================= */
+
+.quote-total {
+  background-color: #f8fafc;
+}
+
+/* =========================
+   Accept Modal
+   ========================= */
+
+.confirm-icon {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #fff3cd;
+  color: #a16207;
+  flex-shrink: 0;
+}
+
+.offer-summary {
+  background-color: #f8fafc;
+}
+
+.escrow-note {
+  padding: 1rem;
+
+  background-color: #f1f5f9;
+
+  border-radius: 0.75rem;
+}
+/* =========================
+   Modal
+========================= */
+
+.modal-backdrop-custom {
+  position: fixed;
+  inset: 0;
+
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 1rem;
+
+  background: rgba(15, 23, 42, 0.55);
+}
+
+/* Modal Dialog */
+
+.modal-backdrop-custom .modal-dialog {
+  position: relative;
+
+  width: 100%;
+  margin: 0;
+}
+
+/* Quote Modal */
+
+.modal-backdrop-custom .quote-modal {
+  max-width: 560px;
+}
+
+/* Accept Modal */
+
+.modal-backdrop-custom .accept-modal {
+  max-width: 460px;
+}
+
+/* Modal Content */
+
+.modal-backdrop-custom .modal-content {
+  width: 100%;
+  max-height: calc(100vh - 2rem);
+
+  overflow: hidden;
+
+  border: 0;
+  border-radius: 1rem !important;
+
+  background-color: #fff;
+
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
+}
+
+/* Header */
+
+.modal-backdrop-custom .modal-header {
+  padding: 1.25rem 1.5rem;
+
+  background-color: #fff;
+
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+/* Body */
+
+.modal-backdrop-custom .modal-body {
+  padding: 1.5rem;
+
+  overflow-y: auto;
+}
+
+/* Footer */
+
+.modal-backdrop-custom .modal-footer {
+  padding: 1rem 1.5rem;
+
+  background-color: #fff;
+
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+/* Close Button */
+
+.modal-backdrop-custom .btn-close {
+  margin: 0;
+}
+
+/* =========================
+   Quote Modal
+========================= */
+
+.quote-modal .offer-icon {
+  width: 52px;
+  height: 52px;
+
+  background-color: #f1f5f9;
+  color: var(--primary);
+}
+
+.quote-modal .quote-total {
+  background-color: #f8fafc;
+}
+
+/* =========================
+   Accept Modal
+========================= */
+
+.accept-modal .confirm-icon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background-color: #fff7ed;
+  color: var(--orange);
+
+  flex-shrink: 0;
+}
+
+.accept-modal .offer-summary {
+  background-color: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+}
+
+.accept-modal .escrow-note {
+  padding: 1rem;
+
+  background-color: #f1f5f9;
+
+  border-radius: 0.75rem;
+}
+
+/* =========================
+   Mobile
+========================= */
+
+@media (max-width: 575.98px) {
+  .modal-backdrop-custom {
+    padding: 0.75rem;
+  }
+
+  .modal-backdrop-custom .quote-modal,
+  .modal-backdrop-custom .accept-modal {
+    max-width: 100%;
+  }
+
+  .modal-backdrop-custom .modal-header {
+    padding: 1rem 1.25rem;
+  }
+
+  .modal-backdrop-custom .modal-body {
+    padding: 1.25rem;
+  }
+
+  .modal-backdrop-custom .modal-footer {
+    padding: 0.875rem 1.25rem;
+  }
+}
+/* =========================
+   Accepted Offer
+========================= */
+
+.accepted-offer-card {
+  padding: 1.5rem;
+  background-color: #f8fafc;
+  border: 1px solid #bbf7d0;
+  border-radius: 1rem;
+}
+
+.accepted-icon {
+  width: 48px;
+  height: 48px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background-color: #dcfce7;
+  color: #15803d;
+
+  font-size: 1.25rem;
+}
+
+.accepted-price {
+  color: var(--primary);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.accepted-status-badge {
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
+/* =========================
+   Toast
+   ========================= */
+
+.offers-toast {
+  position: fixed;
+
+  bottom: 24px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  z-index: 100000;
+
+  min-width: 300px;
+  max-width: calc(100vw - 32px);
+
+  padding: 0.75rem 1rem;
+
+  background-color: var(--primary);
+
+  color: #fff;
+
+  border-radius: 0.75rem;
+
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.2);
+}
+
+.toast-icon {
+  width: 28px;
+  height: 28px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #198754;
+
+  color: #fff;
+
+  flex-shrink: 0;
+}
+
+/* =========================
+   Mobile
+   ========================= */
+
+@media (max-width: 575.98px) {
+  .offers-toast {
+    min-width: auto;
+    width: calc(100vw - 32px);
+  }
+
+  .modal-backdrop-custom {
+    padding: 0.75rem;
+  }
+}

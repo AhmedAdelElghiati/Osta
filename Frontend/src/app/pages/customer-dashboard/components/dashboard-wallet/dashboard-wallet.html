@@ -1,0 +1,796 @@
+<div class="wallet-page">
+
+    <!-- Page Header -->
+    <div class="page-header d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h2 class="page-title mb-1">المحفظة والفواتير</h2>
+
+            <p class="page-subtitle mb-0">
+                تابع رصيدك ومدفوعاتك وفواتيرك بسهولة.
+            </p>
+        </div>
+
+        <button type="button" class="btn primary-btn" (click)="exportStatement()">
+
+            <i class="bi bi-download ms-2"></i>
+
+            تصدير كشف الحساب
+        </button>
+
+    </div>
+
+    <!-- Balance Cards -->
+    <div class="row g-3 mb-4">
+
+        <!-- Available Balance -->
+        <div class="col-12 col-md-6">
+
+            <div class="balance-card">
+
+                <div class="balance-card-header">
+
+                    <div>
+                        <span class="balance-label">
+                            الرصيد المتاح
+                        </span>
+
+                        <h3 class="balance-value">
+                            {{ availableBalance | number }} ج.م
+                        </h3>
+                    </div>
+
+                    <div class="balance-icon">
+                        <i class="bi bi-wallet2"></i>
+                    </div>
+
+                </div>
+
+
+                <div class="balance-actions">
+
+                    <button type="button" class="btn primary-btn" (click)="openDepositModal()">
+
+                        <i class="bi bi-plus-lg ms-1"></i>
+                        إيداع
+
+                    </button>
+
+
+                    <button type="button" class="btn outline-btn" (click)="openWithdrawModal()">
+
+                        <i class="bi bi-arrow-down-left ms-1"></i>
+                        سحب
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Escrow -->
+        <div class="col-12 col-md-6">
+
+            <div class="balance-card escrow-card">
+
+                <div class="balance-card-header">
+
+                    <div>
+
+                        <span class="balance-label">
+                            المبلغ المحجوز في الضمان
+                        </span>
+
+                        <h3 class="balance-value">
+                            {{ escrowBalance | number }} ج.م
+                        </h3>
+
+                    </div>
+
+                    <div class="balance-icon">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+
+                </div>
+
+
+                <div class="escrow-info">
+
+                    <i class="bi bi-info-circle"></i>
+
+                    <span>
+                        المبلغ محفوظ في ضمان المنصة حتى إتمام الخدمة.
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Payment Methods -->
+    <div class="section-card mb-4">
+
+        <div class="section-header">
+
+            <div>
+
+                <h3 class="section-title">
+                    طرق الدفع
+                </h3>
+
+                <p class="section-subtitle">
+                    طرق الدفع المحفوظة في حسابك.
+                </p>
+
+            </div>
+
+
+            <button type="button" class="btn outline-btn" (click)="openPaymentModal()">
+
+                <i class="bi bi-plus-lg ms-1"></i>
+
+                إضافة طريقة دفع
+
+            </button>
+
+        </div>
+
+
+        <div class="payment-methods">
+
+            <div class="payment-method" *ngFor="let method of paymentMethods">
+
+                <div class="payment-icon">
+
+                    <i [class]="'bi ' + method.icon"></i>
+
+                </div>
+
+
+                <div class="payment-info">
+
+                    <h4>
+                        {{ method.type }}
+                    </h4>
+
+                    <span>
+                        •••• {{ method.lastFour }}
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Transactions -->
+    <div class="section-card">
+
+        <div class="section-header">
+
+            <div>
+
+                <h3 class="section-title">
+                    الحركات والمعاملات
+                </h3>
+
+                <p class="section-subtitle">
+                    سجل جميع العمليات المالية على حسابك.
+                </p>
+
+            </div>
+
+
+            <button type="button" class="btn outline-btn" (click)="exportStatement()">
+
+                <i class="bi bi-download ms-1"></i>
+
+                تصدير
+
+            </button>
+
+        </div>
+
+
+        <!-- Tabs -->
+
+        <div class="transaction-tabs">
+
+            <button type="button" class="transaction-tab" [class.active]="activeTab === 'all'"
+                (click)="changeTab('all')">
+
+                كل الحركات
+
+            </button>
+
+
+            <button type="button" class="transaction-tab" [class.active]="activeTab === 'escrow'"
+                (click)="changeTab('escrow')">
+
+                الضمان
+
+            </button>
+
+
+            <button type="button" class="transaction-tab" [class.active]="activeTab === 'payment'"
+                (click)="changeTab('payment')">
+
+                المدفوعات
+
+            </button>
+
+
+            <button type="button" class="transaction-tab" [class.active]="activeTab === 'deposit'"
+                (click)="changeTab('deposit')">
+
+                الإيداعات
+
+            </button>
+
+
+            <button type="button" class="transaction-tab" [class.active]="activeTab === 'refund'"
+                (click)="changeTab('refund')">
+
+                المستردات
+
+            </button>
+
+        </div>
+
+
+        <!-- Transactions -->
+
+        <div class="transactions-wrapper">
+
+            <div class="transaction-row" *ngFor="let transaction of filteredTransactions">
+
+
+                <!-- Icon -->
+
+                <div class="transaction-icon">
+
+                    <i *ngIf="transaction.type === 'deposit'" class="bi bi-arrow-down-left">
+                    </i>
+
+                    <i *ngIf="transaction.type === 'refund'" class="bi bi-arrow-counterclockwise">
+                    </i>
+
+                    <i *ngIf="transaction.type === 'escrow'" class="bi bi-shield-check">
+                    </i>
+
+                    <i *ngIf="transaction.type === 'payment'" class="bi bi-receipt">
+                    </i>
+
+                </div>
+
+
+                <!-- Details -->
+
+                <div class="transaction-details">
+
+                    <h4>
+                        {{ transaction.title }}
+                    </h4>
+
+                    <span>
+                        {{ transaction.id }} · {{ transaction.date }}
+                    </span>
+
+                </div>
+
+
+                <!-- Amount -->
+
+                <div class="transaction-amount" [class.positive]="transaction.amount > 0"
+                    [class.negative]="transaction.amount < 0">
+
+                    {{ transaction.amount > 0 ? '+' : '' }}
+                    {{ transaction.amount | number }} ج.م
+
+                </div>
+
+
+                <!-- Status -->
+
+                <span class="transaction-status">
+                    {{ transaction.status }}
+                </span>
+
+
+            </div>
+
+
+            <!-- Empty State -->
+
+            <div class="empty-transactions" *ngIf="filteredTransactions.length === 0">
+
+                <i class="bi bi-receipt"></i>
+
+                <h4>
+                    لا توجد معاملات
+                </h4>
+
+                <p>
+                    لا توجد حركات مالية في هذا القسم حاليًا.
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Deposit Modal -->
+
+<div class="wallet-modal-backdrop" *ngIf="depositModalOpen" (click)="closeModals()">
+
+    <div class="wallet-modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+
+            <div>
+                <h3>إيداع في المحفظة</h3>
+
+                <p>
+                    اختر المبلغ وطريقة الدفع لإضافة الرصيد.
+                </p>
+            </div>
+
+            <button type="button" class="modal-close" (click)="closeModals()">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+
+        <div class="modal-body-custom">
+
+            <!-- Amount -->
+
+            <div class="form-group">
+
+                <label>
+                    المبلغ
+                </label>
+
+                <div class="amount-input">
+
+                    <input type="number" min="1" [(ngModel)]="transactionAmount" placeholder="أدخل المبلغ">
+
+                    <span>ج.م</span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Payment Methods -->
+
+            <div class="form-group">
+
+                <label>
+                    طريقة الدفع
+                </label>
+
+                <div class="modal-payment-methods">
+
+                    <label class="modal-payment-option" *ngFor="let method of paymentMethods">
+
+                        <input type="radio" name="depositPayment" [value]="method.id"
+                            [(ngModel)]="selectedPaymentMethodId">
+
+                        <div class="modal-payment-icon">
+
+                            <i [class]="'bi ' + method.icon"></i>
+
+                        </div>
+
+                        <div class="modal-payment-info">
+
+                            <strong>
+                                {{ method.type }}
+                            </strong>
+
+                            <span>
+                                •••• {{ method.lastFour }}
+                            </span>
+
+                        </div>
+
+                        <i class="bi bi-check-circle-fill selected-check">
+                        </i>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- Error -->
+
+            <div class="modal-error" *ngIf="modalError">
+
+                <i class="bi bi-exclamation-circle"></i>
+
+                {{ modalError }}
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer-custom">
+
+            <button type="button" class="btn outline-btn" (click)="closeModals()">
+
+                إلغاء
+
+            </button>
+
+            <button type="button" class="btn primary-btn" (click)="confirmDeposit()">
+
+                تأكيد الإيداع
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Withdraw Modal -->
+
+<div class="wallet-modal-backdrop" *ngIf="withdrawModalOpen" (click)="closeModals()">
+
+    <div class="wallet-modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+
+            <div>
+
+                <h3>
+                    سحب من المحفظة
+                </h3>
+
+                <p>
+                    اختر المبلغ وطريقة استلام المبلغ.
+                </p>
+
+            </div>
+
+            <button type="button" class="modal-close" (click)="closeModals()">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+
+        <div class="modal-body-custom">
+
+            <!-- Available Balance -->
+
+            <div class="available-balance-box">
+
+                <span>
+                    الرصيد المتاح
+                </span>
+
+                <strong>
+                    {{ availableBalance | number }} ج.م
+                </strong>
+
+            </div>
+
+
+            <!-- Amount -->
+
+            <div class="form-group">
+
+                <label>
+                    المبلغ المطلوب سحبه
+                </label>
+
+                <div class="amount-input">
+
+                    <input type="number" min="1" [max]="availableBalance" [(ngModel)]="transactionAmount"
+                        placeholder="أدخل المبلغ">
+
+                    <span>ج.م</span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Withdrawal Method -->
+
+            <div class="form-group">
+
+                <label>
+                    طريقة استلام المبلغ
+                </label>
+
+                <div class="modal-payment-methods">
+
+                    <label class="modal-payment-option" *ngFor="let method of paymentMethods">
+
+                        <input type="radio" name="withdrawPayment" [value]="method.id"
+                            [(ngModel)]="selectedPaymentMethodId">
+
+                        <div class="modal-payment-icon">
+
+                            <i [class]="'bi ' + method.icon"></i>
+
+                        </div>
+
+                        <div class="modal-payment-info">
+
+                            <strong>
+                                {{ method.type }}
+                            </strong>
+
+                            <span>
+                                •••• {{ method.lastFour }}
+                            </span>
+
+                        </div>
+
+                        <i class="bi bi-check-circle-fill selected-check">
+                        </i>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- Error -->
+
+            <div class="modal-error" *ngIf="modalError">
+
+                <i class="bi bi-exclamation-circle"></i>
+
+                {{ modalError }}
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer-custom">
+
+            <button type="button" class="btn outline-btn" (click)="closeModals()">
+
+                إلغاء
+
+            </button>
+
+            <button type="button" class="btn primary-btn" (click)="confirmWithdraw()">
+
+                تأكيد السحب
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Add Payment Method Modal -->
+
+<div class="wallet-modal-backdrop" *ngIf="paymentModalOpen" (click)="closeModals()">
+
+    <div class="wallet-modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-header-custom">
+
+            <div>
+
+                <h3>
+                    إضافة طريقة دفع
+                </h3>
+
+                <p>
+                    أضف بطاقة أو محفظة إلكترونية لحسابك.
+                </p>
+
+            </div>
+
+            <button type="button" class="modal-close" (click)="closeModals()">
+
+                <i class="bi bi-x-lg"></i>
+
+            </button>
+
+        </div>
+
+
+        <div class="modal-body-custom">
+
+            <!-- Payment Type -->
+
+            <div class="form-group">
+
+                <label>
+                    نوع طريقة الدفع
+                </label>
+
+                <div class="payment-type-options">
+
+                    <label class="payment-type-option" [class.active]="paymentType === 'card'">
+
+                        <input type="radio" name="paymentType" value="card" [(ngModel)]="paymentType">
+
+                        <i class="bi bi-credit-card"></i>
+
+                        <span>
+                            بطاقة بنكية
+                        </span>
+
+                    </label>
+
+
+                    <label class="payment-type-option" [class.active]="paymentType === 'wallet'">
+
+                        <input type="radio" name="paymentType" value="wallet" [(ngModel)]="paymentType">
+
+                        <i class="bi bi-phone"></i>
+
+                        <span>
+                            Vodafone Cash
+                        </span>
+
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- Card Form -->
+
+            <div *ngIf="paymentType === 'card'">
+
+                <div class="form-group">
+
+                    <label>
+                        رقم البطاقة
+                    </label>
+
+                    <input type="text" class="form-control wallet-form-control" [(ngModel)]="cardNumber"
+                        placeholder="0000 0000 0000 0000" maxlength="19">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        اسم صاحب البطاقة
+                    </label>
+
+                    <input type="text" class="form-control wallet-form-control" [(ngModel)]="cardHolder"
+                        placeholder="الاسم كما هو على البطاقة">
+
+                </div>
+
+
+                <div class="row g-3">
+
+                    <div class="col-6">
+
+                        <div class="form-group">
+
+                            <label>
+                                تاريخ الانتهاء
+                            </label>
+
+                            <input type="text" class="form-control wallet-form-control" [(ngModel)]="expiryDate"
+                                placeholder="MM/YY" maxlength="5">
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-6">
+
+                        <div class="form-group">
+
+                            <label>
+                                CVV
+                            </label>
+
+                            <input type="password" class="form-control wallet-form-control" [(ngModel)]="cvv"
+                                placeholder="•••" maxlength="4">
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Vodafone Cash Form -->
+
+            <div *ngIf="paymentType === 'wallet'">
+
+                <div class="form-group">
+
+                    <label>
+                        رقم Vodafone Cash
+                    </label>
+
+                    <input type="tel" class="form-control wallet-form-control" [(ngModel)]="walletNumber"
+                        placeholder="01xxxxxxxxx" maxlength="11">
+
+                </div>
+
+                <div class="wallet-info-box">
+
+                    <i class="bi bi-info-circle"></i>
+
+                    <span>
+                        تأكدي أن الرقم مسجل باسمك ومفعل عليه Vodafone Cash.
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- Error -->
+
+            <div class="modal-error" *ngIf="modalError">
+
+                <i class="bi bi-exclamation-circle"></i>
+
+                {{ modalError }}
+
+            </div>
+
+        </div>
+
+
+        <div class="modal-footer-custom">
+
+            <button type="button" class="btn outline-btn" (click)="closeModals()">
+
+                إلغاء
+
+            </button>
+
+            <button type="button" class="btn primary-btn" (click)="savePaymentMethod()">
+
+                حفظ طريقة الدفع
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>

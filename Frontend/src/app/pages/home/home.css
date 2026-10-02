@@ -1,0 +1,453 @@
+/* ======== HOME PAGE CSS ======== */
+
+.hero-section {
+  direction: rtl;
+}
+
+.hero-content {
+  text-align: right;
+}
+
+.hero-image-wrapper {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px -10px rgba(15, 23, 42, 0.12);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+.hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+
+/* =========================
+   Hero Search
+========================= */
+
+.hero-search-bar {
+  direction: rtl;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+.hero-search-bar>div {
+  gap: 9px;
+}
+
+.hero-search-bar button {
+  white-space: nowrap;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+}
+
+
+/* =========================
+   Stats
+========================= */
+
+.stat-item {
+  border-right: 1px solid var(--color-border);
+}
+
+.stat-item:last-child {
+  border-right: none;
+}
+
+
+/* =========================
+   Crafts
+========================= */
+
+.service-card {
+  direction: rtl;
+  text-align: right;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.service-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10) !important;
+  transform: translateY(-3px);
+}
+
+.service-icon {
+  width: fit-content;
+  color: var(--color-primary);
+}
+
+.service-footer {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.view-all-crafts {
+  gap: 6px;
+}
+
+.view-all-crafts svg {
+  transition: transform 0.2s ease;
+}
+
+.view-all-crafts:hover {
+  color: var(--color-primary) !important;
+}
+
+.view-all-crafts:hover svg {
+  transform: translateX(-3px);
+}
+
+
+/* =========================
+   Top Rated Craftsmen
+========================= */
+
+.craftsman-card {
+  direction: rtl;
+  text-align: right;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.craftsman-card:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.10) !important;
+  transform: translateY(-3px);
+}
+
+.craftsman-profile {
+  gap: 16px;
+}
+
+.craftsman-image {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.craftsman-image img {
+  object-fit: cover;
+}
+
+.craftsman-details {
+  line-height: 1.5;
+}
+
+.craftsman-rating {
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.craftsman-description {
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.availability-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #16a34a;
+  margin-left: 4px;
+}
+
+.availability-dot.unavailable {
+  background-color: #94a3b8;
+}
+
+.craftsman-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-top: 0;
+}
+
+.message-btn {
+  width: 44px;
+  height: 40px;
+  min-width: 44px;
+  flex-shrink: 0;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.message-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.agreement-btn {
+  flex: 1;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  font-size: 14px;
+}
+
+
+/* =========================
+   Dual Cards
+========================= */
+
+.dual-cards-section {
+  direction: rtl;
+}
+
+.dual-cards-section h2,
+.dual-cards-section p,
+.dual-card {
+  text-align: right;
+}
+
+.dual-cards-row {
+  justify-content: center;
+  gap: 20px;
+}
+
+.dual-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.dual-card ul {
+  flex-grow: 1;
+}
+
+.dual-card-icon {
+  width: fit-content;
+  height: fit-content;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dual-card-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.dual-card-buttons .btn {
+  flex: 0 0 auto;
+  width: auto !important;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+
+/* Homeowners Buttons */
+
+.dual-outline-btn {
+  background-color: white;
+  color: var(--color-primary);
+  border: none;
+}
+
+.dual-outline-btn:hover {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+
+/* Craftsmen Buttons */
+
+.craftsman-primary-btn {
+  background-color: var(--color-secondary);
+  color: white;
+  border: 1px solid var(--color-secondary);
+}
+
+.craftsman-primary-btn:hover {
+  background-color: var(--color-secondary-hover);
+  border-color: var(--color-secondary-hover);
+  color: white;
+}
+
+.craftsman-outline-btn {
+  background-color: white;
+  color: var(--color-text-dark);
+  border: none;
+}
+
+.craftsman-outline-btn:hover {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+
+/* =========================
+   How It Works
+========================= */
+
+.how-it-works {
+  direction: rtl;
+}
+
+.how-it-works .row {
+  direction: rtl;
+  text-align: right;
+}
+
+.how-it-works .row>div {
+  text-align: right;
+}
+
+.step-number {
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: #cbd5e1;
+  line-height: 1;
+  text-align: right;
+}
+
+.step-text {
+  font-size: 13px;
+  line-height: 1.7;
+  text-align: right;
+}
+
+
+/* =========================
+   CTA
+========================= */
+
+.cta-section {
+  background-color: var(--color-primary);
+  border-radius: 24px;
+}
+
+
+/* =========================
+   Tag Badges
+========================= */
+
+.tag-badge {
+  background-color: #fff;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-dark);
+  border-radius: 50px;
+  padding: 6px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tag-badge:hover {
+  background-color: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 991px) {
+
+  .hero-content {
+    text-align: right;
+  }
+
+  .hero-image-wrapper {
+    max-width: 500px;
+  }
+
+  .stat-item {
+    border-right: none;
+  }
+
+  .dual-cards-row {
+    gap: 0;
+  }
+
+  .dual-cards-row>div {
+    margin-bottom: 20px;
+  }
+}
+
+
+@media (max-width: 768px) {
+
+  .hero-search-bar {
+    flex-direction: column !important;
+    border-radius: 16px !important;
+    align-items: stretch !important;
+  }
+
+  .hero-search-bar>div {
+    border-left: none !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    padding: 10px !important;
+  }
+
+  .hero-search-bar button {
+    justify-content: center;
+  }
+
+  .dual-card {
+    padding: 30px !important;
+  }
+
+  .dual-card-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .dual-card-buttons .btn {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .craftsman-actions {
+    gap: 8px;
+  }
+}
+
+
+@media (max-width: 576px) {
+
+  .hero-section {
+    padding-top: 30px !important;
+  }
+
+  .hero-content h1 {
+    font-size: 2rem !important;
+  }
+
+  .hero-content p {
+    font-size: 1rem !important;
+  }
+
+  .craftsman-info {
+    gap: 10px;
+  }
+
+  .craftsman-rating {
+    font-size: 13px;
+  }
+
+  .craftsman-profile {
+    gap: 8px;
+  }
+
+  .craftsman-image {
+    width: 45px;
+    height: 45px;
+  }
+
+  .dual-card-buttons {
+    margin-top: 24px;
+  }
+}

@@ -1,0 +1,1125 @@
+<section *ngIf="!showDetails">
+
+    <!-- Page Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+
+        <div>
+            <h1 class="h3 fw-bold mb-1">طلباتي</h1>
+
+            <p class="text-secondary mb-0">
+                تابع طلباتك والشغلانات الحالية
+            </p>
+        </div>
+
+
+        <!-- New Request -->
+        <button class="btn text-white" type="button" style="background-color: #0F172A;" (click)="openNewRequest()">
+
+            <i class="bi bi-plus-lg ms-1"></i>
+            طلب جديد
+
+        </button>
+
+    </div>
+
+
+    <!-- Requests Filters -->
+    <div class="d-flex flex-wrap gap-2 border-bottom mb-4">
+
+        @for (filter of requestFilters; track filter.key) {
+
+        <button type="button" class="btn rounded-0" [class.fw-bold]="requestFilter === filter.key"
+            [style.color]="requestFilter === filter.key ? '#0F172A' : ''" (click)="requestFilter = filter.key">
+
+            {{ filter.label }}
+
+        </button>
+
+        }
+
+    </div>
+
+
+    <!-- Loading / Error -->
+    @if (loading && requests.length === 0) {
+    <div class="text-center text-secondary py-5">
+        <div class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></div>
+        جاري تحميل طلباتك...
+    </div>
+    }
+    @if (loadError) {
+    <div class="alert alert-danger d-flex flex-wrap justify-content-between align-items-center gap-2" role="alert">
+        <span>{{ loadError }}</span>
+        <button type="button" class="btn btn-sm btn-outline-danger" (click)="retry.emit()">
+            إعادة المحاولة
+        </button>
+    </div>
+    }
+
+    <!-- Requests List -->
+    <div class="row g-3">
+
+        @for (request of filteredRequests; track request.id) {
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm">
+
+                <div class="card-body">
+
+                    <!-- Request Header -->
+                    <div class="d-flex flex-wrap justify-content-between gap-3">
+
+                        <div class="d-flex gap-3">
+
+                            <!-- Category Icon -->
+                            <div class="rounded-3 bg-light d-flex align-items-center justify-content-center"
+                                style="width: 48px; height: 48px;">
+
+                                <i class="bi fs-5" style="color: #0F172A;" [ngClass]="request.icon">
+                                </i>
+
+                            </div>
+
+
+                            <!-- Request Info -->
+                            <div>
+
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+
+                                    <h5 class="fw-bold mb-0">
+                                        {{ request.title }}
+                                    </h5>
+
+                                    <span class="badge bg-light text-secondary">
+                                        {{ request.code }}
+                                    </span>
+
+                                </div>
+
+
+                                <div class="text-secondary small mt-2">
+
+                                    <i class="bi bi-wrench-adjustable ms-1"></i>
+                                    {{ request.category }}
+
+                                    <span class="mx-2">•</span>
+
+                                    <i class="bi bi-geo-alt ms-1"></i>
+                                    {{ request.location }}
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- Request Status -->
+                        <span class="badge align-self-start" [ngClass]="getStatusClass(request.status)">
+
+                            {{ request.statusText }}
+
+                        </span>
+
+                    </div>
+
+
+                    <hr>
+
+
+                    <!-- Request Data -->
+                    <div class="row g-3">
+
+                        <!-- Budget -->
+                        <div class="col-6 col-md-3">
+
+                            <div class="text-secondary small">
+                                الميزانية
+                            </div>
+
+                            <div class="fw-bold">
+                                {{ request.budgetLabel }}
+                            </div>
+
+                        </div>
+
+
+                        <!-- Offers -->
+                        <div class="col-6 col-md-3">
+
+                            <div class="text-secondary small">
+                                العروض
+                            </div>
+
+                            <div class="fw-bold">
+                                {{ request.offers }} عروض
+                            </div>
+
+                        </div>
+
+
+                        <!-- Actions -->
+                        <div class="col-12 col-md-6 text-md-start">
+
+                            <!-- Details -->
+                            <button class="btn btn-outline-secondary btn-sm" type="button"
+                                (click)="openRequestDetails(request)">
+
+                                <i class="bi bi-eye ms-1"></i>
+                                عرض التفاصيل
+
+                            </button>
+
+
+                            <!-- Offers -->
+                            @if (request.status === 'waiting') {
+
+                            <button class="btn btn-sm text-white me-2" type="button" style="background-color: #0F172A;"
+                                (click)="showPage('offers')">
+
+                                <i class="bi bi-file-earmark-text ms-1"></i>
+                                عرض العروض
+
+                            </button>
+
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+        }
+        @if (filteredRequests.length === 0 && !loading && !loadError) {
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+
+                    <div class="d-flex align-items-center justify-content-center mx-auto mb-3 rounded-circle"
+                        style="width: 64px; height: 64px; background-color: #f1f5f9;">
+
+                        <i class="bi bi-inbox fs-4" style="color: #0F172A;"></i>
+
+                    </div>
+
+                    <h5 class="fw-bold mb-2">
+                        لا توجد طلبات
+                    </h5>
+
+                    <p class="text-secondary mb-0">
+                        @if (searchTerm.trim()) {
+                        لم نجد أي طلبات مطابقة لبحثك.
+                        } @else {
+                        لا توجد طلبات في هذا التصنيف حاليًا.
+                        }
+                    </p>
+
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+</section>
+
+<section *ngIf="showDetails && selectedRequest" class="mt-4">
+
+    <!-- Details Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+
+        <button type="button" class="btn btn-outline-secondary" (click)="closeRequestDetails()">
+
+            <i class="bi bi-arrow-right ms-1"></i>
+            رجوع
+
+        </button>
+
+        <div>
+
+            <h1 class="h3 fw-bold mb-1">
+                تفاصيل الطلب
+            </h1>
+
+            <p class="text-secondary mb-0">
+                {{ selectedRequest.code }}
+            </p>
+
+        </div>
+
+    </div>
+
+
+    @if (detailsError) {
+    <div class="alert alert-warning" role="alert">{{ detailsError }}</div>
+    }
+
+    <!-- Main Card -->
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body p-4">
+
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between gap-3">
+
+                <div>
+
+                    <div class="d-flex align-items-center gap-2 mb-2">
+
+                        <h4 class="fw-bold mb-0">
+                            {{ selectedRequest.title }}
+                        </h4>
+
+                        <span class="badge bg-light text-secondary">
+                            {{ selectedRequest.code }}
+                        </span>
+
+                    </div>
+
+                    <div class="text-secondary">
+
+                        <i class="bi bi-wrench-adjustable ms-1"></i>
+
+                        {{ selectedRequest.category }}
+
+                        <span class="mx-2">•</span>
+
+                        <i class="bi bi-geo-alt ms-1"></i>
+
+                        {{ selectedRequest.location }}
+
+                    </div>
+
+                </div>
+
+
+                <!-- Status -->
+                <span class="badge align-self-start" [ngClass]="getStatusClass(selectedRequest.status)">
+
+                    {{ selectedRequest.statusText }}
+
+                </span>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Basic Info -->
+            <div class="row g-4">
+
+                <div class="col-12 col-md-4">
+
+                    <div class="text-secondary small mb-1">
+                        الميزانية
+                    </div>
+
+                    <div class="fw-bold fs-5">
+                        {{ selectedRequest.budgetLabel }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-12 col-md-4">
+
+                    <div class="text-secondary small mb-1">
+                        عدد العروض
+                    </div>
+
+                    <div class="fw-bold fs-5">
+                        {{ selectedRequest.offers }}
+                    </div>
+
+                </div>
+
+
+                <div class="col-12 col-md-4">
+
+                    <div class="text-secondary small mb-1">
+                        الموقع
+                    </div>
+
+                    <div class="fw-bold">
+                        {{ selectedRequest.location }}
+                    </div>
+                    @if (selectedRequest.address) {
+                    <div class="text-secondary small mt-1">
+                        {{ selectedRequest.address }}
+                    </div>
+                    }
+
+                </div>
+
+            </div>
+
+
+            <hr>
+
+
+            <!-- Description -->
+            <div class="mb-4">
+
+                <h5 class="fw-bold mb-3">
+                    وصف الطلب
+                </h5>
+
+                <p class="text-secondary mb-0" style="white-space: pre-line;">
+                    {{ currentRequestDetails?.description }}
+                </p>
+                @if (selectedRequest.cancellationReason && selectedRequest.status === 'cancelled') {
+                <p class="text-danger small mt-3 mb-0">
+                    <i class="bi bi-x-circle ms-1"></i>
+                    سبب الإلغاء: {{ selectedRequest.cancellationReason }}
+                </p>
+                }
+
+            </div>
+
+
+            <!-- Photos + Timeline -->
+            <div class="row g-4">
+
+                <!-- Photos -->
+                <div class="col-12 col-lg-7">
+
+                    <div class="card bg-light border-0 h-100">
+
+                        <div class="card-body">
+
+                            <h5 class="fw-bold mb-3">
+                                صور الطلب
+                            </h5>
+
+
+                            @if (currentRequestDetails?.photos?.length) {
+
+                            <div class="row g-2">
+
+                                @for (
+                                photo of currentRequestDetails.photos;
+                                track $index
+                                ) {
+
+                                <div class="col-6">
+
+                                    <img [src]="photo" alt="صورة الطلب" class="img-fluid rounded-3 w-100"
+                                        style="height: 180px; object-fit: cover;">
+
+                                </div>
+
+                                }
+
+                            </div>
+
+                            } @else if (detailsLoading) {
+
+                            <div class="text-secondary text-center py-5">
+                                <div class="spinner-border spinner-border-sm" aria-hidden="true"></div>
+                            </div>
+
+                            } @else {
+
+                            <div class="text-secondary text-center py-5">
+
+                                <i class="bi bi-images fs-2 d-block mb-2"></i>
+
+                                لا توجد صور مرفقة بهذا الطلب
+
+                            </div>
+
+                            }
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Timeline -->
+                <div class="col-12 col-lg-5">
+
+                    <div class="card bg-light border-0 h-100">
+
+                        <div class="card-body">
+
+                            <h5 class="fw-bold mb-4">
+                                حالة الطلب
+                            </h5>
+
+
+                            <div class="d-flex flex-column gap-4">
+
+                                @for (
+                                step of currentRequestDetails?.timeline;
+                                track $index
+                                ) {
+
+                                <div class="d-flex gap-3">
+
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                                        [style.background-color]="step.done ? '#0F172A' : '#E2E8F0'"
+                                        [style.color]="step.done ? '#ffffff' : '#64748B'"
+                                        style="width:32px;height:32px;">
+
+                                        @if (step.done) {
+
+                                        <i class="bi bi-check-lg"></i>
+
+                                        } @else {
+
+                                        <i class="bi bi-circle"></i>
+
+                                        }
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <div class="fw-semibold">
+                                            {{ step.title }}
+                                        </div>
+
+                                        <small class="text-secondary">
+                                            {{ step.date }}
+                                        </small>
+
+                                    </div>
+
+                                </div>
+
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Craftsman -->
+            @if (currentRequestDetails?.craftsman) {
+
+            <div class="card border-0 shadow-sm mt-4">
+
+                <div class="card-body">
+
+                    <h5 class="fw-bold mb-4">
+                        الأسطى المسؤول عن الطلب
+                    </h5>
+
+
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+
+                        <div class="d-flex align-items-center gap-3">
+
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold"
+                                style="width:52px;height:52px; background-color: #F1F5F9; color: #0F172A;">
+
+                                {{ currentRequestDetails.craftsman.name.charAt(0) }}
+
+                            </div>
+
+
+                            <div>
+
+                                <h6 class="fw-bold mb-1">
+                                    {{ currentRequestDetails.craftsman.name }}
+                                </h6>
+
+                                <div class="text-secondary small">
+                                    {{ currentRequestDetails.craftsman.category }}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="d-flex align-items-center gap-4">
+
+                            <div class="text-center">
+
+                                <div class="fw-bold">
+
+                                    <i class="bi bi-star-fill text-warning"></i>
+
+                                    {{ currentRequestDetails.craftsman.rating }}
+
+                                </div>
+
+                                <small class="text-secondary">
+                                    التقييم
+                                </small>
+
+                            </div>
+
+
+                            <div class="text-center">
+
+                                <div class="fw-bold">
+                                    {{ currentRequestDetails.craftsman.jobs }}
+                                </div>
+
+                                <small class="text-secondary">
+                                    شغلانة
+                                </small>
+
+                            </div>
+
+
+                            <div class="text-center">
+
+                                <div class="fw-bold">
+                                    {{ currentRequestDetails.craftsman.price | number }} ج.م
+                                </div>
+
+                                <small class="text-secondary">
+                                    قيمة العمل
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            }
+
+
+            <!-- Actions -->
+            <div class="d-flex flex-wrap gap-2 mt-4">
+
+                @if (selectedRequest.status === 'draft') {
+
+                <!-- Publish draft -->
+                <button type="button" class="btn text-white" style="background-color: #0F172A;" (click)="openConfirm(
+                        'publish',
+                        'نشر الطلب',
+                        'سيتم نشر الطلب ليبدأ الأساطي في إرسال عروضهم.'
+                    )">
+
+                    <i class="bi bi-send ms-1"></i>
+
+                    نشر الطلب
+
+                </button>
+
+                }
+
+                @if (selectedRequest.status === 'waiting') {
+
+                <!-- Offers -->
+                <button type="button" class="btn text-white" style="background-color: #0F172A;"
+                    (click)="showPage('offers')">
+
+                    <i class="bi bi-file-earmark-text ms-1"></i>
+
+                    عرض العروض
+
+                </button>
+
+                }
+
+                @if (selectedRequest.backendStatus === 'PUBLISHED') {
+
+                <!-- Cancel -->
+                <button type="button" class="btn btn-outline-danger" (click)="openConfirm(
+                        'cancel',
+                        'إلغاء الطلب',
+                        'هل أنت متأكد من رغبتك في إلغاء هذا الطلب؟'
+                    )">
+
+                    <i class="bi bi-x-circle ms-1"></i>
+
+                    إلغاء الطلب
+
+                </button>
+
+                }
+
+
+                @if (selectedRequest.status === 'active') {
+
+                <!-- Chat -->
+                <button type="button" class="btn text-white" style="background-color: #0F172A;">
+
+                    <i class="bi bi-chat-dots ms-1"></i>
+
+                    التواصل مع الأسطى
+
+                </button>
+
+
+                <!-- Schedule -->
+                <button type="button" class="btn btn-outline-secondary" (click)="openSchedule()">
+
+                    <i class="bi bi-calendar-check ms-1"></i>
+
+                    تحديد موعد
+
+                </button>
+
+                }
+
+
+                @if (selectedRequest.status === 'done') {
+
+                <!-- Rating -->
+                <button type="button" class="btn text-white" style="background-color: #0F172A;"
+                    (click)="openRating(selectedRequest)">
+
+                    <i class="bi bi-star ms-1"></i>
+
+                    قيّم الأسطى
+
+                </button>
+
+
+                <!-- Invoice -->
+                <button type="button" class="btn btn-outline-secondary" (click)="openInvoice()">
+
+                    <i class="bi bi-receipt ms-1"></i>
+
+                    عرض الفاتورة
+
+                </button>
+
+                }
+
+
+                @if (selectedRequest.status === 'cancelled') {
+
+                <!-- Republish -->
+                <button type="button" class="btn text-white" style="background-color: #0F172A;" (click)="openConfirm(
+                        'republish',
+                        'إعادة نشر الطلب',
+                        'سيتم إعادة نشر الطلب لاستقبال عروض جديدة من الأساطي.'
+                    )">
+
+                    <i class="bi bi-arrow-repeat ms-1"></i>
+
+                    إعادة نشر الطلب
+
+                </button>
+
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<!-- Modals -->
+@if (confirmModalOpen) {
+<div class="modal-backdrop-custom">
+
+    <div class="modal-dialog w-100" style="max-width: 450px;" (click)="$event.stopPropagation()">
+
+        <div class="modal-content border-0 shadow rounded-4 bg-white">
+
+            <div class="modal-body p-4 text-center">
+
+                <!-- Icon -->
+                <div class="confirm-icon d-flex align-items-center justify-content-center mx-auto mb-3">
+                    <i class="bi bi-exclamation-lg fs-4"></i>
+                </div>
+
+                <!-- Title -->
+                <h5 class="fw-bold mb-2">
+                    {{ confirmTitle }}
+                </h5>
+
+                <!-- Message -->
+                <p class="text-secondary mb-3">
+                    {{ confirmMessage }}
+                </p>
+
+                @if (confirmAction === 'cancel') {
+                <div class="text-end mb-3">
+                    <label class="form-label fw-semibold small" for="cancelReason">سبب الإلغاء</label>
+                    <textarea id="cancelReason" class="form-control" rows="2" maxlength="500"
+                        placeholder="اكتب سبب إلغاء الطلب..." [(ngModel)]="cancelReason"></textarea>
+                </div>
+                }
+
+                @if (actionError) {
+                <div class="alert alert-danger small py-2" role="alert">{{ actionError }}</div>
+                }
+
+                <!-- Actions -->
+                <div class="d-flex gap-2 justify-content-center">
+
+                    <button type="button" class="btn btn-outline-secondary flex-fill" (click)="closeConfirm()">
+                        رجوع
+                    </button>
+
+                    <button type="button" class="btn confirm-btn flex-fill" [disabled]="actionLoading"
+                        (click)="confirmActionHandler()">
+                        @if (actionLoading) {
+                        <span class="spinner-border spinner-border-sm ms-1" aria-hidden="true"></span>
+                        }
+                        تأكيد
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+}
+
+@if (ratingModalOpen) {
+<div class="modal-backdrop-custom">
+
+    <div class="modal-dialog w-100" style="max-width: 450px;" (click)="$event.stopPropagation()">
+
+        <div class="modal-content border-0 shadow rounded-4 bg-white">
+
+            <!-- Header -->
+            <div class="modal-header border-0 p-4 pb-2">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        قيّم تعاملك مع الأسطى
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        {{ selectedRatingRequest?.title }}
+                    </p>
+                </div>
+
+                <button type="button" class="btn-close" aria-label="إغلاق" (click)="closeRating()">
+                </button>
+
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body p-4">
+
+                <div class="text-center">
+
+                    <!-- Rating Icon -->
+                    <div class="rating-icon d-flex align-items-center justify-content-center mx-auto mb-3">
+                        <i class="bi bi-star-fill fs-4"></i>
+                    </div>
+
+                    <h6 class="fw-bold mb-1">
+                        {{ selectedRatingRequest?.code }}
+                    </h6>
+
+                    <p class="text-secondary small mb-4">
+                        شاركنا رأيك في تجربتك مع الأسطى
+                    </p>
+
+                    <!-- Stars -->
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+
+                        @for (star of [1, 2, 3, 4, 5]; track star) {
+
+                        <button type="button" class="rating-star-btn" (click)="setRating(star)"
+                            [attr.aria-label]="'تقييم ' + star + ' من 5'">
+
+                            <i class="bi fs-2" [class.bi-star-fill]="star <= selectedRating"
+                                [class.bi-star]="star > selectedRating"
+                                [class.rating-star-active]="star <= selectedRating"
+                                [class.rating-star-inactive]="star > selectedRating">
+                            </i>
+
+                        </button>
+
+                        }
+
+                    </div>
+
+                    <!-- Rating Label -->
+                    <div class="fw-semibold mb-4">
+                        {{ getRatingLabel() }}
+                    </div>
+
+                    <!-- Comment -->
+                    <div class="text-end">
+
+                        <label class="form-label fw-semibold">
+                            تعليقك
+                            <span class="text-secondary fw-normal">
+                                (اختياري)
+                            </span>
+                        </label>
+
+                        <textarea class="form-control" rows="3" placeholder="اكتب تعليقك عن تجربتك..."
+                            [(ngModel)]="ratingComment">
+              </textarea>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 p-4 pt-0">
+
+                <button type="button" class="btn btn-outline-secondary flex-fill" (click)="closeRating()">
+                    إلغاء
+                </button>
+
+                <button type="button" class="btn rating-submit-btn flex-fill" [disabled]="!selectedRating"
+                    (click)="submitRating()">
+
+                    <i class="bi bi-send ms-1"></i>
+                    إرسال التقييم
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+}
+
+@if (scheduleModalOpen) {
+<div class="modal-backdrop-custom">
+
+    <div class="modal-dialog w-100" style="max-width: 450px;" (click)="$event.stopPropagation()">
+
+        <div class="modal-content border-0 shadow rounded-4 bg-white">
+
+            <!-- Header -->
+            <div class="modal-header border-0 p-4 pb-2">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        تحديد موعد المعاينة
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        اختر اليوم والوقت المناسبين للمعاينة
+                    </p>
+                </div>
+
+                <button type="button" class="btn-close" aria-label="إغلاق" (click)="closeSchedule()">
+                </button>
+
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body p-4">
+
+                <!-- Date -->
+                <div class="mb-3">
+
+                    <label class="form-label fw-semibold">
+                        اليوم
+                    </label>
+
+                    <input type="date" class="form-control" [(ngModel)]="scheduleDate">
+
+                </div>
+
+                <!-- Time -->
+                <div class="mb-3">
+
+                    <label class="form-label fw-semibold">
+                        الوقت
+                    </label>
+
+                    <input type="time" class="form-control" [(ngModel)]="scheduleTime">
+
+                </div>
+
+                <!-- Info -->
+                <div class="schedule-info rounded-3 mb-0">
+
+                    <i class="bi bi-info-circle ms-1"></i>
+
+                    سيتم إرسال الموعد للأسطى لتأكيده.
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 p-4 pt-0">
+
+                <button type="button" class="btn btn-outline-secondary flex-fill" (click)="closeSchedule()">
+                    إلغاء
+                </button>
+
+                <button type="button" class="btn schedule-submit-btn flex-fill"
+                    [disabled]="!scheduleDate || !scheduleTime" (click)="confirmSchedule()">
+
+                    <i class="bi bi-calendar-check ms-1"></i>
+
+                    تأكيد الموعد
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+}
+
+@if (invoiceModalOpen) {
+<div class="modal-backdrop-custom">
+
+    <div class="modal-dialog w-100" style="max-width: 500px;" (click)="$event.stopPropagation()">
+
+        <div class="modal-content border-0 shadow rounded-4 bg-white">
+
+            <!-- Header -->
+            <div class="modal-header border-0 p-4 pb-2">
+
+                <div>
+                    <h5 class="fw-bold mb-1">
+                        الفاتورة
+                    </h5>
+
+                    <p class="text-secondary small mb-0">
+                        {{ selectedRequest?.title }}
+                    </p>
+                </div>
+
+                <button type="button" class="btn-close" aria-label="إغلاق" (click)="closeInvoice()">
+                </button>
+
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body p-4">
+
+                <!-- Invoice Info -->
+                <div class="invoice-info rounded-3 p-3 mb-4">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-secondary">
+                            رقم الطلب
+                        </span>
+
+                        <span class="fw-semibold">
+                            {{ selectedRequest?.code }}
+                        </span>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+
+                        <span class="text-secondary">
+                            الأسطى
+                        </span>
+
+                        <span class="fw-semibold">
+                            {{ currentRequestDetails?.craftsman?.name || 'غير محدد' }}
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- Invoice Items -->
+                <h6 class="fw-bold mb-3">
+                    تفاصيل الفاتورة
+                </h6>
+
+                <div class="d-flex justify-content-between mb-3">
+
+                    <span class="text-secondary">
+                        قيمة العمل
+                    </span>
+
+                    <span class="fw-semibold">
+                        {{ selectedRequest?.budget | number }} ج.م
+                    </span>
+
+                </div>
+
+                <div class="d-flex justify-content-between mb-3">
+
+                    <span class="text-secondary">
+                        رسوم المنصة
+                    </span>
+
+                    <span class="fw-semibold">
+                        0 ج.م
+                    </span>
+
+                </div>
+
+                <hr>
+
+                <!-- Total -->
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <span class="fw-bold">
+                        الإجمالي
+                    </span>
+
+                    <span class="fw-bold fs-5 invoice-total">
+                        {{ selectedRequest?.budget | number }} ج.م
+                    </span>
+
+                </div>
+
+                <!-- Payment Status -->
+                <div class="invoice-success rounded-3 mt-4 mb-0">
+
+                    <i class="bi bi-check-circle-fill ms-1"></i>
+
+                    تم دفع المبلغ من خلال ضمان المنصة
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 p-4 pt-0">
+
+                <button type="button" class="btn btn-outline-secondary flex-fill" (click)="closeInvoice()">
+                    إغلاق
+                </button>
+
+                <button type="button" class="btn invoice-download-btn flex-fill" (click)="downloadInvoice()">
+
+                    <i class="bi bi-download ms-1"></i>
+
+                    تحميل الفاتورة
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+}
