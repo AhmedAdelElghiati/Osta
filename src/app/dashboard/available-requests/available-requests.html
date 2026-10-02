@@ -1,0 +1,106 @@
+<div dir="rtl">
+
+  <div class="page-header">
+    <div>
+      <h1>الطلبات المتاحة</h1>
+      <p>طلبات عملاء في تخصصك (سباكة) — قدّم عرضك بأي وقت، والتقديم مجاني</p>
+    </div>
+  </div>
+
+  <div class="alert alert-warning" *ngIf="!isAvailable">
+    أنت في وضع «غير متاح» — مش هتقدر تقدم عروض حتى تفعّل التواجد من صفحة بروفايلي.
+  </div>
+
+  <div class="search-chip" *ngIf="searchQuery">
+    نتائج البحث عن: <b>{{ searchQuery }}</b>
+    <button (click)="clearSearch()" aria-label="مسح البحث">✕</button>
+  </div>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+
+    <div class="btn-group">
+      <button
+        *ngFor="let sort of sorts"
+        class="btn btn-sm"
+        [class.btn-dark]="currentSort === sort.key"
+        [class.btn-light]="currentSort !== sort.key"
+        (click)="currentSort = sort.key">
+        {{ sort.label }}
+      </button>
+    </div>
+
+    <small class="text-muted">{{ requests.length }} طلب متاح في تخصصك</small>
+
+  </div>
+
+  <div
+    *ngFor="let request of requests"
+    class="request-full-card mb-3"
+    [class.fresh]="request.fresh">
+
+    <div class="row g-3">
+
+      <div class="col-lg-9">
+
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          <h3>{{ request.title }}</h3>
+          <span *ngIf="request.fresh" class="new-badge">جديد</span>
+          <span *ngIf="request.applied" class="applied-badge">تم التقديم ✓</span>
+        </div>
+
+        <div class="request-meta">
+          {{ request.client }}
+          • {{ request.area }}
+          • 📍 {{ request.dist }} منك
+          • {{ request.posted }}
+        </div>
+
+        <p>{{ request.desc }}</p>
+
+        <div class="d-flex flex-wrap gap-2">
+          <span class="info-badge">موعد: {{ request.when }}</span>
+          <span class="info-badge" *ngIf="request.photos">{{ request.photos }} صور</span>
+        </div>
+
+      </div>
+
+      <div class="col-lg-3 text-lg-start">
+        <small class="text-muted">الميزانية</small>
+        <h4 *ngIf="request.budget; else flexible">{{ request.budget | number }} ج.م</h4>
+        <ng-template #flexible>
+          <h4 class="flex-budget">مرنة</h4>
+        </ng-template>
+      </div>
+
+    </div>
+
+    <hr>
+
+    <button
+      *ngIf="!request.applied"
+      class="btn btn-dark btn-sm"
+      (click)="openOffer(request)">
+      قدّم عرض سعر
+    </button>
+
+    <span *ngIf="request.applied" class="badge bg-light text-dark">
+      عرضك تحت المراجعة
+    </span>
+
+  </div>
+
+  <div *ngIf="!requests.length" class="requests-empty">
+    مفيش طلبات مطابقة للبحث
+  </div>
+
+</div>
+
+
+<app-offer-modal
+  *ngIf="selectedRequest"
+  [request]="selectedRequest"
+  (closed)="closeOffer()"
+  (sent)="onOfferSent($event)">
+</app-offer-modal>
+
+<div class="app-toast" *ngIf="toast">{{ toast }}</div>

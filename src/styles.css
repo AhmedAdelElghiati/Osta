@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap');
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+* {
+  font-family: 'Cairo', sans-serif;
+}
+
+:root {
+  --color-primary: #0F172A;
+  --color-secondary: #EA580C;
+  --color-secondary-hover: #c2410a;
+  --color-bg: #F8FAFC;
+  --color-text-dark: #1E293B;
+  --color-text-muted: #64748B;
+  --color-border: #E2E8F0;
+  --font-family-base: 'Cairo', sans-serif;
+}
+
+body {
+  font-family: var(--font-family-base);
+  background-color: #ffffff;
+  color: var(--color-text-dark);
+  direction: rtl;
+  text-align: right;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Helper Custom Classes */
+.text-primary-custom {
+  color: var(--color-primary) !important;
+}
+
+.text-secondary-custom {
+  color: var(--color-secondary) !important;
+}
+
+.bg-primary-custom {
+  background-color: var(--color-primary) !important;
+}
+
+.bg-secondary-custom {
+  background-color: var(--color-secondary) !important;
+}
+
+.btn-secondary-custom {
+  background-color: var(--color-secondary);
+  color: white;
+  border: none;
+}
+
+.btn-secondary-custom:hover {
+  background-color: var(--color-secondary-hover);
+  color: white;
+}
+
+.btn-outline-secondary-custom {
+  background-color: transparent;
+  color: var(--color-secondary);
+  border: 1px solid var(--color-secondary);
+}
+
+.btn-outline-secondary-custom:hover {
+  background-color: var(--color-secondary);
+  color: white;
+}
+
+.section-bg {
+  background-color: var(--color-bg);
+}
