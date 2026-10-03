@@ -1,0 +1,247 @@
+<div dir="rtl">
+
+  <div class="page-header">
+
+    <h1>
+      بروفايلي
+    </h1>
+
+    <p>
+      البروفايل ده هو اللي بيشوفه العميل قبل ما يقبل عرضك
+    </p>
+
+  </div>
+
+
+  <!-- Profile Header -->
+  <div class="profile-header">
+
+    <div class="avatar">{{ initials }}</div>
+
+    <div>
+      <h3>{{ account.name }}</h3>
+      <p>{{ profession }}{{ verified ? ' معتمد' : '' }} • {{ account.city }}<ng-container *ngIf="memberSince"> • عضو منذ {{ memberSince }}</ng-container></p>
+    </div>
+
+    <div class="form-check form-switch me-auto">
+      <input class="form-check-input" type="checkbox" [(ngModel)]="available">
+      <label>متاح لاستقبال الطلبات</label>
+    </div>
+
+  </div>
+
+
+  <div class="row g-4 mt-1">
+
+
+    <div class="col-lg-8">
+
+
+      <!-- Bio -->
+
+      <div class="profile-card mb-4">
+
+        <h3>
+          نبذة عنك
+        </h3>
+
+        <textarea
+          class="form-control"
+          rows="5"
+          [(ngModel)]="bio">
+        </textarea>
+
+        <button
+          class="btn btn-dark btn-sm mt-3"
+          (click)="saveBio()">
+
+          حفظ النبذة
+
+        </button>
+
+      </div>
+
+
+      <!-- Portfolio -->
+      <!-- Portfolio -->
+      <div class="profile-card mb-4">
+
+        <div class="d-flex justify-content-between">
+          <h3>معرض أعمالي</h3>
+          <button class="btn btn-link btn-sm" (click)="openAddWork()">
+            + إضافة عمل
+          </button>
+        </div>
+
+        <div class="row g-3 mt-2">
+
+          <div class="col-6 col-md-4" *ngFor="let work of portfolio; let i = index">
+            <div class="portfolio-item">
+
+              <button class="work-remove" (click)="removeWork(i)" aria-label="حذف العمل">✕</button>
+
+              🖼️
+              <p>{{ work }}</p>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Skills -->
+
+      <div class="profile-card">
+
+        <h3>
+          تخصصاتي
+        </h3>
+
+        <div class="skills">
+
+          <span *ngFor="let skill of skills">
+            {{ skill }}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="col-lg-4">
+
+
+      <!-- Verification -->
+
+      <div class="profile-card mb-4">
+
+        <h3>
+          حسابي موثّق
+        </h3>
+
+        <p>✓ بطاقة هوية موثقة</p>
+        <p>✓ سجل جزائي سليم</p>
+        <p>✓ حساب بنكي مرتبط للسحب</p>
+
+        <button class="btn btn-light w-100" (click)="previewAsClient()">
+          معاينة كما يراني العميل
+        </button>
+
+      </div>
+
+
+      <!-- Statistics -->
+
+      <div class="profile-card">
+
+        <h3>
+          إحصائياتي
+        </h3>
+
+        <div class="stat-line">
+          <span>التقييم العام</span>
+          <strong>★ 4.8</strong>
+        </div>
+
+        <div class="stat-line">
+          <span>شغلانات مكتملة</span>
+          <strong>214</strong>
+        </div>
+
+        <div class="stat-line">
+          <span>نسبة قبول العروض</span>
+          <strong>68%</strong>
+        </div>
+
+        <div class="stat-line">
+          <span>متوسط زمن الرد</span>
+          <strong>22 دقيقة</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- Reviews -->
+  <!-- Reviews -->
+  <div class="profile-card mt-4">
+
+    <h3>تقييمات العملاء</h3>
+
+    <div class="reviews-summary">
+
+      <div class="avg-box">
+        <strong>{{ avgText }}</strong>
+        <div class="stars">
+          <span *ngFor="let s of starList" [class.on]="s <= Math.round(avg)">★</span>
+        </div>
+        <small>{{ reviews.length }} تقييم موثق</small>
+      </div>
+
+      <div class="dist-list">
+        <div class="dist-row" *ngFor="let d of distribution">
+          <span class="dist-label">{{ d.v }} ★</span>
+          <div class="dist-bar"><div [style.width.%]="d.pct"></div></div>
+          <span class="dist-count">{{ d.c }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="review" *ngFor="let review of reviews">
+
+      <div class="d-flex justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <strong>{{ review.client }}</strong>
+          <span class="stars">
+            <span *ngFor="let s of starList" [class.on]="s <= review.val">★</span>
+          </span>
+        </div>
+        <span>{{ review.date }}</span>
+      </div>
+
+      <small *ngIf="review.job">بخصوص: {{ review.job }}</small>
+
+      <p>«{{ review.text }}»</p>
+
+    </div>
+
+  </div>
+  
+
+</div>
+
+
+<!-- Add work modal -->
+<div class="modal-overlay" *ngIf="addWorkOpen" (click)="closeAddWork()">
+  <div class="modal-box modal-sm" dir="rtl" (click)="$event.stopPropagation()">
+    <h3>إضافة عمل للمعرض</h3>
+
+    <label>وصف العمل</label>
+    <input
+      type="text"
+      class="form-control form-control-sm"
+      placeholder="مثال: تأسيس حمام كامل — فيلا التجمع"
+      [(ngModel)]="workTitle"
+      (keydown.enter)="addWork()">
+
+    <div class="upload-box" (click)="showToast('رفع الصور — قيد الربط مع التخزين')">
+      🖼️
+      <p>اضغط لإضافة صورة للعمل</p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-dark btn-sm flex-fill" (click)="addWork()">إضافة</button>
+      <button class="btn btn-light btn-sm" (click)="closeAddWork()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<div class="app-toast" *ngIf="toast()">{{ toast() }}</div>

@@ -42,7 +42,17 @@ export class Login {
       return;
     }
 
-    this.auth.login(this.emailOrPhone, this.password).subscribe({
+    const identifier = this.emailOrPhone.trim();
+    if (!/^\S+@\S+\.\S+$/.test(identifier)) {
+      this.toastIcon = '✕';
+      this.toastTitle = 'تعذر تسجيل الدخول';
+      this.toastMessage = 'اكتب البريد الإلكتروني المسجل بيه (تسجيل الدخول بالبريد).';
+      this.showSuccessMessage = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.auth.login(identifier, this.password).subscribe({
       next: (response: any) => {
         this.toastIcon = '✓';
         this.toastTitle = 'تم تسجيل الدخول';
@@ -52,7 +62,12 @@ export class Login {
 
         setTimeout(() => {
           const role = this.auth.currentUserValue?.role ?? response?.data?.user?.role;
-          const target = role === 'artisan' ? '/dashboard/home' : '/customer-dashboard';
+          const target =
+            role === 'artisan'
+              ? '/dashboard/home'
+              : role === 'admin'
+                ? '/admin-dashboard'
+                : '/customer-dashboard';
 
           this.showSuccessMessage = false;
           form.resetForm();

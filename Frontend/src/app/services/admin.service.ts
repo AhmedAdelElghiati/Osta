@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { API_BASE_URL } from '../core/api.config';
+import { Observable as Obs, map } from 'rxjs';
+import { API_BASE_URL, ARTISANS_ENDPOINT } from '../core/api.config';
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
@@ -24,8 +25,19 @@ export class AdminService {
     return this.http.patch<any>(`${this.base}/users/${id}/toggle-active`, {}, { withCredentials: true });
   }
 
+  // الباك مفيهوش GET /admin/artisans، فبنستخدم قائمة الأسطوات العامة ونحوّلها لنفس الشكل
   artisans(): Observable<any> {
-    return this.http.get<any>(`${this.base}/artisans`, { withCredentials: true });
+    return this.http.get<any>(ARTISANS_ENDPOINT, { params: { limit: 50 } }).pipe(
+      map((response: any) => ({
+        ...response,
+        data: (response?.data?.items ?? []).map((a: any) => ({
+          _id: a.id,
+          userId: { name: a.name, email: a.email },
+          profession: a.profession,
+          isVerified: a.isVerified,
+        })),
+      })),
+    );
   }
 
   verifyArtisan(id: string, isVerified: boolean): Observable<any> {

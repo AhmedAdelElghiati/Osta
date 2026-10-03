@@ -141,7 +141,7 @@ export class ClientRegister {
 
         this.toastIcon = '✓';
         this.toastTitle = 'تم التسجيل بنجاح';
-        this.toastMessage = response.message;
+        this.toastMessage = response?.message || 'تم إنشاء الحساب بنجاح.';
         this.showSuccessMessage = true;
 
         this.cdr.detectChanges();
@@ -179,7 +179,7 @@ export class ClientRegister {
 
         this.toastIcon = '✕';
         this.toastTitle = 'تعذر التسجيل';
-        this.toastMessage = error.error.message;
+        this.toastMessage = error?.error?.message || 'تعذر الاتصال بالسيرفر، حاول تاني.';
         this.showSuccessMessage = true;
 
         this.cdr.detectChanges();

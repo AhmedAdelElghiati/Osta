@@ -1,4 +1,4 @@
-﻿<main class="page-bg" dir="rtl">
+<main class="page-bg" dir="rtl">
 
   <!-- Hero -->
   <section class="guide-hero">
@@ -346,8 +346,21 @@
         </div>
 
 
+        <!-- Loading -->
+        <div class="empty-state" *ngIf="loading">
+          <div class="empty-icon">⏳</div>
+          <h5>جاري تحميل الأسطوات...</h5>
+        </div>
+
+        <!-- Error -->
+        <div class="empty-state" *ngIf="!loading && loadError">
+          <div class="empty-icon">⚠️</div>
+          <h5>{{ loadError }}</h5>
+          <button type="button" class="btn btn-search-guide" (click)="loadCraftsmen()">إعادة المحاولة</button>
+        </div>
+
         <!-- Empty State -->
-        <div class="empty-state" *ngIf="filteredCraftsmen.length === 0">
+        <div class="empty-state" *ngIf="!loading && !loadError && filteredCraftsmen.length === 0">
 
           <div class="empty-icon">
             🔍
@@ -365,7 +378,7 @@
 
 
         <!-- Craftsmen -->
-        <div class="craftsmen-list" *ngIf="filteredCraftsmen.length > 0">
+        <div class="craftsmen-list" *ngIf="!loading && filteredCraftsmen.length > 0">
 
           <article class="craftsman-card-guide" *ngFor="let c of displayedCraftsmen">
 
@@ -377,7 +390,8 @@
 
                 <div class="craftsman-card-avatar">
 
-                  <img [src]="c.avatar" [alt]="c.name">
+                  <img *ngIf="c.avatar" [src]="c.avatar" [alt]="c.name" (error)="c.avatar = ''">
+                  <span *ngIf="!c.avatar" class="avatar-initial">{{ c.name.charAt(0) }}</span>
 
                   <span class="online-dot" *ngIf="c.available">
                   </span>
@@ -389,7 +403,7 @@
 
                   <div class="name-row">
 
-                    <a href="#" class="craftsman-card-name">
+                    <a href="#" class="craftsman-card-name" (click)="openProfile(c, $event)">
 
                       {{ c.name }}
 
@@ -425,7 +439,7 @@
                     </span>
 
 
-                    <span>
+                    <span *ngIf="c.responseTime">
                       <span class="meta-icon">◷</span>
                       رد خلال {{ c.responseTime }}
                     </span>
@@ -434,7 +448,7 @@
                     <span>
                       <span class="meta-icon">⌖</span>
                       {{ c.location }}
-                      ({{ c.distance }})
+                      <ng-container *ngIf="c.distance">({{ c.distance }})</ng-container>
                     </span>
 
                   </div>
@@ -476,7 +490,7 @@
 
 
             <!-- Photos -->
-            <div class="photos-row">
+            <div class="photos-row" *ngIf="c.photos.length">
 
               <div class="photo-count-badge">
                 +{{ c.photosCount }} صورة
@@ -514,7 +528,7 @@
 
               <div class="actions-buttons">
 
-                <button type="button" class="btn btn-book-now">
+                <button type="button" class="btn btn-book-now" (click)="goToNewRequest()">
 
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 
@@ -532,7 +546,7 @@
                 </button>
 
 
-                <button type="button" class="btn btn-view-profile">
+                <button type="button" class="btn btn-view-profile" (click)="openProfile(c)">
 
                   شوف شغله وتقييماته
 
@@ -555,7 +569,7 @@
 
 
         <!-- Pagination -->
-        <div class="pagination-row" *ngIf="filteredCraftsmen.length > 0">
+        <div class="pagination-row" *ngIf="!loading && filteredCraftsmen.length > 0">
 
           <!-- السابق -->
           <button type="button" class="btn btn-paginate pagination-prev" [disabled]="currentPage === 1"
@@ -616,7 +630,7 @@
           </div>
 
 
-          <button type="button" class="btn btn-cta-banner">
+          <button type="button" class="btn btn-cta-banner" (click)="goToNewRequest()">
 
             انشر شغلتك دلوقتي
 
@@ -633,3 +647,39 @@
 </main>
 
 pagination-row
+
+<!-- Craftsman profile modal -->
+<div class="guide-modal-backdrop" *ngIf="profileOpen" (click)="closeProfile()">
+  <div class="guide-modal" dir="rtl" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <button type="button" class="guide-modal-close" aria-label="إغلاق" (click)="closeProfile()">×</button>
+
+    <div class="guide-modal-head" *ngIf="profile">
+      <img *ngIf="profile.avatar" [src]="profile.avatar" [alt]="profile.name" (error)="profile.avatar = ''">
+      <span *ngIf="!profile.avatar" class="avatar-initial">{{ profile.name.charAt(0) }}</span>
+      <div>
+        <h4>{{ profile.name }} <span class="verified-badge-guide" *ngIf="profile.verified">✓ معتمد</span></h4>
+        <p>{{ profile.title }}</p>
+        <p class="guide-modal-meta">
+          <span class="meta-star">★</span> {{ profile.rating }} ({{ profile.reviewCount }} تقييم)
+          <ng-container *ngIf="profile.experience"> · خبرة {{ profile.experience }}</ng-container>
+          · {{ profile.location }}
+        </p>
+      </div>
+    </div>
+
+    <p class="guide-modal-bio" *ngIf="profile?.bio">{{ profile.bio }}</p>
+
+    <h5 class="guide-modal-title">تقييمات العملاء</h5>
+    <p *ngIf="profileLoading">جاري التحميل...</p>
+    <p *ngIf="profileError" class="guide-modal-error">{{ profileError }}</p>
+    <p *ngIf="!profileLoading && !profileError && profile && !profile.reviews?.length">لسه مفيش تقييمات للأسطى ده.</p>
+
+    <div class="guide-review" *ngFor="let r of profile?.reviews">
+      <div class="guide-review-stars">{{ starsFor(r.rating) }}</div>
+      <p>{{ r.comment || 'بدون تعليق' }}</p>
+      <small>{{ r.createdAt | date: 'yyyy/MM/dd' }}</small>
+    </div>
+
+    <button type="button" class="btn btn-book-now guide-modal-cta" (click)="closeProfile(); goToNewRequest()">إحجزه فوري</button>
+  </div>
+</div>

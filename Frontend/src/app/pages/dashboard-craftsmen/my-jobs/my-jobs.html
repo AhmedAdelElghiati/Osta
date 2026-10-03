@@ -1,0 +1,254 @@
+<!-- <div dir="rtl">
+
+  <div class="page-header">
+
+    <h1>شغلاناتي</h1>
+
+    <p>
+      تابع كل الشغلانات الحالية والمكتملة
+    </p>
+
+  </div>
+
+
+  <div class="tabs mb-4">
+
+    <button
+      [class.active]="activeTab === 'active'"
+      (click)="activeTab = 'active'">
+
+      الجارية ({{ activeJobs.length }})
+
+    </button>
+
+    <button
+      [class.active]="activeTab === 'done'"
+      (click)="activeTab = 'done'">
+
+      المكتملة ({{ completedJobs.length }})
+
+    </button>
+
+  </div>
+
+
+  <div
+    *ngFor="let job of displayedJobs"
+    class="job-card mb-3">
+
+    <div>
+
+      <div class="d-flex gap-2 align-items-center">
+
+        <h3>
+          {{ job.title }}
+        </h3>
+
+        <span class="job-phase">
+          {{ job.phase }}
+        </span>
+
+      </div>
+
+
+      <p class="meta">
+        {{ job.client }} • {{ job.area }} • #{{ job.id }}
+      </p>
+
+
+      <p class="note">
+        {{ job.note }}
+      </p>
+
+    </div>
+
+
+    <div class="job-price">
+
+      <small>
+        قيمة الشغلانة
+      </small>
+
+      <strong>
+        {{ job.price | number }} ج.م
+      </strong>
+
+      <span *ngIf="job.escrow">
+        {{ job.escrow | number }} ج.م في الضمان
+      </span>
+
+    </div>
+
+
+    <div class="job-actions">
+
+      <button
+        class="btn btn-light btn-sm" (click)="openChat(job)">
+
+        محادثة العميل
+
+      </button>
+
+
+      <button
+        *ngIf="job.phase === 'معاينة'"
+        class="btn btn-dark btn-sm"
+        (click)="startJob(job)">
+
+        تمت المعاينة — ابدأ التنفيذ
+
+      </button>
+
+
+      <button
+        *ngIf="job.phase === 'تنفيذ'"
+        class="btn btn-success btn-sm"
+        (click)="finishJob(job)">
+
+        إنهاء التنفيذ
+
+      </button>
+
+    </div>
+
+  </div>
+
+</div> -->
+
+
+
+<div dir="rtl">
+
+  <div class="page-header">
+    <h1>شغلاناتي</h1>
+    <p>مبلغك محجوز في الضمان — وبيتحرر في محفظتك أول ما العميل يعتمد التسليم</p>
+  </div>
+
+  <div class="tabs mb-4">
+    <button [class.active]="activeTab === 'active'" (click)="activeTab = 'active'">
+      الجارية ({{ activeJobs.length }})
+    </button>
+    <button [class.active]="activeTab === 'done'" (click)="activeTab = 'done'">
+      المكتملة ({{ completedJobs.length }})
+    </button>
+  </div>
+
+  <div *ngFor="let job of displayedJobs" class="job-card mb-3">
+
+    <div>
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <h3>{{ job.title }}</h3>
+        <span class="job-phase" [ngClass]="phaseClass[job.phase]">
+          {{ phaseLabels[job.phase] }}
+        </span>
+      </div>
+
+      <p class="meta">
+        {{ job.client }} • {{ job.area }} • <span dir="ltr">#{{ job.id }}</span>
+      </p>
+
+      <p class="note">{{ job.note }}</p>
+    </div>
+
+    <div class="job-price">
+      <small>قيمة الشغلانة</small>
+      <strong>{{ job.price | number }} ج.م</strong>
+      <span *ngIf="job.escrow">{{ job.escrow | number }} ج.م في الضمان</span>
+    </div>
+
+    <div class="job-actions">
+
+      <button class="btn btn-light btn-sm" (click)="openChat(job)">
+        محادثة العميل
+      </button>
+
+      <button
+        *ngIf="job.phase === 'معاينة'"
+        class="btn btn-dark btn-sm"
+        (click)="askStart(job)">
+        تمت المعاينة — ابدأ التنفيذ
+      </button>
+
+      <button
+        *ngIf="job.phase === 'تنفيذ'"
+        class="btn btn-success btn-sm"
+        (click)="askFinish(job)">
+        إنهاء التنفيذ وطلب الاعتماد
+      </button>
+
+      <span *ngIf="job.phase === 'انتظار'" class="status-chip review-pulse">
+        العميل بيراجع الشغل...
+      </span>
+
+      <span *ngIf="job.phase === 'مكتمل'" class="status-chip done-chip">
+        تم الصرف — <span dir="ltr">#{{ job.inv }}</span>
+      </span>
+
+    </div>
+
+  </div>
+
+  <div *ngIf="!displayedJobs.length" class="jobs-empty">
+    مفيش شغلانات هنا
+  </div>
+
+</div>
+
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" *ngIf="confirm" (click)="closeConfirm()">
+  <div class="modal-box modal-sm" dir="rtl" (click)="$event.stopPropagation()">
+    <h3>{{ confirm.title }}</h3>
+    <p>{{ confirm.body }}</p>
+    <div class="modal-actions">
+      <button class="btn btn-dark btn-sm flex-fill" (click)="runConfirm()">{{ confirm.label }}</button>
+      <button class="btn btn-light btn-sm" (click)="closeConfirm()">رجوع</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Chat Modal -->
+<div class="modal-overlay" *ngIf="chatJob" (click)="closeChat()">
+  <div class="modal-box chat-box" dir="rtl" (click)="$event.stopPropagation()">
+
+    <div class="chat-header">
+      <div class="d-flex align-items-center gap-2">
+        <span class="chat-avatar">{{ avatar(chatJob.client) }}</span>
+        <div>
+          <strong>{{ chatJob.title }}</strong>
+          <small class="d-block chat-client">{{ chatJob.client }}</small>
+        </div>
+      </div>
+      <button class="chat-close" (click)="closeChat()" aria-label="إغلاق">✕</button>
+    </div>
+
+    <div class="chat-scroll" #chatScroll>
+      <div *ngFor="let m of chatJob.chat" class="msg" [class.me]="m.me">
+        <div>
+          <div class="bubble">{{ m.text }}</div>
+          <small class="msg-time">{{ m.time }}</small>
+        </div>
+      </div>
+
+      <div *ngIf="typing" class="msg">
+        <div class="bubble typing"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input
+        type="text"
+        class="form-control form-control-sm"
+        placeholder="اكتب رسالتك للعميل..."
+        [(ngModel)]="chatInput"
+        (keydown.enter)="sendMessage()">
+      <button class="btn btn-dark btn-sm" (click)="sendMessage()">إرسال</button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="app-toast" *ngIf="toast">{{ toast }}</div>

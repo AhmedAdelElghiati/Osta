@@ -1,7 +1,44 @@
-﻿import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Marketplace } from '../../services/marketplace';
+import { Auth } from '../../services/auth';
+import { API_ORIGIN } from '../../core/api.config';
+
+interface GuideCraftsman {
+  id: string;
+  slug: string;
+  name: string;
+  title: string;
+  verified: boolean;
+  specialty: string;
+  rating: number;
+  reviewCount: number;
+  responseTime: string;
+  location: string;
+  distance: string;
+  distanceValue: number | null;
+  priceFrom: number;
+  experience: string | null;
+  guarantee: string | null;
+  photosCount: number;
+  tags: string[];
+  photos: string[];
+  avatar: string;
+  available: boolean;
+  credentials: string[];
+}
+
+// تخصصات الفلتر (slug بيتطابق مع قيم التسجيل في الباك)
+const SPECIALTY_DEFS = [
+  { slug: 'plumbing', name: 'سباكة وصرف صحي', keywords: ['سباك'] },
+  { slug: 'electricity', name: 'كهرباء وتأسيس وتوصيلات', keywords: ['كهرب'] },
+  { slug: 'air-conditioning', name: 'تكييف، تبريد وتدفئة', keywords: ['تكييف', 'تبريد'] },
+  { slug: 'carpentry', name: 'نجارة وأبواب ومطابخ ودواليب', keywords: ['نجار'] },
+  { slug: 'painting', name: 'نقاشة ودهانات ديكورية', keywords: ['نقاش', 'دهان'] },
+  { slug: 'aluminum', name: 'ألوميتال وزجاج', keywords: ['ألوميتال', 'الوميتال', 'زجاج'] },
+];
 
 @Component({
   selector: 'app-craftsmen-guide',
@@ -10,14 +47,23 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './craftsmen-guide.html',
   styleUrl: './craftsmen-guide.css',
 })
-export class CraftsmenGuide {
-  constructor(private route: ActivatedRoute) {
+export class CraftsmenGuide implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private marketplace: Marketplace,
+    private auth: Auth,
+    private cdr: ChangeDetectorRef,
+  ) {
     this.route.queryParams.subscribe((params) => {
       this.searchSpecialty = params['specialty'] || '';
       this.searchLocation = params['location'] || '';
       this.currentPage = 1;
+      this.pendingArtisanId = params['artisan'] || '';
     });
   }
+
+  private pendingArtisanId = '';
 
   searchSpecialty = '';
   searchLocation = '';
@@ -27,14 +73,23 @@ export class CraftsmenGuide {
 
   sortBy = 'الأفضل تقييماً';
 
-  distanceRange = 12;
-  priceMin = 100;
-  priceMax = 400;
+  distanceRange = 50;
+  priceMin = 0;
+  priceMax = 5000;
 
   currentPage = 1;
   itemsPerPage = 4;
 
   showFilters = true;
+
+  loading = true;
+  loadError = '';
+
+  // بروفايل الأسطى (مودال)
+  profileOpen = false;
+  profileLoading = false;
+  profileError = '';
+  profile: any = null;
 
   credentialsFilters = {
     securityChecked: false,
@@ -43,224 +98,115 @@ export class CraftsmenGuide {
     invoiceGuarantee: false,
   };
 
-  specialties = [
-    { name: 'سباكة وصرف صحي', count: 48, selected: false },
-    { name: 'كهرباء وتأسيس وتوصيلات', count: 62, selected: false },
-    { name: 'تكييف، تبريد وتدفئة', count: 31, selected: false },
-    { name: 'نجارة وأبواب ومطابخ ودواليب', count: 27, selected: false },
-    { name: 'نقاشة ودهانات ديكورية', count: 19, selected: false },
-    { name: 'ألوميتال وزجاج', count: 14, selected: false },
-  ];
+  specialties = SPECIALTY_DEFS.map((d) => ({ ...d, count: 0, selected: false }));
 
-  craftsmen = [
-    // =========================
-    // 1
-    // =========================
-    {
-      id: 1,
-      name: 'أسطى إبراهيم صقر',
-      title: 'مهندس سباكة محترف ومدرب',
-      verified: true,
-      specialty: 'مهندس سباكة وفحص شبكات المياه وتأسيس السباكة',
-      rating: 4.95,
-      reviewCount: 142,
-      responseTime: '8 دقائق',
-      location: 'التجمع الخامس',
-      distance: '2.4 كم',
-      distanceValue: 2.4,
-      priceFrom: 150,
-      experience: '14 سنة',
-      guarantee: 'شهرين على التركيب',
-      photosCount: 18,
-      tags: ['نقابة التطبيقيين'],
-      photos: ['plumbing-work.jpg', 'craftsman-work1.jpg', 'electrical-work.jpg'],
-      avatar: 'craftsman-hassan.jpg',
-      available: true,
-      credentials: ['فيش وتشبيه مفحوص أمنياً', 'شهادة قياس مهارة وخبرة'],
-    },
+  craftsmen: GuideCraftsman[] = [];
 
-    // =========================
-    // 2
-    // =========================
-    {
-      id: 2,
-      name: 'م. طارق عبد الرحمن',
-      title: 'فني أنظمة كهرباء ذكية',
-      verified: true,
-      specialty: 'تأسيس وتركيب لوحات الكهرباء والكاميرات والأنظمة الذكية',
-      rating: 4.88,
-      reviewCount: 98,
-      responseTime: '15 دقيقة',
-      location: 'الرحاب والمستقبل',
-      distance: '4.1 كم',
-      distanceValue: 4.1,
-      priceFrom: 200,
-      experience: '9 سنوات',
+  // =========================
+  // LOAD FROM BACKEND
+  // =========================
+
+  ngOnInit(): void {
+    this.loadCraftsmen();
+  }
+
+  loadCraftsmen(): void {
+    this.loading = true;
+    this.loadError = '';
+    const all: any[] = [];
+
+    const fetchPage = (page: number) => {
+      this.marketplace.listArtisans({ limit: 50, page }).subscribe({
+        next: (response) => {
+          const items = response?.data?.items ?? [];
+          all.push(...items);
+          const totalPages = response?.data?.pagination?.totalPages ?? 1;
+          if (page < totalPages && page < 10) {
+            fetchPage(page + 1);
+            return;
+          }
+          this.craftsmen = all.map((a) => this.mapArtisan(a));
+          this.updateSpecialtyCounts();
+          this.loading = false;
+          const target = this.pendingArtisanId
+            ? this.craftsmen.find((c) => c.id === this.pendingArtisanId)
+            : null;
+          if (target) {
+            this.pendingArtisanId = '';
+            this.openProfile(target);
+          }
+          this.cdr.markForCheck();
+        },
+        error: (error) => {
+          this.craftsmen = [];
+          this.loadError = error?.error?.message || 'مش قادرين نجيب الأسطوات دلوقتي، حاول تاني.';
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+      });
+    };
+
+    fetchPage(1);
+  }
+
+  private professionSlug(profession: string): string {
+    const value = (profession || '').trim().toLowerCase();
+    const bySlug = SPECIALTY_DEFS.find((d) => d.slug === value);
+    if (bySlug) return bySlug.slug;
+    const byKeyword = SPECIALTY_DEFS.find((d) => d.keywords.some((k) => value.includes(k)));
+    return byKeyword ? byKeyword.slug : value;
+  }
+
+  private professionLabel(profession: string): string {
+    const slug = this.professionSlug(profession);
+    const def = SPECIALTY_DEFS.find((d) => d.slug === slug);
+    return def ? def.name : profession || 'أسطى';
+  }
+
+  private imageUrl(path: string): string {
+    if (!path) return '';
+    if (/^https?:\/\//i.test(path)) return path;
+    if (path.startsWith('/')) return `${API_ORIGIN}${path}`;
+    return path;
+  }
+
+  private mapArtisan(a: any): GuideCraftsman {
+    const years = Number(a.experienceYears ?? 0);
+    const skills: string[] = Array.isArray(a.skills) ? a.skills : [];
+    const areas: string[] = Array.isArray(a.serviceAreas) ? a.serviceAreas.filter(Boolean) : [];
+    const title = this.professionLabel(a.profession);
+    const verified = !!a.isVerified;
+
+    return {
+      id: String(a.id),
+      slug: this.professionSlug(a.profession),
+      name: a.name || 'أسطى',
+      title,
+      verified,
+      specialty: a.bio || skills.join('، ') || title,
+      rating: Math.round(Number(a.rating ?? 0) * 100) / 100,
+      reviewCount: Number(a.totalReviews ?? 0),
+      responseTime: '',
+      location: a.location || areas.join('، ') || 'مصر',
+      distance: '',
+      distanceValue: null,
+      priceFrom: Number(a.hourlyRate ?? 0),
+      experience: years > 0 ? `${years} ${years === 1 ? 'سنة' : years <= 10 ? 'سنوات' : 'سنة'}` : null,
       guarantee: null,
-      photosCount: 12,
-      tags: ['يقبل كاش وفيزا ومحافظ إلكترونية', 'نقابة التطبيقيين'],
-      photos: ['electrical-work.jpg', 'craftsman-work1.jpg', 'carpenter-work.jpg'],
-      avatar: 'craftsman-tarek.jpg',
+      photosCount: 0,
+      tags: skills.slice(0, 3),
+      photos: [],
+      avatar: this.imageUrl(a.avatar),
       available: true,
-      credentials: ['فيش وتشبيه مفحوص أمنياً', 'شهادة قياس مهارة وخبرة'],
-    },
+      credentials: verified ? ['فيش وتشبيه مفحوص أمنياً', 'شهادة قياس مهارة وخبرة'] : [],
+    };
+  }
 
-    // =========================
-    // 3
-    // =========================
-    {
-      id: 3,
-      name: 'أسطى عادل الشريبيني',
-      title: 'وكيل صيانة تكييفات معتمد',
-      verified: true,
-      specialty: 'فحص وتنظيف وصيانة أجهزة التكييف وتركيب قطع الغيار',
-      rating: 4.91,
-      reviewCount: 74,
-      responseTime: '5 دقائق',
-      location: 'النرجس والتجمع',
-      distance: '1.8 كم',
-      distanceValue: 1.8,
-      priceFrom: 120,
-      experience: '10 سنوات',
-      guarantee: 'ضمان 90 يوم',
-      photosCount: 9,
-      tags: ['قطع غيار أصلية'],
-      photos: ['plumbing-work.jpg', 'electrical-work.jpg', 'craftsman-work1.jpg'],
-      avatar: 'craftsman-adel.jpg',
-      available: true,
-      credentials: [],
-    },
-
-    // =========================
-    // 4
-    // =========================
-    {
-      id: 4,
-      name: 'أسطى محمود النجار',
-      title: 'معلم نجارة وديكورات خشبية',
-      verified: true,
-      specialty: 'تصليح وتجديد الأبواب والأثاث والديكورات الخشبية',
-      rating: 4.82,
-      reviewCount: 63,
-      responseTime: '25 دقيقة',
-      location: 'التجمع الأول',
-      distance: '5.8 كم',
-      distanceValue: 5.8,
-      priceFrom: 100,
-      experience: '12 سنة',
-      guarantee: null,
-      photosCount: 22,
-      tags: ['أخشاب طبيعية', 'ورشة مجهزة'],
-      photos: ['carpenter-work.jpg', 'craftsman-work1.jpg', 'plumbing-work.jpg'],
-      avatar: 'craftsman-mahmoud.jpg',
-      available: true,
-      credentials: [],
-    },
-
-    // =========================
-    // 5
-    // =========================
-    {
-      id: 5,
-      name: 'أسطى حسن عبد الله',
-      title: 'معلم نقاشة ودهانات ديكورية',
-      verified: true,
-      specialty: 'نقاشة ودهانات داخلية وخارجية وديكورات حوائط',
-      rating: 4.86,
-      reviewCount: 87,
-      responseTime: '12 دقيقة',
-      location: 'مدينة نصر',
-      distance: '7.2 كم',
-      distanceValue: 7.2,
-      priceFrom: 180,
-      experience: '11 سنة',
-      guarantee: 'ضمان شهر',
-      photosCount: 16,
-      tags: ['دهانات ديكورية', 'تشطيب احترافي'],
-      photos: ['plumbing-work.jpg', 'craftsman-work1.jpg'],
-      avatar: 'craftsman-Ali.jpg',
-      available: true,
-      credentials: ['شهادة قياس مهارة وخبرة'],
-    },
-
-    // =========================
-    // 6
-    // =========================
-    {
-      id: 6,
-      name: 'أسطى محمود أحمد',
-      title: 'فني ألوميتال وزجاج',
-      verified: true,
-      specialty: 'تركيب وصيانة الألوميتال والشبابيك والأبواب الزجاجية',
-      rating: 4.79,
-      reviewCount: 56,
-      responseTime: '20 دقيقة',
-      location: 'مصر الجديدة',
-      distance: '8.5 كم',
-      distanceValue: 8.5,
-      priceFrom: 250,
-      experience: '8 سنوات',
-      guarantee: 'ضمان 3 شهور',
-      photosCount: 14,
-      tags: ['قياسات دقيقة', 'خامات عالية الجودة'],
-      photos: ['carpenter-work.jpg', 'electrical-work.jpg'],
-      avatar: 'craftsman-Ashref.jpg',
-      available: true,
-      credentials: ['فيش وتشبيه مفحوص أمنياً'],
-    },
-
-    // =========================
-    // 7
-    // =========================
-    {
-      id: 7,
-      name: 'أسطى أحمد السيد',
-      title: 'فني سباكة وصيانة منزلية',
-      verified: true,
-      specialty: 'سباكة منزلية وإصلاح تسريب المياه وتركيب الأدوات الصحية',
-      rating: 4.84,
-      reviewCount: 69,
-      responseTime: '10 دقائق',
-      location: 'المعادي',
-      distance: '9.1 كم',
-      distanceValue: 9.1,
-      priceFrom: 130,
-      experience: '9 سنوات',
-      guarantee: 'ضمان شهرين',
-      photosCount: 11,
-      tags: ['خدمة منزلية', 'متاح طوال الأسبوع'],
-      photos: ['plumbing-work.jpg', 'craftsman-work1.jpg'],
-      avatar: 'craftsman-ahmed.jpg',
-      available: true,
-      credentials: ['شهادة قياس مهارة وخبرة'],
-    },
-
-    // =========================
-    // 8
-    // =========================
-    {
-      id: 8,
-      name: 'أسطى كريم فتحي',
-      title: 'فني كهرباء وصيانة منزلية',
-      verified: true,
-      specialty: 'كهرباء منزلية وتأسيس وصيانة الأعطال وتركيب الإضاءة',
-      rating: 4.77,
-      reviewCount: 51,
-      responseTime: '18 دقيقة',
-      location: 'مدينة الشروق',
-      distance: '6.7 كم',
-      distanceValue: 6.7,
-      priceFrom: 160,
-      experience: '7 سنوات',
-      guarantee: null,
-      photosCount: 10,
-      tags: ['صيانة منزلية', 'تركيب إضاءة'],
-      photos: ['electrical-work.jpg', 'craftsman-work1.jpg'],
-      avatar: 'craftsman-karim.jpg',
-      available: true,
-      credentials: [],
-    },
-  ];
+  private updateSpecialtyCounts(): void {
+    this.specialties.forEach((s) => {
+      s.count = this.craftsmen.filter((c) => c.slug === s.slug).length;
+    });
+  }
 
   // =========================
   // FILTER + SEARCH + SORT
@@ -271,17 +217,10 @@ export class CraftsmenGuide {
 
     // Specialty filter
     if (this.selectedSpecialty) {
-      const specialtyWords = this.selectedSpecialty
-        .toLowerCase()
-        .split(/[،,\s]+/)
-        .filter((word) => word.length > 2);
-
-      result = result.filter((c) =>
-        specialtyWords.some(
-          (word) =>
-            c.specialty.toLowerCase().includes(word) || c.title.toLowerCase().includes(word),
-        ),
-      );
+      const selected = this.specialties.find((s) => s.name === this.selectedSpecialty);
+      if (selected) {
+        result = result.filter((c) => c.slug === selected.slug);
+      }
     }
 
     // Location filter
@@ -297,11 +236,13 @@ export class CraftsmenGuide {
     }
 
     // Distance
-    result = result.filter((c) => c.distanceValue <= this.distanceRange);
+    // (مفيش بيانات مسافة في الباك، فالفلتر بيتطبق بس لما المسافة تبقى متاحة)
+    result = result.filter((c) => c.distanceValue === null || c.distanceValue <= this.distanceRange);
 
     // Price
+    // الأسطى اللي سعره "حسب الاتفاق" (0) بيظهر دايمًا
     result = result.filter(
-      (c) => (c.priceFrom ?? 0) >= this.priceMin && (c.priceFrom ?? 0) <= this.priceMax,
+      (c) => !c.priceFrom || (c.priceFrom >= this.priceMin && c.priceFrom <= this.priceMax),
     );
 
     // Security check
@@ -364,20 +305,21 @@ export class CraftsmenGuide {
         break;
 
       case 'الأقرب إليك':
-        result.sort((a, b) => a.distanceValue - b.distanceValue);
+        result.sort((a, b) => (a.distanceValue ?? 9999) - (b.distanceValue ?? 9999));
 
         break;
 
       case 'الأسرع رداً':
         result.sort(
           (a, b) =>
-            this.getResponseMinutes(a.responseTime) - this.getResponseMinutes(b.responseTime),
+            this.getResponseMinutes(a.responseTime || '') -
+            this.getResponseMinutes(b.responseTime || ''),
         );
 
         break;
 
       case 'الأقل سعراً':
-        result.sort((a, b) => (a.priceFrom ?? 999999) - (b.priceFrom ?? 999999));
+        result.sort((a, b) => (a.priceFrom || 999999) - (b.priceFrom || 999999));
 
         break;
     }
@@ -428,11 +370,13 @@ export class CraftsmenGuide {
   // =========================
 
   selectSpecialty(specialty: any): void {
+    const wasSelected = specialty.selected;
+
     this.specialties.forEach((s) => (s.selected = false));
 
-    specialty.selected = true;
+    specialty.selected = !wasSelected;
 
-    this.selectedSpecialty = specialty.name;
+    this.selectedSpecialty = wasSelected ? '' : specialty.name;
 
     this.currentPage = 1;
   }
@@ -519,5 +463,70 @@ export class CraftsmenGuide {
     }
 
     return Number(responseTime.match(/\d+/)?.[0] ?? 999);
+  }
+
+  // =========================
+  // ACTIONS (ربط الأزرار)
+  // =========================
+
+  // "إحجزه فوري" و "انشر شغلتك دلوقتي": العميل بيفتح نموذج طلب جديد، غير كده يروح تسجيل الدخول
+  goToNewRequest(): void {
+    const go = (role?: string) => {
+      if (role === 'customer') {
+        this.router.navigate(['/customer-dashboard'], { queryParams: { newRequest: 'true' } });
+      } else if (role === 'artisan') {
+        this.router.navigate(['/dashboard/available-requests']);
+      } else {
+        this.router.navigate(['/login']);
+      }
+    };
+
+    const user = this.auth.currentUserValue;
+    if (user) {
+      go(user.role);
+      return;
+    }
+    this.auth.fetchCurrentUser().subscribe((me) => go(me?.role));
+  }
+
+  // "شوف شغله وتقييماته"
+  openProfile(c: GuideCraftsman, event?: Event): void {
+    event?.preventDefault();
+    this.profileOpen = true;
+    this.profileLoading = true;
+    this.profileError = '';
+    this.profile = { ...c, reviews: [] };
+    document.body.style.overflow = 'hidden';
+
+    this.marketplace.getArtisan(c.id).subscribe({
+      next: (response) => {
+        const data = response?.data;
+        this.profile = {
+          ...c,
+          bio: data?.bio || '',
+          rating: Math.round(Number(data?.rating ?? c.rating) * 100) / 100,
+          reviewCount: Number(data?.totalReviews ?? c.reviewCount),
+          reviews: data?.reviews ?? [],
+        };
+        this.profileLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: (error) => {
+        this.profileError = error?.error?.message || 'مش قادرين نجيب بيانات الأسطى دلوقتي.';
+        this.profileLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  closeProfile(): void {
+    this.profileOpen = false;
+    this.profile = null;
+    document.body.style.overflow = '';
+  }
+
+  starsFor(value: number): string {
+    const full = Math.round(Math.max(0, Math.min(5, value)));
+    return '★'.repeat(full) + '☆'.repeat(5 - full);
   }
 }

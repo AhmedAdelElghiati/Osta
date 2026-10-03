@@ -1,0 +1,66 @@
+<div class="profile-wrapper" dir="rtl">
+  <div class="container profile-container">
+
+    <div class="profile-header" *ngIf="user">
+      <div class="profile-avatar">{{ user.name?.charAt(0) }}</div>
+      <div>
+        <h2>{{ user.name }}</h2>
+        <span class="profile-role">{{ roleLabel }}</span>
+        <p class="profile-email">{{ user.email }}</p>
+      </div>
+      <a [routerLink]="dashboardLink" class="btn btn-outline-secondary-custom fw-bold ms-auto">لوحة التحكم</a>
+    </div>
+
+    <div class="profile-toast" [class.error]="messageType === 'error'" *ngIf="message">{{ message }}</div>
+
+    <div class="profile-card" *ngIf="user">
+      <h5>البيانات الشخصية</h5>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="profile-label">الاسم بالكامل</label>
+          <input class="form-control profile-input" [(ngModel)]="name" name="name" />
+        </div>
+        <div class="col-md-6">
+          <label class="profile-label">البريد الإلكتروني</label>
+          <input class="form-control profile-input" [value]="user.email" disabled />
+        </div>
+        <div class="col-md-6">
+          <label class="profile-label">رقم الهاتف</label>
+          <input class="form-control profile-input" [(ngModel)]="phone" name="phone" dir="ltr" placeholder="01XXXXXXXXX" />
+        </div>
+        <div class="col-md-6">
+          <label class="profile-label">المحافظة / المنطقة</label>
+          <input class="form-control profile-input" [(ngModel)]="location" name="location" />
+        </div>
+        <div class="col-12" *ngIf="isArtisan">
+          <label class="profile-label">نبذة عنك</label>
+          <textarea class="form-control profile-input" rows="3" [(ngModel)]="bio" name="bio"></textarea>
+        </div>
+      </div>
+
+      <button type="button" class="btn bg-primary-custom text-white fw-bold mt-4 px-5" [disabled]="saving" (click)="saveProfile()">
+        {{ saving ? 'جاري الحفظ...' : 'حفظ التعديلات' }}
+      </button>
+    </div>
+
+    <div class="profile-card" *ngIf="user">
+      <h5>تغيير كلمة المرور</h5>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="profile-label">كلمة المرور الحالية</label>
+          <input type="password" class="form-control profile-input" [(ngModel)]="currentPassword" name="cp" />
+        </div>
+        <div class="col-md-6">
+          <label class="profile-label">كلمة المرور الجديدة</label>
+          <input type="password" class="form-control profile-input" [(ngModel)]="newPassword" name="np" />
+        </div>
+      </div>
+      <button type="button" class="btn btn-outline-secondary-custom fw-bold mt-4 px-5" [disabled]="savingPassword" (click)="changePassword()">
+        {{ savingPassword ? 'جاري التغيير...' : 'تغيير كلمة المرور' }}
+      </button>
+    </div>
+
+    <p class="text-center text-muted" *ngIf="!user">جاري التحميل...</p>
+  </div>
+</div>

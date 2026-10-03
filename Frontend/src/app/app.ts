@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { NavbarComponent } from './shared/navbar/navbar.component';
+import { NavbarComponent } from './shared/navbar/navbar';
 import { FooterComponent } from './shared/footer/footer.component';
 import { Chatbot } from './pages/chatbot/chatbot';
 

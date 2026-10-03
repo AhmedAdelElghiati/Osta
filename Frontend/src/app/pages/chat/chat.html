@@ -1,0 +1,29 @@
+<div class="chat-wrapper" dir="rtl">
+  <div class="chat-box">
+    <div class="chat-head">
+      <a [routerLink]="backLink" class="chat-back" aria-label="رجوع">→</a>
+      <div class="chat-avatar">{{ otherName?.charAt(0) || '؟' }}</div>
+      <div>
+        <strong>{{ otherName || 'المحادثة' }}</strong>
+        <small *ngIf="jobTitle">{{ jobTitle }}</small>
+      </div>
+    </div>
+
+    <div class="chat-body" #scroller>
+      <p class="chat-empty" *ngIf="loading">جاري التحميل...</p>
+      <p class="chat-empty" *ngIf="!loading && !messages.length && !error">ابدأ المحادثة بأول رسالة 👋</p>
+      <p class="chat-empty chat-error" *ngIf="error">{{ error }}</p>
+
+      <div class="chat-msg" *ngFor="let m of messages" [class.mine]="m.mine">
+        <div class="chat-bubble">{{ m.text }}</div>
+        <small>{{ m.time }}</small>
+      </div>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" [(ngModel)]="input" name="chatInput" maxlength="1000" placeholder="اكتب رسالتك..."
+        (keyup.enter)="send()" [disabled]="sending" />
+      <button type="button" (click)="send()" [disabled]="sending || !input.trim()">إرسال</button>
+    </div>
+  </div>
+</div>

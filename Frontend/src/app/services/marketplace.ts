@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import {
   API_BASE_URL,
   ARTISANS_ENDPOINT,
@@ -93,10 +93,17 @@ export class Marketplace {
     return this.http.patch<any>(`${JOBS_ENDPOINT}/${jobId}/status`, { status: 'COMPLETED' }, { withCredentials: true });
   }
 
+  // الباك مفيهوش GET /requests/:id/offers، فبنجيب عروضي ونفلتر على الطلب
   offersForRequest(requestId: string): Observable<any> {
-    return this.http.get<any>(`${API_BASE_URL}/v1/requests/${requestId}/offers`, {
-      withCredentials: true,
-    });
+    return this.myOffers().pipe(
+      map((response: any) => ({
+        ...response,
+        data: (Array.isArray(response?.data) ? response.data : []).filter((offer: any) => {
+          const id = typeof offer.requestId === 'object' ? offer.requestId?._id : offer.requestId;
+          return String(id) === String(requestId);
+        }),
+      })),
+    );
   }
 
   sentOffers(): Observable<any> {

@@ -1,5 +1,3 @@
-
-
 import { Routes } from '@angular/router';
 
 import { Home } from './pages/home/home';
@@ -11,22 +9,25 @@ import { ContactUs } from './pages/contact-us/contact-us';
 import { JobsMarket } from './pages/jobs-market/jobs-market';
 import { HowItWorks } from './pages/how-it-works/how-it-works';
 import { Developers } from './pages/developers/developers';
-import { CustomerDashboard } from './pages/customer-dashboard/customer-dashboard';
+import { CustomerDashboard } from './pages/dashboard-customer/customer-dashboard';
 import { authGuard } from './guards/auth-guard';
+import { ForgotPassword } from './pages/forgot-password/forgot-password';
+import { ResetPassword } from './pages/reset-password/reset-password';
+import { Chat } from './pages/chat/chat';
+import { UserProfile } from './pages/user-profile/user-profile';
+import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 
 // Dashboard
-import { DashboardLayout } from './dashboard/dashboard-layout/dashboard-layout';
-import { Home as DashboardHome } from './dashboard/dashboard-home/dashboard-home';
-import { AvailableRequests } from './dashboard/available-requests/available-requests';
-import { SentOffers } from './dashboard/sent-offers/sent-offers';
-import { MyJobs } from './dashboard/my-jobs/my-jobs';
-import { Earnings } from './dashboard/earnings/earnings';
-import { Profile } from './dashboard/profile/profile';
-import { Settings } from './dashboard/settings/settings';
-
+import { DashboardLayout } from './pages/dashboard-craftsmen/dashboard-layout/dashboard-layout';
+import { Home as DashboardHome } from './pages/dashboard-craftsmen/dashboard-home/dashboard-home';
+import { AvailableRequests } from './pages/dashboard-craftsmen/available-requests/available-requests';
+import { SentOffers } from './pages/dashboard-craftsmen/sent-offers/sent-offers';
+import { MyJobs } from './pages/dashboard-craftsmen/my-jobs/my-jobs';
+import { Earnings } from './pages/dashboard-craftsmen/earnings/earnings';
+import { Profile } from './pages/dashboard-craftsmen/profile/profile';
+import { Settings } from './pages/dashboard-craftsmen/settings/settings';
 
 export const routes: Routes = [
-
   // =========================
   // Website
   // =========================
@@ -46,6 +47,13 @@ export const routes: Routes = [
     component: CustomerDashboard,
     canActivate: [authGuard],
     data: { role: 'customer' },
+  },
+
+  {
+    path: 'admin-dashboard',
+    component: AdminDashboard,
+    canActivate: [authGuard],
+    data: { role: 'admin' },
   },
 
   {
@@ -75,6 +83,21 @@ export const routes: Routes = [
     component: CraftsmenGuide,
   },
 
+  { path: 'forgot-password', component: ForgotPassword },
+  { path: 'reset-password', component: ResetPassword },
+
+  {
+    path: 'chat/:jobId',
+    component: Chat,
+    canActivate: [authGuard],
+  },
+
+  {
+    path: 'profile',
+    component: UserProfile,
+    canActivate: [authGuard],
+  },
+
   {
     path: 'contact-us',
     component: ContactUs,
@@ -88,11 +111,11 @@ export const routes: Routes = [
   {
     path: 'jobs-market',
     component: JobsMarket,
-  },{
-  path: 'developers',
-  component: Developers,
-},
-
+  },
+  {
+    path: 'developers',
+    component: Developers,
+  },
 
   // =========================
   // Dashboard
@@ -105,7 +128,6 @@ export const routes: Routes = [
     data: { role: 'artisan' },
 
     children: [
-
       {
         path: '',
         redirectTo: 'home',
@@ -146,10 +168,8 @@ export const routes: Routes = [
         path: 'settings',
         component: Settings,
       },
-
     ],
   },
-
 
   // =========================
   // Privacy
@@ -159,10 +179,8 @@ export const routes: Routes = [
     path: 'privacy-policy',
 
     loadComponent: () =>
-      import('./pages/privacy-policy/privacy-policy')
-        .then((m) => m.PrivacyPolicy),
+      import('./pages/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicy),
   },
-
 
   // =========================
   // Not Found
@@ -172,5 +190,4 @@ export const routes: Routes = [
     path: '**',
     redirectTo: '',
   },
-
 ];

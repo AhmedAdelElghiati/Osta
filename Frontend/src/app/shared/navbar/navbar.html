@@ -106,11 +106,18 @@
 
             <li>
               <a class="dropdown-item user-dropdown-item"
-                [routerLink]="user.role === 'artisan' ? '/craftsman-dashboard' : '/customer-dashboard'">
+                [routerLink]="user.role === 'artisan' ? '/dashboard' : user.role === 'admin' ? '/admin-dashboard' : '/customer-dashboard'">
 
                 <i class="bi bi-grid-1x2-fill"></i>
 
                 <span>لوحة التحكم</span>
+              </a>
+            </li>
+
+            <li>
+              <a class="dropdown-item user-dropdown-item" routerLink="/profile">
+                <i class="bi bi-person-circle"></i>
+                <span>الملف الشخصي</span>
               </a>
             </li>
 

@@ -1,5 +1,6 @@
 import { Component, signal, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { Auth } from '../../services/auth';
 import { CommonModule } from '@angular/common';
 
 interface Step {
@@ -29,6 +30,30 @@ interface Step {
   styleUrl: './how-it-works.css',
 })
 export class HowItWorks {
+  constructor(
+    private router: Router,
+    private auth: Auth,
+  ) {}
+
+  // "انشر شغلتك": العميل يفتح نموذج طلب جديد، الأسطى يروح للطلبات المتاحة، غير كده تسجيل الدخول
+  goToNewRequest(): void {
+    const go = (role?: string) => {
+      if (role === 'customer') {
+        this.router.navigate(['/customer-dashboard'], { queryParams: { newRequest: 'true' } });
+      } else if (role === 'artisan') {
+        this.router.navigate(['/dashboard/available-requests']);
+      } else {
+        this.router.navigate(['/login']);
+      }
+    };
+    const user = this.auth.currentUserValue;
+    if (user) {
+      go(user.role);
+      return;
+    }
+    this.auth.fetchCurrentUser().subscribe((me) => go(me?.role));
+  }
+
   activeTab = signal<'client' | 'craftsman'>('client');
 
   // ============ رحلة صاحب البيت / المنشأة ============

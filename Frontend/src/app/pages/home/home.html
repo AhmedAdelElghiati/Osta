@@ -406,8 +406,7 @@
 
     <div class="row">
 
-      <!-- Craftsman 1 -->
-      <div class="col-lg-4 col-md-6 mb-4">
+            <div class="col-lg-4 col-md-6 mb-4" *ngFor="let c of featured">
         <div class="card border-0 shadow-sm rounded-4 h-100 p-3 craftsman-card">
 
           <div class="card-body">
@@ -417,15 +416,16 @@
               <div class="d-flex align-items-center craftsman-profile">
 
                 <div class="craftsman-image flex-shrink-0 shadow-sm border">
-                  <img src="craftsman-mahmoud.jpg" alt="محمود الشناوي" class="w-100 h-100" width="200" height="200"
+                  <img *ngIf="c.avatar" [src]="c.avatar" [alt]="c.name" (error)="c.avatar = ''" class="w-100 h-100" width="200" height="200"
                     loading="lazy">
+                  <span *ngIf="!c.avatar" class="avatar-initial">{{ c.name.charAt(0) }}</span>
                 </div>
 
                 <div class="craftsman-details">
-                  <h6 class="fw-bold m-0">محمود الشناوي</h6>
+                  <h6 class="fw-bold m-0">{{ c.name }}</h6>
 
                   <small class="text-muted d-block">
-                    فني كهرباء وتأسيس • 16 سنة خبرة
+                    {{ c.title }}<ng-container *ngIf="c.experience"> • {{ c.experience }}</ng-container>
                   </small>
 
                   <small class="text-success">
@@ -442,27 +442,27 @@
                     d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
                   </path>
                 </svg>
-                4.96
+                {{ c.rating }}
               </div>
 
             </div>
 
             <p class="text-muted craftsman-description">
-              متخصص في تشخيص وصيانة القفلات الكهربائية وتأسيس الإضاءة المخفية بدقة وضمان معتمد.
+              {{ c.description }}
             </p>
 
           </div>
 
           <div class="card-footer bg-white border-0 craftsman-actions">
 
-            <button class="btn btn-light rounded-3 border message-btn">
+            <button class="btn btn-light rounded-3 border message-btn" (click)="openGuide()">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z">
                 </path>
               </svg>
             </button>
 
-            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn">
+            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn" (click)="agreeWith()">
               اتفق مع الأسطى
             </button>
 
@@ -471,137 +471,6 @@
         </div>
       </div>
 
-
-      <!-- Craftsman 2 -->
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 craftsman-card">
-
-          <div class="card-body">
-
-            <div class="craftsman-info d-flex justify-content-between align-items-start mb-3">
-
-              <div class="d-flex align-items-center craftsman-profile">
-
-                <div class="craftsman-image flex-shrink-0 shadow-sm border">
-                  <img src="craftsman-tarek.jpg" alt="طارق رضوان" class="w-100 h-100" width="200" height="200"
-                    loading="lazy">
-                </div>
-
-                <div class="craftsman-details">
-                  <h6 class="fw-bold m-0">طارق رضوان</h6>
-
-                  <small class="text-muted d-block">
-                    سباك شبكات وصرف • 12 سنة خبرة
-                  </small>
-
-                  <small class="text-success">
-                    <span class="availability-dot"></span>
-                    متاح للمعاينة اليوم
-                  </small>
-                </div>
-
-              </div>
-
-              <div class="fw-bold d-flex align-items-center craftsman-rating">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EAB308">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                  </path>
-                </svg>
-                4.92
-              </div>
-
-            </div>
-
-            <p class="text-muted craftsman-description">
-              كشف تسريبات بأحدث الأجهزة بدون تكسير، وتركيب أطقم الدفن وصيانة المضخات المنزلية.
-            </p>
-
-          </div>
-
-          <div class="card-footer bg-white border-0 craftsman-actions">
-
-            <button class="btn btn-light rounded-3 border message-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z">
-                </path>
-              </svg>
-            </button>
-
-            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn">
-              اتفق مع الأسطى
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-
-
-      <!-- Craftsman 3 -->
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 craftsman-card">
-
-          <div class="card-body">
-
-            <div class="craftsman-info d-flex justify-content-between align-items-start mb-3">
-
-              <div class="d-flex align-items-center craftsman-profile">
-
-                <div class="craftsman-image flex-shrink-0 shadow-sm border">
-                  <img src="craftsman-hassan.jpg" alt="حسن النجار" class="w-100 h-100" width="200" height="200"
-                    loading="lazy">
-                </div>
-
-                <div class="craftsman-details">
-                  <h6 class="fw-bold m-0">حسن النجار</h6>
-
-                  <small class="text-muted d-block">
-                    تصنيع وتجديد أثاث • 19 سنة خبرة
-                  </small>
-
-                  <small class="text-muted">
-                    <span class="availability-dot unavailable"></span>
-                    متاح بدءاً من الغد
-                  </small>
-                </div>
-
-              </div>
-
-              <div class="fw-bold d-flex align-items-center craftsman-rating">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EAB308">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                  </path>
-                </svg>
-                4.98
-              </div>
-
-            </div>
-
-            <p class="text-muted craftsman-description">
-              تصليح الأبواب والمفصلات، تصنيع الدواليب الحديثة وتجديد الصالونات مع ورشة متكاملة.
-            </p>
-
-          </div>
-
-          <div class="card-footer bg-white border-0 craftsman-actions">
-
-            <button class="btn btn-light rounded-3 border message-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z">
-                </path>
-              </svg>
-            </button>
-
-            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn">
-              اتفق مع الأسطى
-            </button>
-
-          </div>
-
-        </div>
-      </div>
 
     </div>
   </section>
@@ -681,7 +550,7 @@
           <!-- Buttons -->
           <div class="dual-card-buttons">
 
-            <button class="btn bg-primary-custom text-white fw-bold">
+            <button class="btn bg-primary-custom text-white fw-bold" (click)="agreeWith()">
               نزل طلبك دلوقتي
             </button>
 
@@ -843,11 +712,11 @@
         </div>
 
         <div class="d-flex gap-3 flex-wrap justify-content-center flex-shrink-0" style="z-index: 2;">
-          <button class="btn btn-secondary-custom fw-bold px-4 py-2 rounded-3">
+          <button class="btn btn-secondary-custom fw-bold px-4 py-2 rounded-3" (click)="agreeWith()">
             نزل طلبك دلوقتي
           </button>
 
-          <button class="btn btn-outline-light fw-bold px-4 py-2 rounded-3"
+          <button class="btn btn-outline-light fw-bold px-4 py-2 rounded-3" (click)="goToCraftsmen()"
             style="background-color: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.2);">
             دليل الأسطوات
           </button>

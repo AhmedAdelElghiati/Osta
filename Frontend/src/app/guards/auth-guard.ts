@@ -3,6 +3,9 @@ import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { Auth } from '../services/auth';
 
+const homeFor = (role: string) =>
+  role === 'artisan' ? '/dashboard/home' : role === 'customer' ? '/customer-dashboard' : role === 'admin' ? '/admin-dashboard' : '/';
+
 // Ensures the user is logged in; when the route defines data.role it also
 // ensures the role matches (customers can't enter the artisan dashboard
 // and vice versa) — otherwise redirects to the correct dashboard.
@@ -14,13 +17,7 @@ export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   if (cachedUser) {
     const requiredRole = route.data?.['role'];
     if (requiredRole && cachedUser.role !== requiredRole) {
-      const target =
-        cachedUser.role === 'artisan'
-          ? '/craftsman-dashboard'
-          : cachedUser.role === 'customer'
-            ? '/customer-dashboard'
-            : '/';
-      return router.createUrlTree([target]);
+      return router.createUrlTree([homeFor(cachedUser.role)]);
     }
     return true;
   }
@@ -33,13 +30,7 @@ export const authGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
 
       const requiredRole = route.data?.['role'];
       if (requiredRole && user.role !== requiredRole) {
-        const target =
-          user.role === 'artisan'
-            ? '/craftsman-dashboard'
-            : user.role === 'customer'
-              ? '/customer-dashboard'
-              : '/';
-        return router.createUrlTree([target]);
+        return router.createUrlTree([homeFor(user.role)]);
       }
 
       return true;
