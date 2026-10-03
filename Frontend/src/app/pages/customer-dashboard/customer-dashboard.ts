@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 
 import { Auth, CurrentUser } from '../../services/auth';
@@ -14,11 +14,13 @@ import { DashboardOffers } from './components/dashboard-offers/dashboard-offers'
 import { DashboardWallet } from './components/dashboard-wallet/dashboard-wallet';
 import { DashboardSupport } from './components/dashboard-support/dashboard-support';
 import { DashboardSettings } from './components/dashboard-settings/dashboard-settings';
+import { DashboardChat } from './components/dashboard-chat/dashboard-chat';
 
 @Component({
   selector: 'app-customer-dashboard',
   imports: [
     CommonModule,
+    RouterLink,
     FormsModule,
     DashboardHome,
     DashboardRequests,
@@ -26,6 +28,7 @@ import { DashboardSettings } from './components/dashboard-settings/dashboard-set
     DashboardWallet,
     DashboardSupport,
     DashboardSettings,
+    DashboardChat,
   ],
   templateUrl: './customer-dashboard.html',
   styleUrl: './customer-dashboard.css',
@@ -62,6 +65,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
+      if (params['page'] === 'chat') this.activePage = 'chat';
       if (params['newRequest'] === 'true') {
         this.openNewRequest();
       }
@@ -78,6 +82,7 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     this.subs.add(
       this.requestsApi.requests$.subscribe((requests) => {
         this.requests = requests;
+        this.requestDetails = Object.fromEntries(requests.map(request => [request.id, request]));
         this.cdr.markForCheck();
       }),
     );
@@ -525,16 +530,13 @@ export class CustomerDashboard implements OnInit, OnDestroy {
   };
 
   openQuote(name: string) {
+    const offer = this.recentOffers.find(item => item._id === name || item.artisanId?.name === name);
+    if (!offer) return;
     this.selectedQuote = {
-      name: name,
+      name: offer.artisanId?.name || '',
       subtitle: 'تفاصيل عرض السعر',
-      items: [
-        { name: 'فك وتركيب المطبخ', price: 2500 },
-        { name: 'أعمال النجارة والتجديد', price: 5200 },
-        { name: 'المفصلات والإكسسوارات', price: 1200 },
-        { name: 'التسليم والتركيب النهائي', price: 900 },
-      ],
-      total: 9800,
+      items: offer.items || [],
+      total: offer.price,
     };
     this.quoteModalOpen = true;
   }
@@ -577,21 +579,11 @@ export class CustomerDashboard implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.confirmAction === 'cancel') {
-      this.selectedRequest.status = 'cancelled';
-      this.selectedRequest.statusText = 'ملغاة';
-      this.closeConfirm();
-      this.showPage('requests');
-      console.log('Request cancelled');
-    }
-
-    if (this.confirmAction === 'republish') {
-      this.selectedRequest.status = 'waiting';
-      this.selectedRequest.statusText = 'في انتظار العروض';
-      this.closeConfirm();
-      this.showPage('requests');
-      console.log('Request republished');
-    }
+    const action = this.confirmAction === 'cancel'
+      ? this.requestsApi.cancel(this.selectedRequest.id, 'تم الإلغاء بواسطة العميل')
+      : this.requestsApi.republish(this.selectedRequest.id);
+    action.subscribe({ next: () => { this.closeConfirm(); this.reloadRequests(); },
+      error: err => this.showToast(err.error?.message || 'تعذر تنفيذ العملية.') });
   }
   openRating(request: any) {
     this.selectedRatingRequest = request;
@@ -642,10 +634,10 @@ export class CustomerDashboard implements OnInit, OnDestroy {
       return;
     }
     const requestId = this.selectedRatingRequest.id;
-    // تسجيل إن الطلب اتقيّم
-    this.rated[requestId] = true;
-    this.closeRating();
-    this.showToast('تم إرسال تقييمك بنجاح');
+    this.marketplace.submitReview(requestId, this.selectedRating, this.ratingComment).subscribe({
+      next: () => { this.rated[requestId] = true; this.closeRating(); this.reloadRequests(); this.showToast('تم إرسال تقييمك.'); },
+      error: err => this.showToast(err.error?.message || 'تعذر إرسال التقييم.'),
+    });
   }
 
   scheduleModalOpen = false;
@@ -665,8 +657,11 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     if (!this.scheduleDate || !this.scheduleTime) {
       return;
     }
-    this.closeSchedule();
-    this.showToast('تم تحديد موعد المعاينة بنجاح');
+    if (!this.selectedRequest) return;
+    this.requestsApi.schedule(this.selectedRequest.id, this.scheduleDate, this.scheduleTime).subscribe({
+      next: () => { this.closeSchedule(); this.reloadRequests(); this.showToast('تم حفظ موعد المعاينة.'); },
+      error: err => this.showToast(err.error?.message || 'تعذر حفظ الموعد.'),
+    });
   }
   invoiceModalOpen = false;
   openInvoice() {

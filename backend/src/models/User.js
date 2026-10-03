@@ -44,6 +44,30 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    settings: {
+      notifications: {
+        requests: { type: Boolean, default: true },
+        offers: { type: Boolean, default: true },
+        messages: { type: Boolean, default: true },
+        updates: { type: Boolean, default: true },
+      },
+      addresses: [{
+        id: { type: String, required: true },
+        title: { type: String, required: true, maxlength: 100 },
+        address: { type: String, required: true, maxlength: 500 },
+      }],
+      paymentMethods: [{
+        id: { type: String, required: true },
+        type: { type: String, required: true, maxlength: 50 },
+        lastFour: { type: String, required: true, maxlength: 4 },
+        details: { type: String, required: true, maxlength: 100 },
+        icon: { type: String, enum: ['bi-phone', 'bi-credit-card'], required: true },
+      }],
+      payout: {
+        provider: { type: String, default: '', maxlength: 100 },
+        number: { type: String, default: '', maxlength: 50 },
+      },
+    },
     isActive: {
       type: Boolean,
       default: true,
@@ -52,6 +76,7 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    withdrawalLockUntil: { type: Date, default: null, select: false },
     verificationTokenHash: {
       type: String,
       default: null,

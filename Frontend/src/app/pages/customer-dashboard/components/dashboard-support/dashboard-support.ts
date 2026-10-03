@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Marketplace } from '../../../../services/marketplace';
+import { timer } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, ChangeDetectorRef, DestroyRef, OnInit, inject } from '@angular/core';
 
 @Component({
   selector: 'app-dashboard-support',
@@ -8,8 +11,9 @@ import { Component, ChangeDetectorRef } from '@angular/core';
   templateUrl: './dashboard-support.html',
   styleUrl: './dashboard-support.css',
 })
-export class DashboardSupport {
-  constructor(private cdr: ChangeDetectorRef) {}
+export class DashboardSupport implements OnInit {
+  constructor(private cdr: ChangeDetectorRef, private api: Marketplace) {}
+  private destroyRef = inject(DestroyRef);
   faqs = [
     {
       id: 1,
@@ -46,176 +50,87 @@ export class DashboardSupport {
     },
   ];
 
-  tickets = [
-    {
-      id: '#TKT-332',
-      title: 'استفسار عن موعد تنفيذ الطلب',
-      date: 'اليوم',
-      status: 'pending',
-    },
-    {
-      id: '#TKT-318',
-      title: 'مشكلة في عرض مقدم من صنايعي',
-      date: '20 مايو',
-      status: 'resolved',
-    },
-  ];
-
+  tickets: { id: string; title: string; date: string; status: string; raw: any }[] = [];
   newTicketModalOpen = false;
-
   ticketTitle = '';
   ticketMessage = '';
   ticketError = '';
-
-  toggleFaq(faq: any) {
-    faq.open = !faq.open;
-  }
-
-  openNewTicket() {
-    this.ticketTitle = '';
-    this.ticketMessage = '';
-    this.ticketError = '';
-
-    this.newTicketModalOpen = true;
-  }
-
-  closeNewTicket() {
-    this.newTicketModalOpen = false;
-    this.ticketError = '';
-  }
-
-  submitTicket() {
-    this.ticketError = '';
-
-    if (!this.ticketTitle.trim()) {
-      this.ticketError = 'من فضلك اكتبي عنوان المشكلة.';
-      return;
-    }
-
-    if (!this.ticketMessage.trim()) {
-      this.ticketError = 'من فضلك اكتبي تفاصيل المشكلة.';
-      return;
-    }
-
-    this.tickets.unshift({
-      id: `#TKT-${Math.floor(100 + Math.random() * 900)}`,
-      title: this.ticketTitle,
-      date: 'اليوم',
-      status: 'pending',
-    });
-    this.closeNewTicket();
-  }
-
+  sending = false;
+  loading = false;
   isDownloadingGuide = false;
-  downloadGuide() {
-    this.isDownloadingGuide = true;
-    setTimeout(() => {
-      this.isDownloadingGuide = false;
-      this.cdr.detectChanges();
-    }, 3000);
-  }
-  ////////////////// دردشه
   supportChatOpen = false;
   supportMessage = '';
-  supportMessages = [
-    {
-      sender: 'support',
-      text: 'أهلًا بك في دعم أُسطى 👋 كيف يمكنني مساعدتك؟',
-      time: 'الآن',
-    },
-  ];
+  supportMessages: { sender: string; text: string; time: string }[] = [];
   supportChips = ['عندي مشكلة في طلب', 'عايز أستفسر عن عرض', 'مشكلة في الدفع'];
+  selectedTicketId = '';
+
+  ngOnInit() {
+    this.loadTickets();
+    timer(10000, 10000).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.supportChatOpen) this.loadTickets();
+    });
+  }
+  loadTickets() {
+    this.loading = true;
+    this.api.myMessages().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: res => {
+        this.tickets = (res.data || []).map((t: any) => ({
+          id: t._id, title: t.subject || 'تذكرة دعم', date: new Date(t.createdAt).toLocaleDateString('ar-EG'),
+          status: t.status === 'RESOLVED' ? 'resolved' : 'pending', raw: t
+        }));
+        this.loading = false;
+        const selected = this.tickets.find(t => t.id === this.selectedTicketId);
+        if (selected) this.showMessages(selected.raw);
+        this.cdr.markForCheck();
+      },
+      error: () => { this.loading = false; this.ticketError = 'تعذر تحميل تذاكر الدعم.'; this.cdr.markForCheck(); }
+    });
+  }
+  toggleFaq(faq: any) { faq.open = !faq.open; }
+  openNewTicket() { this.ticketTitle = ''; this.ticketMessage = ''; this.ticketError = ''; this.newTicketModalOpen = true; }
+  closeNewTicket() { this.newTicketModalOpen = false; }
+  submitTicket() {
+    if (!this.ticketTitle.trim() || !this.ticketMessage.trim() || this.sending) {
+      this.ticketError = 'اكتب عنوان وتفاصيل المشكلة.'; return;
+    }
+    this.sending = true;
+    this.api.createTicket(this.ticketTitle.trim(), this.ticketMessage.trim()).subscribe({
+      next: res => { this.sending = false; this.selectedTicketId = res.data._id; this.closeNewTicket(); this.loadTickets(); },
+      error: err => { this.sending = false; this.ticketError = err.error?.message || 'تعذر تسجيل التذكرة.'; this.cdr.markForCheck(); }
+    });
+  }
+  downloadGuide() {
+    const text = this.faqs.map(f => f.question + '\n' + f.answer).join('\n\n');
+    const url = URL.createObjectURL(new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'ossta-guide.txt'; link.click(); URL.revokeObjectURL(url);
+  }
+  selectTicket(ticket: any) {
+    this.selectedTicketId = ticket.id; this.showMessages(ticket.raw); this.supportChatOpen = true;
+  }
+  private showMessages(ticket: any) {
+    this.supportMessages = [{ sender: 'user', text: ticket.message, time: new Date(ticket.createdAt).toLocaleString('ar-EG') },
+      ...(ticket.replies || []).map((r: any) => ({
+        sender: r.senderRole === 'admin' ? 'support' : 'user', text: r.text, time: new Date(r.createdAt).toLocaleString('ar-EG')
+      }))];
+  }
   openSupportChat() {
     this.supportChatOpen = true;
+    if (!this.selectedTicketId && this.tickets.length) this.selectTicket(this.tickets[0]);
+    this.loadTickets();
   }
-
-  closeSupportChat() {
-    this.supportChatOpen = false;
-  }
+  closeSupportChat() { this.supportChatOpen = false; }
   sendSupport() {
-    const message = this.supportMessage.trim();
-    if (!message) {
-      return;
-    }
-    this.supportMessages.push({
-      sender: 'user',
-      text: message,
-      time: 'الآن',
+    const text = this.supportMessage.trim();
+    if (!text || this.sending) return;
+    this.sending = true;
+    const request = this.selectedTicketId ? this.api.replyToTicket(this.selectedTicketId, text) : this.api.createTicket('محادثة الدعم', text);
+    request.subscribe({
+      next: res => {
+        this.sending = false; this.selectedTicketId = res.data._id; this.showMessages(res.data); this.supportMessage = '';
+        this.loadTickets(); this.cdr.markForCheck();
+      },
+      error: err => { this.sending = false; this.ticketError = err.error?.message || 'تعذر إرسال الرسالة.'; this.cdr.markForCheck(); }
     });
-    this.supportMessage = '';
-    setTimeout(() => {
-      const lowerMessage = message.toLowerCase();
-      let replies: string[] = [];
-      if (
-        lowerMessage.includes('دفع') ||
-        lowerMessage.includes('فلوس') ||
-        lowerMessage.includes('محفظة') ||
-        lowerMessage.includes('مبلغ')
-      ) {
-        replies = [
-          'أكيد، أقدر أساعدك في مشكلة الدفع أو المحفظة.',
-          'تمام، خليني أوضحلك خطوات الدفع ومتابعة المبلغ.',
-          'ممكن توضحيلي المشكلة اللي ظهرت أثناء عملية الدفع؟',
-        ];
-      } else if (
-        lowerMessage.includes('طلب') ||
-        lowerMessage.includes('شغلانة') ||
-        lowerMessage.includes('تنفيذ')
-      ) {
-        replies = [
-          'تمام، ممكن تبعتيلي رقم الطلب علشان أراجع تفاصيله؟',
-          'أكيد، أقدر أساعدك في متابعة حالة الطلب.',
-          'خليني أساعدك في متابعة الشغلانة ومعرفة آخر تحديث.',
-        ];
-      } else if (
-        lowerMessage.includes('عرض') ||
-        lowerMessage.includes('مقايسة') ||
-        lowerMessage.includes('سعر')
-      ) {
-        replies = [
-          'أكيد، أقدر أساعدك في فهم تفاصيل العرض ومقارنته بالعروض الأخرى.',
-          'ممكن توضحيلي أي عرض محتاجة تعرفي تفاصيله؟',
-          'تمام، خليني أساعدك في متابعة المقايسات والعروض.',
-        ];
-      } else if (
-        lowerMessage.includes('صنايعي') ||
-        lowerMessage.includes('حرفي') ||
-        lowerMessage.includes('ورشة')
-      ) {
-        replies = [
-          'أكيد، أقدر أساعدك في اختيار الصنايعي المناسب.',
-          'ممكن توضحيلي المشكلة أو الاستفسار الخاص بالصنايعي؟',
-          'تمام، خليني أساعدك في متابعة بيانات الصنايعي.',
-        ];
-      } else if (
-        lowerMessage.includes('مشكلة') ||
-        lowerMessage.includes('شكوى') ||
-        lowerMessage.includes('مش شغال') ||
-        lowerMessage.includes('مش شغالة')
-      ) {
-        replies = [
-          'آسفين على المشكلة، خليني أساعدك في حلها.',
-          'تمام، ممكن توضحيلي المشكلة بالتفصيل؟',
-          'متقلقيش، هنحاول نساعدك في حل المشكلة بأسرع وقت.',
-        ];
-      } else {
-        replies = [
-          'أهلًا بك، إزاي أقدر أساعدك؟',
-          'تمام، أنا معاكِ. ممكن توضحيلي استفسارك؟',
-          'شكرًا لتواصلك معنا، قوليلي محتاجة مساعدة في إيه؟',
-        ];
-      }
-      const randomReply = replies[Math.floor(Math.random() * replies.length)];
-      this.supportMessages.push({
-        sender: 'support',
-        text: randomReply,
-        time: 'الآن',
-      });
-      this.cdr.detectChanges();
-    }, 800);
   }
-  sendSupportChip(message: string) {
-    this.supportMessage = message;
-    this.sendSupport();
-  }
+  sendSupportChip(message: string) { this.supportMessage = message; this.sendSupport(); }
 }

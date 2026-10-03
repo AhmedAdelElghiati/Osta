@@ -4,6 +4,33 @@ const RequestEvent = require('../models/RequestEvent');
 const { TRANSITIONS, EDITABLE_STATUSES } = require('../modules/serviceRequests.constants');
 const { saveImage, removeImage } = require('./requestStorage.service');
 const { findActiveCraft } = require('./craftCatalog.service');
+const Offer = require('../models/Offer');
+const Job = require('../models/Job');
+const Artisan = require('../models/Artisan');
+const Review = require('../models/Review');
+
+const enrichRequests = async (items) => {
+  const ids = items.map(item => item._id);
+  const [counts, jobs, reviews] = await Promise.all([
+    Offer.aggregate([{ $match: { requestId: { $in: ids }, status: { $ne: 'WITHDRAWN' } } },
+      { $group: { _id: '$requestId', count: { $sum: 1 } } }]),
+    Job.find({ requestId: { $in: ids } }).populate('artisanId', 'name profileImage').lean(),
+    Review.find({ requestId: { $in: ids } }).select('requestId rating').lean(),
+  ]);
+  const profiles = await Artisan.find({ userId: { $in: jobs.map(j => j.artisanId?._id) } }).select('userId profession rating').lean();
+  const completed = await Job.aggregate([{ $match: { artisanId: { $in: profiles.map(p => p.userId) }, status: 'COMPLETED' } },
+    { $group: { _id: '$artisanId', count: { $sum: 1 } } }]);
+  const jobsByRequest = new Map(jobs.map(j => [String(j.requestId), j]));
+  return items.map(item => {
+    const id = String(item._id), job = jobsByRequest.get(id);
+    const profile = profiles.find(p => String(p.userId) === String(job?.artisanId?._id));
+    return { ...item, offerCount: counts.find(c => String(c._id) === id)?.count || 0,
+      artisanId: job?.artisanId ? { ...job.artisanId, category: profile?.profession || '', rating: profile?.rating || 0,
+        jobs: completed.find(c => String(c._id) === String(job.artisanId._id))?.count || 0, price: job.price } : null,
+      jobId: job?._id || null, acceptedPrice: job?.price, paymentStatus: job?.paymentStatus,
+      reviewed: reviews.some(r => String(r.requestId) === id) };
+  });
+};
 
 const fail = (statusCode, message) => {
   const error = new Error(message);
@@ -55,10 +82,26 @@ const listRequests = async (customerId, filters) => {
     ServiceRequest.find(query).populate('craftId', 'name slug').sort(sort).skip((page - 1) * limit).limit(limit).lean(),
     ServiceRequest.countDocuments(query),
   ]);
-  return { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
+  return { items: await enrichRequests(items), pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
 };
 
-const getRequest = (requestId, customerId) => getOwnedRequest(requestId, customerId, true);
+const getRequest = async (requestId, customerId) => {
+  const request = await getOwnedRequest(requestId, customerId, true);
+  return (await enrichRequests([request.toObject()]))[0];
+};
+
+const scheduleRequest = async (requestId, customerId, input) => {
+  const request = await getOwnedRequest(requestId, customerId);
+  if (!['OFFER_ACCEPTED', 'INSPECTION'].includes(request.status)) throw fail(409, 'لا يمكن تحديد معاينة في الحالة الحالية.');
+  request.preferredDate = input.preferredDate;
+  request.preferredTime = input.preferredTime;
+  await request.save();
+  await addEvent(request._id, customerId, 'REQUEST_UPDATED', { fields: ['preferredDate', 'preferredTime'] });
+  const job = await Job.findOne({ requestId: request._id });
+  if (job) await require('./notification.service').notify(job.artisanId, 'تم تحديد موعد المعاينة',
+    input.preferredDate + ' ' + input.preferredTime, '/dashboard/my-jobs');
+  return getRequest(requestId, customerId);
+};
 
 const updateRequest = async (requestId, customerId, input) => {
   const request = await getOwnedRequest(requestId, customerId);
@@ -141,5 +184,5 @@ const deleteImage = async (requestId, customerId, imageId) => {
   return request;
 };
 
-module.exports = { createRequest, listRequests, getRequest, updateRequest, publishRequest, cancelRequest, republishRequest, getTimeline, addImages, deleteImage };
+module.exports = { createRequest, listRequests, getRequest, updateRequest, publishRequest, cancelRequest, republishRequest, getTimeline, addImages, deleteImage, scheduleRequest };
 

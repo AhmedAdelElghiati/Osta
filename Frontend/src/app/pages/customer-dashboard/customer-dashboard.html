@@ -6,11 +6,11 @@
       <aside class="sidebar bg-white border-end d-flex flex-column" [class.open]="sidebarOpen">
         <!-- Brand -->
         <div class="d-flex align-items-center justify-content-between p-4 border-bottom">
-          <div class="d-flex align-items-center gap-2">
+          <a routerLink="/" class="d-flex align-items-center gap-2 text-decoration-none text-reset" aria-label="أُسطى - الصفحة الرئيسية" title="الصفحة الرئيسية">
             <div class="brand-name fw-bold fs-4">أُسطى</div>
 
             <span class="client-badge badge rounded-pill"> العميل </span>
-          </div>
+          </a>
         </div>
 
         <!-- Navigation -->
@@ -53,6 +53,16 @@
             <span class="nav-count badge rounded-pill">
               {{ offersCount }}
             </span>
+          </button>
+
+          <button
+            type="button"
+            class="nav-item btn w-100 d-flex align-items-center gap-3 text-end mb-2"
+            [class.active]="activePage === 'chat'"
+            (click)="showPage('chat')"
+          >
+            <i class="bi bi-chat-dots"></i>
+            <span>المحادثات</span>
           </button>
 
           <button
@@ -277,6 +287,8 @@
             (offerAccepted)="offerWasAccepted($event)"
           >
           </app-dashboard-offers>
+
+          <app-dashboard-chat *ngIf="activePage === 'chat'"></app-dashboard-chat>
 
           <!-- wallet -->
           <app-dashboard-wallet *ngIf="activePage === 'wallet'"> </app-dashboard-wallet>

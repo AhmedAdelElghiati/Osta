@@ -1328,3 +1328,33 @@
   }
 
 }
+/* Public artisan profile dialog. */
+.artisan-overlay { position: fixed; inset: 0; z-index: 1100; background: rgb(15 23 42 / 55%); display: flex; align-items: center; justify-content: center; padding: 24px; }
+.artisan-dialog { width: min(760px, 100%); max-height: calc(100dvh - 48px); display: flex; flex-direction: column; background: #fff; color: #202b3b; border-radius: 8px; box-shadow: 0 24px 80px #0003; overflow: hidden; text-align: start; direction: rtl; letter-spacing: 0; }
+.artisan-dialog-header { padding: 24px; display: flex; align-items: flex-start; gap: 16px; border-bottom: 1px solid #e5e9ee; }
+.artisan-identity { display: flex; gap: 16px; align-items: center; flex: 1; min-width: 0; }
+.artisan-identity > div:last-child { min-width: 0; }
+.artisan-avatar { width: 64px; height: 64px; flex: 0 0 64px; background: #edf2f6; color: #456477; border-radius: 50%; display: grid; place-items: center; font-size: 26px; overflow: hidden; }
+.artisan-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.artisan-dialog h2 { font-size: 22px; font-weight: 700; line-height: 1.5; margin: 0 0 4px; overflow-wrap: anywhere; }
+.artisan-dialog h2 i { font-size: 18px; color: #167f78; }
+.artisan-identity p { font-size: 14px; color: #667085; margin: 0 0 8px; overflow-wrap: anywhere; }
+.artisan-availability { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #667085; }
+.artisan-availability > span { width: 7px; height: 7px; border-radius: 50%; background: #98a2b3; }
+.artisan-availability.available { color: #15765d; }.artisan-availability.available > span { background: #19986f; }
+.artisan-close { border: 1px solid #e5e9ee; background: white; width: 36px; height: 36px; flex: 0 0 36px; display: grid; place-items: center; border-radius: 6px; color: #667085; }
+.artisan-close:hover { background: #f2f4f7; }.artisan-dialog button:focus-visible { outline: 3px solid #16877b; outline-offset: 3px; }
+.artisan-dialog-body { overflow-y: auto; overscroll-behavior: contain; padding: 0 24px; }
+.artisan-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 20px 0; border-bottom: 1px solid #e5e9ee; }
+.artisan-facts > div { padding-inline: 16px; display: flex; flex-direction: column; gap: 4px; border-inline-end: 1px solid #e5e9ee; }.artisan-facts > div:first-child { padding-inline-start: 0; }.artisan-facts > div:last-child { border: 0; }
+.artisan-facts span, .artisan-facts small { font-size: 12px; color: #667085; }.artisan-facts strong { font-size: 17px; overflow-wrap: anywhere; }.artisan-facts .bi-star-fill, .review-rating i { color: #c38810; }
+.artisan-section { padding: 20px 0; border-bottom: 1px solid #e5e9ee; }.artisan-section:last-child { border: 0; }
+.artisan-dialog h3 { font-size: 17px; line-height: 1.5; font-weight: 700; margin: 0 0 12px; }
+.artisan-section-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }.artisan-section-heading > span { font-size: 12px; color: #667085; }
+.artisan-bio { font-size: 14px; line-height: 1.9; white-space: pre-wrap; overflow-wrap: anywhere; }
+.artisan-skills { display: flex; flex-wrap: wrap; gap: 8px; }.artisan-skills span { background: #edf5f4; color: #296c65; border-radius: 4px; padding: 4px 10px; font-size: 12px; }
+.artisan-empty { display: flex; align-items: center; gap: 10px; padding: 16px; background: #f6f8fa; border-radius: 6px; color: #7a8494; font-size: 14px; }.artisan-empty i { font-size: 22px; }.artisan-empty p { margin: 0; }
+.artisan-portfolio { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }.artisan-portfolio figure { margin: 0; min-width: 0; }.artisan-portfolio img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; }.artisan-portfolio figcaption { font-size: 13px; padding-top: 8px; overflow-wrap: anywhere; }
+.artisan-review { padding: 14px 0; border-bottom: 1px solid #edf0f3; }.artisan-review:last-child { border: 0; }.review-heading { display: flex; justify-content: space-between; gap: 12px; align-items: center; }.review-heading strong { font-size: 14px; overflow-wrap: anywhere; }.review-rating { font-size: 13px; white-space: nowrap; }.artisan-review p { font-size: 14px; line-height: 1.8; margin: 8px 0; overflow-wrap: anywhere; }.artisan-review time { font-size: 12px; color: #8891a0; }
+.artisan-dialog-footer { padding: 16px 24px; border-top: 1px solid #e5e9ee; display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #fafbfc; }.artisan-dialog-footer > span { font-size: 12px; color: #667085; }.artisan-dialog-footer .btn { font-size: 14px; white-space: nowrap; border-radius: 6px; }
+@media (max-width: 575px) { .artisan-overlay { padding: 12px; }.artisan-dialog { max-height: calc(100dvh - 24px); }.artisan-dialog-header { padding: 16px; gap: 8px; }.artisan-dialog-body { padding: 0 16px; }.artisan-identity { gap: 10px; }.artisan-avatar { width: 48px; height: 48px; flex-basis: 48px; }.artisan-dialog h2 { font-size: 18px; }.artisan-facts > div { padding-inline: 8px; }.artisan-facts strong { font-size: 14px; }.artisan-dialog-footer { padding: 12px 16px; flex-wrap: wrap; }.artisan-dialog-footer .btn { width: 100%; }.artisan-portfolio { gap: 10px; } }

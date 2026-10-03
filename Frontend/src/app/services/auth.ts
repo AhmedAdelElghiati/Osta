@@ -12,6 +12,7 @@ export interface CurrentUser {
   location: string;
   profileImage?: string;
   artisan?: any;
+  createdAt?: string;
 }
 
 @Injectable({

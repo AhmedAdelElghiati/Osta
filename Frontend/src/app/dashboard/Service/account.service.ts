@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { Auth } from '../../services/auth';
 
 export interface Account {
@@ -7,6 +7,7 @@ export interface Account {
   phone: string;
   city: string;
   rating?: number;
+  profession?: string;
 }
 
 export interface NotifyPrefs {
@@ -21,24 +22,27 @@ export class AccountService {
 
   constructor(auth: Auth) {
     auth.currentUser$.subscribe((user) => {
-      if (!user) return;
+      if (!user) { this.account = { name: '', email: '', phone: '', city: '', rating: 0 }; return; }
       this.account = {
         name: user.name,
         email: user.email,
         phone: user.phone,
         city: user.location || '',
         rating: Number(user.artisan?.rating ?? 0),
+        profession: user.artisan?.profession || '',
       };
     });
   }
 
-  account: Account = {
+  private accountState = signal<Account>({
     name: '',
     email: '',
     phone: '',
     city: '',
     rating: 0,
-  };
+  });
+  get account() { return this.accountState(); }
+  set account(value: Account) { this.accountState.set(value); }
 
   prefs: NotifyPrefs = {
     newRequests: true,

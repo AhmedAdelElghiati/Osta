@@ -122,6 +122,16 @@ Images must be JPEG, PNG, or WebP and each file must be no larger than 5 MB. Up 
 
 Request responses use `{ success, message, data }`. Service Request messages are localized in Egyptian Arabic. Ownership failures are intentionally returned as `404`.
 
+## Job chat
+
+Customers and artisans can chat after an offer is accepted and a job is created. Both participants use the authenticated job ID; other users receive `404`.
+
+- `GET /api/v1/chat/jobs/:id/messages` returns up to 100 recent messages in oldest-first order.
+- `POST /api/v1/chat/jobs/:id/messages` accepts `{ "text": "..." }` with a message from 1 to 2,000 characters.
+- Socket.IO authenticates with the access JWT in the handshake `auth.token`. Join a conversation with `chat:join` and the job ID; new persisted messages are broadcast as `chat:message`. Leave with `chat:leave`.
+
+REST message history remains available if a realtime connection is temporarily unavailable. The interactive API documentation lists the HTTP endpoints.
+
 ## Service Request development seed
 
 Create Egyptian crafts, a customer, and draft/published/cancelled requests with EGP budgets:
@@ -131,6 +141,27 @@ npm run seed:service-requests
 ```
 
 ## Tests
+
+## Persisted Website Features
+
+- Direct chat: `POST /api/v1/chat/direct` with the Artisan profile ID in `artisanId` opens/reuses a customer-artisan conversation without creating a request or job. `GET /api/v1/chat/direct` returns the participant's inbox. Existing message endpoints accept `direct:<conversationId>` as their ID; Socket.IO uses the same ID for authenticated room joins. Neither HTTP nor sockets allow access by other accounts.
+
+- `GET/PATCH /api/users/me/settings`: notification preferences, addresses, masked payment metadata, and payout destination. Only the signed-in user's settings are accessible. Never submit full card numbers or CVV.
+- `POST /api/users/me/image` and `POST /api/v1/artisans/me/portfolio-image`: multipart image uploads (`image`, maximum 5 MB). Persist the `backend/uploads` directory when deploying.
+- `GET/PATCH /api/v1/artisans/me/profile`: professional details, availability, portfolio, actual reviews and statistics. Verification remains administrator-controlled.
+- `GET /api/v1/platform/stats`: real database counts and review average, with no seeded fallback.
+- `POST /api/v1/platform/assistant`: bounded rule-based help and active service catalogue. This is not an LLM or human support agent.
+- `POST /api/v1/contact/tickets`, `GET /api/v1/contact/mine`, `POST /api/v1/contact/:id/replies`: stored support conversations. Administrators reply from the admin inbox.
+- `POST /api/v1/requests/:id/schedule`: authorized inspection scheduling after offer acceptance.
+- Notifications are created from actual offer, job, scheduling and message events, respecting saved preferences.
+
+### Payment Boundary
+
+No payment-provider integration is configured. Deposits return HTTP 503 instead of crediting uncharged money. Withdrawal requests reserve ledger funds and remain pending for review; recording a request does not transfer money. Saved card data is masked metadata only. Existing job escrow ledger entries are internal accounting, not proof of funds received by a payment provider. Production payments need verified provider callbacks and reconciliation.
+
+### Verification
+
+`tests/liveFeatures.test.js` covers settings isolation, artisan visibility, support ownership, wallet concurrency, statistics, assistant and upload rejection. `tests/jobWorkflow.test.js` covers offers, scheduling, jobs and authenticated live chat. Public FAQs, team biographies and legal copy are editorial content rather than database records.
 
 Run the complete backend test suite:
 

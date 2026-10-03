@@ -1,5 +1,37 @@
 const { sendResponse } = require('../utils/apiResponse');
 const ContactMessage = require('../models/ContactMessage');
+const mongoose = require('mongoose');
+const User = require('../models/User');
+
+const createTicket = async (req, res, next) => {
+  try {
+    const { subject, message } = req.body;
+    if (typeof subject !== 'string' || !subject.trim() || subject.length > 200 ||
+        typeof message !== 'string' || !message.trim() || message.length > 5000) {
+      return sendResponse(res, 400, false, 'اكتب عنوان وتفاصيل صحيحة للتذكرة.');
+    }
+    const user = await User.findById(req.user.id).select('name phone');
+    const doc = await ContactMessage.create({ userId: req.user.id, fullName: user.name,
+      phone: user.phone, contactType: 'personal', subject: subject.trim(), message: message.trim() });
+    return sendResponse(res, 201, true, 'تم تسجيل التذكرة.', doc);
+  } catch (error) { next(error); }
+};
+
+const reply = async (req, res, next) => {
+  try {
+    if (!mongoose.isValidObjectId(req.params.id)) return sendResponse(res, 404, false, 'التذكرة مش موجودة.');
+    const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
+    if (!text || text.length > 5000) return sendResponse(res, 400, false, 'اكتب رسالة من 1 إلى 5000 حرف.');
+    const query = { _id: req.params.id };
+    if (req.user.role !== 'admin') query.userId = req.user.id;
+    const doc = await ContactMessage.findOneAndUpdate(query, {
+      $push: { replies: { senderId: req.user.id, senderRole: req.user.role, text, createdAt: new Date() } },
+      $set: { status: req.user.role === 'admin' ? 'READ' : 'NEW' },
+    }, { new: true, runValidators: true });
+    if (!doc) return sendResponse(res, 404, false, 'التذكرة مش موجودة.');
+    return sendResponse(res, 201, true, 'تم إرسال الرسالة.', doc);
+  } catch (error) { next(error); }
+};
 
 // POST /api/v1/contact  (public — contact-us page)
 const create = async (req, res, next) => {
@@ -25,4 +57,4 @@ const listMine = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { create, listMine };
+module.exports = { create, listMine, createTicket, reply };

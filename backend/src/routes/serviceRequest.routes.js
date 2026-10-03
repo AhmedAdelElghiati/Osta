@@ -24,6 +24,7 @@ router.use(...customerOnly);
 router.post('/', controller.create);
 router.get('/me', controller.list);
 router.get('/:id/timeline', controller.timeline);
+router.post('/:id/schedule', controller.schedule);
 router.post('/:id/publish', controller.publish);
 router.post('/:id/cancel', controller.cancel);
 router.post('/:id/republish', controller.republish);

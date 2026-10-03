@@ -1,0 +1,261 @@
+:host {
+  display: block;
+  color: #1e293b;
+}
+
+.chat-page {
+  display: grid;
+  gap: 18px;
+}
+
+.page-heading h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.page-heading p,
+.empty-state {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.chat-layout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.8fr) minmax(0, 1.7fr);
+  min-height: 520px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 16px #0f172a0a;
+}
+
+.conversation-list {
+  padding: 18px 12px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.conversation-list h2 {
+  margin: 0 8px 14px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.conversation-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 9px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+  text-align: right;
+}
+
+.conversation-item:hover,
+.conversation-item.selected {
+  background: #f1f5f9;
+}
+
+.conversation-avatar {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #ffedd5;
+  color: #c2410c;
+  font-weight: 700;
+}
+
+.conversation-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 3px;
+}
+
+.conversation-copy strong,
+.conversation-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.conversation-copy strong {
+  font-size: 13px;
+}
+
+.conversation-copy small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.conversation-item > i {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.conversation {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.conversation-header {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.conversation-header > div {
+  display: grid;
+  gap: 3px;
+}
+
+.conversation-header strong {
+  font-size: 14px;
+}
+
+.conversation-header small {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.connection-state {
+  color: #15803d;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.connection-state i {
+  margin-left: 4px;
+  font-size: 7px;
+}
+
+.connection-state.offline {
+  color: #b45309;
+}
+
+.message-list {
+  display: flex;
+  min-height: 350px;
+  max-height: 58vh;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 20px;
+  background: #f8fafc;
+}
+
+.message {
+  display: flex;
+  max-width: 78%;
+  flex-direction: column;
+  align-self: flex-start;
+  gap: 4px;
+}
+
+.message.mine {
+  align-self: flex-end;
+}
+
+.message-bubble {
+  padding: 10px 13px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px 14px 14px 4px;
+  background: #fff;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.message.mine .message-bubble {
+  border-color: #ea580c;
+  border-radius: 14px 14px 4px 14px;
+  background: #ea580c;
+  color: #fff;
+}
+
+.message time {
+  padding: 0 4px;
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.message-composer {
+  display: flex;
+  gap: 9px;
+  padding: 12px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.message-composer input {
+  min-width: 0;
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  outline: none;
+  font: inherit;
+  font-size: 13px;
+}
+
+.message-composer input:focus {
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px #ea580c1a;
+}
+
+.message-composer button {
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: #0f172a;
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.message-composer button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.conversation-placeholder {
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.conversation-placeholder i {
+  font-size: 30px;
+}
+
+@media (max-width: 700px) {
+  .chat-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .conversation-list {
+    max-height: 180px;
+    overflow: auto;
+    border-bottom: 1px solid #e2e8f0;
+    border-left: 0;
+  }
+
+  .message-list {
+    min-height: 280px;
+  }
+}

@@ -5,6 +5,14 @@ const Offer = require('../models/Offer');
 const Job = require('../models/Job');
 const RequestEvent = require('../models/RequestEvent');
 const Transaction = require('../models/Transaction');
+const { notify } = require('../services/notification.service');
+const Artisan = require('../models/Artisan');
+
+const withArtisanRatings = async (offers) => {
+  const profiles = await Artisan.find({ userId: { $in: offers.map(o => o.artisanId?._id) } }).select('userId rating totalReviews').lean();
+  const byUser = new Map(profiles.map(p => [String(p.userId), p]));
+  return offers.map(o => ({ ...o, artisanProfile: byUser.get(String(o.artisanId?._id)) || null }));
+};
 
 const fail = (code, message) => { const e = new Error(message); e.statusCode = code; return e; };
 
@@ -40,6 +48,7 @@ const create = async (req, res, next) => {
       await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_RECEIVED' });
     }
 
+    await notify(requestDoc.customerId, 'عرض جديد على طلبك', requestDoc.title, '/customer-dashboard', 'OFFER_RECEIVED', 'offers');
     return sendResponse(res, 201, true, 'تم إرسال العرض بنجاح.', offer);
   } catch (error) { next(error); }
 };
@@ -49,7 +58,7 @@ const listForRequest = async (req, res, next) => {
   try {
     const requestDoc = await ensureOwnedRequest(req.params.id, req.user.id);
     const offers = await Offer.find({ requestId: requestDoc._id }).populate('artisanId', 'name phone profileImage location').sort({ createdAt: -1 }).lean();
-    return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', offers);
+    return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', await withArtisanRatings(offers));
   } catch (error) { next(error); }
 };
 
@@ -63,7 +72,7 @@ const listMine = async (req, res, next) => {
       .populate('requestId', 'title status location budget')
       .sort({ createdAt: -1 })
       .lean();
-    return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', offers);
+    return sendResponse(res, 200, true, 'تم جلب العروض بنجاح.', await withArtisanRatings(offers));
   } catch (error) { next(error); }
 };
 
@@ -122,11 +131,13 @@ const setStatus = async (req, res, next, target) => {
       });
       await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_ACCEPTED', metadata: { offerId: String(offer._id) } });
       await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'JOB_CREATED', metadata: { jobId: String(job._id) } });
+      await notify(offer.artisanId, 'العميل قبل عرضك', requestDoc.title, '/dashboard/my-jobs', 'OFFER_ACCEPTED', 'offers');
       return sendResponse(res, 200, true, 'تم قبول العرض وإنشاء الشغلانة بنجاح.', { offer, job });
     }
     offer.status = 'REJECTED';
     await offer.save();
     await RequestEvent.create({ requestId: requestDoc._id, actorId: req.user.id, type: 'OFFER_REJECTED', metadata: { offerId: String(offer._id) } });
+    await notify(offer.artisanId, 'تم رفض العرض', requestDoc.title, '/dashboard/sent-offers', 'OFFER_REJECTED', 'offers');
     return sendResponse(res, 200, true, 'تم رفض العرض.', offer);
   } catch (error) { next(error); }
 };

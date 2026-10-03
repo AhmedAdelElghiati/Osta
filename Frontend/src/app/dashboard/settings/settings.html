@@ -20,7 +20,7 @@
 
       <div class="col-md-6">
         <label>البريد الإلكتروني</label>
-        <input type="email" class="form-control" dir="ltr" [(ngModel)]="email">
+        <input type="email" class="form-control" dir="ltr" [(ngModel)]="email" readonly>
       </div>
 
       <div class="col-md-6">
@@ -105,22 +105,22 @@
 
     <div class="setting-row">
       <span>طلبات جديدة في تخصصي</span>
-      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.newRequests">
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.newRequests" (ngModelChange)="savePrefs()">
     </div>
 
     <div class="setting-row">
       <span>قبول أو رفض عروضي</span>
-      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.offerUpdates">
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.offerUpdates" (ngModelChange)="savePrefs()">
     </div>
 
     <div class="setting-row">
       <span>رسائل العملاء</span>
-      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.messages">
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.messages" (ngModelChange)="savePrefs()">
     </div>
 
     <div class="setting-row">
       <span>تحرير الضمان والأرباح</span>
-      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.escrow">
+      <input type="checkbox" class="form-check-input" [(ngModel)]="prefs.escrow" (ngModelChange)="savePrefs()">
     </div>
 
   </div>

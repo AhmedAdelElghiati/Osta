@@ -7,7 +7,10 @@
         متابعة المستخدمين والرسائل ومؤشرات التشغيل من مصدرها الحقيقي.
       </p>
     </div>
-    <button class="btn btn-outline-dark" type="button" (click)="reload()">تحديث البيانات</button>
+    <div class="d-flex gap-2 flex-wrap">
+      <a routerLink="/" class="btn btn-outline-secondary"><i class="bi bi-house-door"></i> الصفحة الرئيسية</a>
+      <button class="btn btn-outline-dark" type="button" (click)="reload()">تحديث البيانات</button>
+    </div>
   </header>
 
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
@@ -139,6 +142,11 @@
           </div>
           <div class="small text-secondary">{{ message.phone }}</div>
           <p class="mb-2 mt-2">{{ message.message }}</p>
+          <p *ngFor="let reply of message.replies" class="border-top pt-2">{{ reply.senderRole === 'admin' ? 'الدعم' : 'المستخدم' }}: {{ reply.text }}</p>
+          <div *ngIf="message.userId" class="d-flex gap-2 mb-2">
+            <input class="form-control" [(ngModel)]="replyDrafts[message._id]" placeholder="الرد على التذكرة" aria-label="الرد على التذكرة">
+            <button class="btn btn-dark" (click)="sendReply(message)" [disabled]="!replyDrafts[message._id]?.trim()">إرسال</button>
+          </div>
           <button
             *ngIf="message.status === 'NEW'"
             class="btn btn-sm btn-outline-dark"

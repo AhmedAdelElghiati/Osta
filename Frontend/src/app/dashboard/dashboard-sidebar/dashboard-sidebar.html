@@ -129,10 +129,10 @@
   
   <div class="sidebar-header">
 
-    <div class="brand-wrapper">
+    <a class="brand-wrapper text-decoration-none text-reset" routerLink="/" (click)="onClose()" aria-label="أُسطى - الصفحة الرئيسية" title="الصفحة الرئيسية">
       <span class="brand-name">أُسطى</span>
       <span class="craftsman-badge">الأسطى</span>
-    </div>
+    </a>
 
     <button
       class="sidebar-close d-lg-none"
@@ -193,6 +193,14 @@
     </a>
 
     <a
+      routerLink="/dashboard/chat"
+      routerLinkActive="active"
+      (click)="onClose()">
+      <i class="bi bi-chat-dots nav-icon" aria-hidden="true"></i>
+      <span>محادثاتي</span>
+    </a>
+
+    <a
       routerLink="/dashboard/earnings"
       routerLinkActive="active"
       (click)="onClose()">
@@ -230,7 +238,7 @@
 
   <div class="user-info">
     <strong>{{ account.name }}</strong>
-    <small>سباك معتمد — {{ account.city }}</small>
+    <small>{{ account.profession }} · {{ account.city }}</small>
   </div>
 
   <button class="user-settings-btn" routerLink="/dashboard/settings" title="الإعدادات">

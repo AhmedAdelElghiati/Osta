@@ -46,6 +46,9 @@ export interface RequestVm {
   timeline: TimelineStep[];
   craftsman: any; // Now populated from artisanId
   acceptedPrice?: number;
+  jobId?: string;
+  paymentStatus?: string;
+  reviewed?: boolean;
   preferredDate?: string;
   preferredTime?: string;
   cancellationReason?: string;
@@ -174,6 +177,9 @@ export class ServiceRequests {
       timeline: this.defaultTimeline(raw),
       craftsman: raw.artisanId || null,
       acceptedPrice: raw.acceptedPrice,
+      jobId: raw.jobId,
+      paymentStatus: raw.paymentStatus,
+      reviewed: raw.reviewed,
       preferredDate: raw.preferredDate,
       preferredTime: raw.preferredTime,
       cancellationReason: raw.cancellationReason,
@@ -385,6 +391,10 @@ export class ServiceRequests {
     return this.http
       .post<any>(`${this.base}/${id}/publish`, {}, { withCredentials: true })
       .pipe(this.afterLifecycle());
+  }
+
+  schedule(id: string, preferredDate: string, preferredTime: string): Observable<RequestVm> {
+    return this.http.post<any>(`${this.base}/${id}/schedule`, { preferredDate, preferredTime }, { withCredentials: true }).pipe(this.afterLifecycle());
   }
 
   cancel(id: string, reason: string): Observable<RequestVm> {

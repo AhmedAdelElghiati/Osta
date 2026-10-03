@@ -4,6 +4,7 @@ const Job = require('../models/Job');
 const ServiceRequest = require('../models/ServiceRequest');
 const RequestEvent = require('../models/RequestEvent');
 const Transaction = require('../models/Transaction');
+const { notify } = require('../services/notification.service');
 
 const populateJob = (query) =>
   query
@@ -114,6 +115,9 @@ const updateStatus = async (req, res, next) => {
     }
 
     await job.save();
+    const recipient = req.user.role === 'customer' ? job.artisanId : job.customerId;
+    await notify(recipient, target === 'COMPLETED' ? 'تم اعتماد التسليم' : 'تحديث حالة الشغلانة',
+      'راجع تفاصيل الشغلانة لمعرفة آخر تحديث.', req.user.role === 'customer' ? '/dashboard/my-jobs' : '/customer-dashboard');
     const fullJob = await populateJob(Job.findById(job._id)).lean();
     return sendResponse(res, 200, true, 'تم تحديث حالة الشغلانة بنجاح.', fullJob);
   } catch (error) {

@@ -1,4 +1,6 @@
 <div dir="rtl">
+  <p *ngIf="loading">جاري تحميل البروفايل...</p>
+  <p *ngIf="error" class="text-danger" role="alert">{{ error }}</p>
 
   <div class="page-header">
 
@@ -20,7 +22,7 @@
 
     <div>
       <h3>{{ account.name }}</h3>
-      <p>سباك معتمد • {{ account.city }} • عضو منذ 2021</p>
+      <p>{{ profile.profession }} · {{ account.city }} · {{ joinedAt | date:'yyyy' }}</p>
     </div>
 
     <div class="form-check form-switch me-auto">
@@ -80,8 +82,8 @@
 
               <button class="work-remove" (click)="removeWork(i)" aria-label="حذف العمل">✕</button>
 
-              🖼️
-              <p>{{ work }}</p>
+              <img *ngIf="work.image" [src]="imageUrl(work.image)" [alt]="work.title" style="width:100%;height:120px;object-fit:cover">
+              <p>{{ work.title }}</p>
 
             </div>
           </div>
@@ -120,14 +122,12 @@
       <div class="profile-card mb-4">
 
         <h3>
-          حسابي موثّق
+          {{ profile.isVerified ? 'حساب موثّق' : 'حساب غير موثّق' }}
         </h3>
 
-        <p>✓ بطاقة هوية موثقة</p>
-        <p>✓ سجل جزائي سليم</p>
-        <p>✓ حساب بنكي مرتبط للسحب</p>
+        <p>{{ profile.isVerified ? 'تم اعتماد حسابك من الإدارة.' : 'لم يتم اعتماد الحساب بعد.' }}</p>
 
-        <button class="btn btn-light w-100">
+        <button class="btn btn-light w-100" (click)="preview()" [disabled]="loading">
           معاينة كما يراني العميل
         </button>
 
@@ -144,22 +144,22 @@
 
         <div class="stat-line">
           <span>التقييم العام</span>
-          <strong>★ 4.8</strong>
+          <strong>{{ avgText }}</strong>
         </div>
 
         <div class="stat-line">
           <span>شغلانات مكتملة</span>
-          <strong>214</strong>
+          <strong>{{ stats.completedJobs }}</strong>
         </div>
 
         <div class="stat-line">
           <span>نسبة قبول العروض</span>
-          <strong>68%</strong>
+          <strong>{{ stats.acceptanceRate }}%</strong>
         </div>
 
         <div class="stat-line">
-          <span>متوسط زمن الرد</span>
-          <strong>22 دقيقة</strong>
+          <span>العروض المرسلة</span>
+          <strong>{{ stats.totalOffers }}</strong>
         </div>
 
       </div>
@@ -232,10 +232,9 @@
       [(ngModel)]="workTitle"
       (keydown.enter)="addWork()">
 
-    <div class="upload-box" (click)="showToast('رفع الصور — قيد الربط مع التخزين')">
-      🖼️
-      <p>اضغط لإضافة صورة للعمل</p>
-    </div>
+    <label class="upload-box">صورة العمل
+      <input type="file" accept="image/jpeg,image/png,image/webp" (change)="chooseWorkImage($event)">
+    </label>
 
     <div class="modal-actions">
       <button class="btn btn-dark btn-sm flex-fill" (click)="addWork()">إضافة</button>

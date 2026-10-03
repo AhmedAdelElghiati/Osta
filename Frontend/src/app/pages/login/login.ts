@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Auth } from '../../services/auth';
 
 @Component({
@@ -26,6 +26,7 @@ export class Login {
     private auth: Auth,
     private cdr: ChangeDetectorRef,
     private router: Router,
+    private route: ActivatedRoute,
   ) {}
 
   switchTab(tab: 'client' | 'craftsman'): void {
@@ -52,7 +53,9 @@ export class Login {
 
         setTimeout(() => {
           const role = this.auth.currentUserValue?.role ?? response?.data?.user?.role;
-          const target = role === 'artisan' ? '/dashboard/home' : '/customer-dashboard';
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+          const target = role === 'customer' && returnUrl?.startsWith('/craftsmen-guide?artisan=')
+            ? returnUrl : role === 'artisan' ? '/dashboard/home' : '/customer-dashboard';
 
           this.showSuccessMessage = false;
           form.resetForm();

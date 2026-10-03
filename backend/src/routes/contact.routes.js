@@ -15,5 +15,7 @@ router.post('/', (req, res, next) => {
   });
 });
 router.get('/mine', authenticate, authorize('customer', 'artisan'), contactController.listMine);
+router.post('/tickets', authenticate, authorize('customer', 'artisan'), contactController.createTicket);
+router.post('/:id/replies', authenticate, authorize('customer', 'artisan', 'admin'), contactController.reply);
 
 module.exports = router;

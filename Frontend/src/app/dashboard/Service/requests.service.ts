@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { MARKET_ENDPOINT } from '../../core/api.config';
@@ -25,7 +25,9 @@ export interface Request {
 export class RequestsService {
   arrived$ = new Subject<Request>();
 
-  requests: Request[] = [];
+  private requestState = signal<Request[]>([]);
+  get requests() { return this.requestState(); }
+  set requests(value: Request[]) { this.requestState.set(value); }
   loading = false;
   error = '';
 
@@ -72,12 +74,12 @@ export class RequestsService {
 
   setApplied(id: string, applied: boolean) {
     const request = this.requests.find((item) => item.id === id);
-    if (request) request.applied = applied;
+    if (request) this.requests = this.requests.map(item => item.id === id ? { ...item, applied } : item);
   }
 
   markAssigned(id: string) {
     const request = this.requests.find((item) => item.id === id);
-    if (request) request.status = 'assigned';
+    if (request) this.requests = this.requests.map(item => item.id === id ? { ...item, status: 'assigned' } : item);
   }
 
   private mapRequest(raw: any): Request {
@@ -93,7 +95,7 @@ export class RequestsService {
       title: raw.title ?? '',
       client: raw.customerName || 'عميل أُسطى',
       area: [raw.area, raw.city].filter(Boolean).join('، ') || 'مصر',
-      dist: 'داخل منطقتك',
+      dist: [raw.area, raw.city].filter(Boolean).join('، '),
       distKm: 0,
       budget: maxBudget || null,
       posted: daysOpen === 0 ? 'النهارده' : `منذ ${daysOpen} يوم`,

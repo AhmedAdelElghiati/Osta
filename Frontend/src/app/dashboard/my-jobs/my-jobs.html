@@ -220,30 +220,34 @@
           <small class="d-block chat-client">{{ chatJob.client }}</small>
         </div>
       </div>
+      <small class="chat-connection" [class.offline]="chatConnection === 'offline'">
+        {{ chatConnection === 'connected' ? 'مباشر' : 'إعادة الاتصال...' }}
+      </small>
       <button class="chat-close" (click)="closeChat()" aria-label="إغلاق">✕</button>
     </div>
 
     <div class="chat-scroll" #chatScroll>
-      <div *ngFor="let m of chatJob.chat" class="msg" [class.me]="m.me">
+      <p *ngIf="chatLoading" class="chat-state">جاري تحميل الرسائل...</p>
+      <p *ngIf="!chatLoading && !chatMessages.length" class="chat-state">ابدأ المحادثة مع العميل.</p>
+      <div *ngFor="let m of chatMessages" class="msg" [class.me]="m.me">
         <div>
           <div class="bubble">{{ m.text }}</div>
-          <small class="msg-time">{{ m.time }}</small>
+          <small class="msg-time">{{ m.createdAt | date: 'shortTime' }}</small>
         </div>
-      </div>
-
-      <div *ngIf="typing" class="msg">
-        <div class="bubble typing"><i></i><i></i><i></i></div>
       </div>
     </div>
 
+    <p *ngIf="chatError" class="chat-error" role="alert">{{ chatError }}</p>
     <div class="chat-input">
       <input
         type="text"
         class="form-control form-control-sm"
         placeholder="اكتب رسالتك للعميل..."
         [(ngModel)]="chatInput"
+        maxlength="2000"
+        [disabled]="sendingMessage"
         (keydown.enter)="sendMessage()">
-      <button class="btn btn-dark btn-sm" (click)="sendMessage()">إرسال</button>
+      <button class="btn btn-dark btn-sm" [disabled]="sendingMessage || !chatInput.trim()" (click)="sendMessage()">إرسال</button>
     </div>
 
   </div>

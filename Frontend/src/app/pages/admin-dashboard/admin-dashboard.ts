@@ -1,17 +1,28 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { AdminService } from '../../services/admin.service';
+import { Marketplace } from '../../services/marketplace';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './admin-dashboard.html',
   styleUrl: './admin-dashboard.css',
 })
 export class AdminDashboard implements OnInit {
-  constructor(private api: AdminService, private cdr: ChangeDetectorRef) {}
+  constructor(private api: AdminService, private cdr: ChangeDetectorRef, private marketplace: Marketplace) {}
+  replyDrafts: Record<string, string> = {};
+  sendReply(message: any) {
+    const text = this.replyDrafts[message._id]?.trim();
+    if (!text) return;
+    this.marketplace.replyToTicket(message._id, text).subscribe({
+      next: res => { Object.assign(message, res.data); this.replyDrafts[message._id] = ''; this.cdr.markForCheck(); },
+      error: err => { this.error = err.error?.message || 'تعذر إرسال الرد.'; this.cdr.markForCheck(); },
+    });
+  }
 
   loading = true;
   error = '';

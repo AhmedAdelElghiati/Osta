@@ -668,71 +668,10 @@
             </div>
 
 
-            <!-- Card Form -->
-
-            <div *ngIf="paymentType === 'card'">
-
-                <div class="form-group">
-
-                    <label>
-                        رقم البطاقة
-                    </label>
-
-                    <input type="text" class="form-control wallet-form-control" [(ngModel)]="cardNumber"
-                        placeholder="0000 0000 0000 0000" maxlength="19">
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label>
-                        اسم صاحب البطاقة
-                    </label>
-
-                    <input type="text" class="form-control wallet-form-control" [(ngModel)]="cardHolder"
-                        placeholder="الاسم كما هو على البطاقة">
-
-                </div>
-
-
-                <div class="row g-3">
-
-                    <div class="col-6">
-
-                        <div class="form-group">
-
-                            <label>
-                                تاريخ الانتهاء
-                            </label>
-
-                            <input type="text" class="form-control wallet-form-control" [(ngModel)]="expiryDate"
-                                placeholder="MM/YY" maxlength="5">
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-6">
-
-                        <div class="form-group">
-
-                            <label>
-                                CVV
-                            </label>
-
-                            <input type="password" class="form-control wallet-form-control" [(ngModel)]="cvv"
-                                placeholder="•••" maxlength="4">
-
-                        </div>
-
-                    </div>
-
-                </div>
-
+            <div *ngIf="paymentType === 'card'" class="form-group">
+                <label>آخر 4 أرقام من البطاقة</label>
+                <input type="text" inputmode="numeric" class="form-control" [(ngModel)]="cardNumber" maxlength="4" placeholder="1234">
             </div>
-
 
             <!-- Vodafone Cash Form -->
 

@@ -49,6 +49,34 @@ export interface OfferVm {
 export class Marketplace {
   constructor(private http: HttpClient) {}
 
+  settings(): Observable<any> {
+    return this.http.get<any>(`${USERS_ENDPOINT}/me/settings`, { withCredentials: true });
+  }
+  saveSettings(body: any): Observable<any> {
+    return this.http.patch<any>(`${USERS_ENDPOINT}/me/settings`, body, { withCredentials: true });
+  }
+  artisanProfile(): Observable<any> {
+    return this.http.get<any>(`${ARTISANS_ENDPOINT}/me/profile`, { withCredentials: true });
+  }
+  platformStats(): Observable<any> {
+    return this.http.get<any>(`${API_BASE_URL}/v1/platform/stats`);
+  }
+  assistant(message: string): Observable<any> {
+    return this.http.post<any>(`${API_BASE_URL}/v1/platform/assistant`, { message });
+  }
+  uploadImage(file: File, portfolio = false): Observable<any> {
+    const body = new FormData();
+    body.append('image', file);
+    const endpoint = portfolio ? `${ARTISANS_ENDPOINT}/me/portfolio-image` : `${USERS_ENDPOINT}/me/image`;
+    return this.http.post<any>(endpoint, body, { withCredentials: true });
+  }
+  createTicket(subject: string, message: string): Observable<any> {
+    return this.http.post<any>(`${CONTACT_ENDPOINT}/tickets`, { subject, message }, { withCredentials: true });
+  }
+  replyToTicket(id: string, text: string): Observable<any> {
+    return this.http.post<any>(`${CONTACT_ENDPOINT}/${id}/replies`, { text }, { withCredentials: true });
+  }
+
   // ===== Craftsmen guide: GET /api/v1/artisans =====
   listArtisans(params: Record<string, string | number> = {}): Observable<any> {
     let httpParams = new HttpParams();
@@ -147,7 +175,7 @@ export class Marketplace {
 
   // ===== Contact: POST /api/v1/contact =====
   sendContact(body: any): Observable<any> {
-    return this.http.post<any>(CONTACT_ENDPOINT, body);
+    return this.http.post<any>(CONTACT_ENDPOINT, body, { withCredentials: true });
   }
 
   myMessages(): Observable<any> {

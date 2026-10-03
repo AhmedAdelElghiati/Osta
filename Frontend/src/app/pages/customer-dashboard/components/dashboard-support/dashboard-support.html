@@ -9,6 +9,8 @@
         </div>
     </div>
 
+    <p *ngIf="ticketError" class="text-danger" role="alert">{{ ticketError }}</p>
+    <p *ngIf="loading" role="status">جاري تحميل تذاكر الدعم...</p>
     <!-- Support Channels -->
     <section class="support-section mb-4">
 
@@ -156,7 +158,7 @@
                     </div>
 
                     <div class="ticket-list">
-                        <div class="ticket-row" *ngFor="let ticket of tickets">
+                        <div class="ticket-row" *ngFor="let ticket of tickets" role="button" tabindex="0" (click)="selectTicket(ticket)" (keydown.enter)="selectTicket(ticket)">
 
                             <div class="ticket-icon">
                                 <i class="bi bi-ticket-perforated"></i>
@@ -312,12 +314,12 @@
 
                 <div>
                     <p class="support-chat-name">
-                        سارة — دعم أُسطى
+                        فريق دعم أُسطى
                     </p>
 
                     <p class="support-chat-status">
                         <span></span>
-                        متاحة الآن
+                        متابعة التذكرة
                     </p>
                 </div>
 

@@ -18,6 +18,7 @@ const walletRoutes = require('./routes/wallet.routes');
 const marketRoutes = require('./routes/market.routes');
 const reviewRoutes = require('./routes/review.routes');
 const notificationRoutes = require('./routes/notification.routes');
+const chatRoutes = require('./routes/chat.routes');
 const { errorHandler, notFoundHandler } = require('./middlewares/errorHandler');
 const swaggerDocument = require('./config/swagger');
 
@@ -42,7 +43,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan('dev'));
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(require('./middlewares/imageUpload').uploadDirectory));
 
 app.get('/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is healthy' });
@@ -66,6 +67,8 @@ app.use('/api/v1/wallet', walletRoutes);
 app.use('/api/v1/market', marketRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1', reviewRoutes);
+app.use('/api/v1/chat', chatRoutes);
+app.use('/api/v1/platform', require('./routes/platform.routes'));
 
 app.use(notFoundHandler);
 app.use(errorHandler);

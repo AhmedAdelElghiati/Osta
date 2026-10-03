@@ -36,7 +36,7 @@ export class Earnings {
   };
 
   get methods() {
-    return [this.wallet.payoutLabel];
+    return this.wallet.payoutLabel ? [this.wallet.payoutLabel] : [];
   }
 
   withdrawTo = '';
@@ -75,15 +75,10 @@ export class Earnings {
 
   confirmWithdraw() {
     const amount = Number(this.withdrawAmount);
-    const error = this.wallet.withdraw(amount, this.withdrawTo);
-
-    if (error) {
-      this.showToast(error);
-      return;
-    }
-
-    this.withdrawOpen = false;
-    this.showToast(`تم طلب سحب ${this.fmt(amount)} ج.م — هيوصل على محفظتك خلال 24 ساعة`);
+    this.wallet.withdraw(amount, this.withdrawTo).subscribe({
+      next: () => { this.withdrawOpen = false; this.showToast('تم تسجيل طلب السحب للمراجعة.'); },
+      error: err => this.showToast(err.error?.message || 'تعذر تسجيل طلب السحب.'),
+    });
   }
 
   /* ========== التصدير ========== */

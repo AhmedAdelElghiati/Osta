@@ -107,61 +107,15 @@
   </section>
 
 
-  <!-- 2. STATS SECTION -->
-  <section class="bg-white py-5 border-top border-bottom">
-    <div class="container">
-      <div class="row text-center">
-
-        <div class="col-md-3 col-6 mb-4 mb-md-0 stat-item">
-          <h2 class="fw-bolder mb-2" style="color: var(--color-primary);">
-            +15,000
-          </h2>
-          <p class="fw-bold mb-1" style="font-size: 14px;">
-            أسطى معتمد متجرب ومفتش عليه
-          </p>
-          <small class="text-muted">فحص مهني وأمني</small>
-        </div>
-
-        <div class="col-md-3 col-6 mb-4 mb-md-0 stat-item">
-          <h2 class="fw-bolder mb-2" style="color: var(--color-primary);">
-            +85,000
-          </h2>
-          <p class="fw-bold mb-1" style="font-size: 14px;">
-            شغلانة اتعملت في كل محافظات مصر
-          </p>
-          <small class="text-muted">في مختلف المحافظات</small>
-        </div>
-
-        <div class="col-md-3 col-6 stat-item">
-          <h2 class="fw-bolder mb-2 d-flex align-items-center justify-content-center"
-            style="color: var(--color-primary);">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#EAB308" class="me-2">
-              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-              </path>
-            </svg>
-            4.9
-          </h2>
-
-          <p class="fw-bold mb-1" style="font-size: 14px;">
-            متوسط رضا الزباين الحقيقيين
-          </p>
-          <small class="text-muted">تقييمات موثقة</small>
-        </div>
-
-        <div class="col-md-3 col-6 stat-item">
-          <h2 class="fw-bolder mb-2" style="color: var(--color-primary);">
-            100%
-          </h2>
-          <p class="fw-bold mb-1" style="font-size: 14px;">
-            حقك مضمون وفلوسك في جيبك لو الشغل مش تمام
-          </p>
-          <small class="text-muted">في حال عدم الرضا</small>
-        </div>
-
-      </div>
+  <section class="bg-white py-5 border-top border-bottom"><div class="container">
+    <p *ngIf="statsError" class="text-danger" role="alert">{{ statsError }}</p>
+    <div class="row text-center" *ngIf="stats">
+      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.verifiedArtisans | number }}</h2><p>أسطى موثق</p></div>
+      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.completedJobs | number }}</h2><p>شغلانة مكتملة</p></div>
+      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.rating === null ? 'لا يوجد تقييم' : (stats.rating | number:'1.1-2') }}</h2><p>متوسط تقييم العملاء</p></div>
+      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.customers | number }}</h2><p>عميل مسجل</p></div>
     </div>
-  </section>
-
+  </div></section>
 
   <!-- 3. CRAFTS GRID -->
   <section class="container py-5 border-top">
@@ -375,237 +329,19 @@
   </section>
 
 
-  <!-- 4. TOP RATED CRAFTSMEN -->
   <section class="container py-5">
-
-    <div class="d-flex justify-content-between align-items-end mb-4 flex-wrap">
-
-      <div>
-        <h2 class="fw-bolder" style="color: var(--color-primary);">
-          أسطوات عتاولة وواخدين أعلى تقييم
-        </h2>
-
-        <p class="text-muted m-0">
-          أكتر أسطوات واخدين كلام حلو ودعوات من أصحاب البيوت في منطقتك الشهر ده.
-        </p>
+    <div class="d-flex justify-content-between align-items-center mb-4"><h2>أسطوات المنصة</h2><a routerLink="/craftsmen-guide">عرض الكل</a></div>
+    <p *ngIf="featuredError" class="text-danger" role="alert">{{ featuredError }}</p>
+    <p *ngIf="!featuredError && !featured.length">لا يوجد أسطوات مسجلون حاليًا.</p>
+    <div class="row g-4"><article class="col-md-4" *ngFor="let artisan of featured">
+      <div class="border p-3 h-100" style="border-radius:8px">
+        <img *ngIf="artisan.avatar" [src]="imageUrl(artisan.avatar)" [alt]="artisan.name" style="width:64px;height:64px;object-fit:cover;border-radius:50%">
+        <h3 class="h5 mt-3">{{ artisan.name }}</h3><p>{{ artisan.profession }} · {{ artisan.location }}</p>
+        <p>{{ artisan.rating | number:'1.1-2' }} · {{ artisan.totalReviews }} تقييم</p>
+        <a [routerLink]="['/craftsmen-guide']" [queryParams]="{ artisan: artisan.id }">شوف شغله وتقييماته</a>
       </div>
-
-      <div class="mt-3 mt-md-0 d-flex gap-2">
-        <button class="btn btn-outline-secondary text-dark border rounded-pill px-4 bg-white fw-bold"
-          (click)="goToMaadi()">
-          المعادي
-        </button>
-
-        <button class="btn btn-link text-muted text-decoration-none" (click)="goToAllAreas()">
-          كل المناطق
-        </button>
-      </div>
-
-    </div>
-
-
-    <div class="row">
-
-      <!-- Craftsman 1 -->
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 craftsman-card">
-
-          <div class="card-body">
-
-            <div class="craftsman-info d-flex justify-content-between align-items-start mb-3">
-
-              <div class="d-flex align-items-center craftsman-profile">
-
-                <div class="craftsman-image flex-shrink-0 shadow-sm border">
-                  <img src="craftsman-mahmoud.jpg" alt="محمود الشناوي" class="w-100 h-100" width="200" height="200"
-                    loading="lazy">
-                </div>
-
-                <div class="craftsman-details">
-                  <h6 class="fw-bold m-0">محمود الشناوي</h6>
-
-                  <small class="text-muted d-block">
-                    فني كهرباء وتأسيس • 16 سنة خبرة
-                  </small>
-
-                  <small class="text-success">
-                    <span class="availability-dot"></span>
-                    متاح للمعاينة اليوم
-                  </small>
-                </div>
-
-              </div>
-
-              <div class="fw-bold d-flex align-items-center craftsman-rating">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EAB308">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                  </path>
-                </svg>
-                4.96
-              </div>
-
-            </div>
-
-            <p class="text-muted craftsman-description">
-              متخصص في تشخيص وصيانة القفلات الكهربائية وتأسيس الإضاءة المخفية بدقة وضمان معتمد.
-            </p>
-
-          </div>
-
-          <div class="card-footer bg-white border-0 craftsman-actions">
-
-            <button class="btn btn-light rounded-3 border message-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z">
-                </path>
-              </svg>
-            </button>
-
-            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn">
-              اتفق مع الأسطى
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-
-
-      <!-- Craftsman 2 -->
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 craftsman-card">
-
-          <div class="card-body">
-
-            <div class="craftsman-info d-flex justify-content-between align-items-start mb-3">
-
-              <div class="d-flex align-items-center craftsman-profile">
-
-                <div class="craftsman-image flex-shrink-0 shadow-sm border">
-                  <img src="craftsman-tarek.jpg" alt="طارق رضوان" class="w-100 h-100" width="200" height="200"
-                    loading="lazy">
-                </div>
-
-                <div class="craftsman-details">
-                  <h6 class="fw-bold m-0">طارق رضوان</h6>
-
-                  <small class="text-muted d-block">
-                    سباك شبكات وصرف • 12 سنة خبرة
-                  </small>
-
-                  <small class="text-success">
-                    <span class="availability-dot"></span>
-                    متاح للمعاينة اليوم
-                  </small>
-                </div>
-
-              </div>
-
-              <div class="fw-bold d-flex align-items-center craftsman-rating">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EAB308">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                  </path>
-                </svg>
-                4.92
-              </div>
-
-            </div>
-
-            <p class="text-muted craftsman-description">
-              كشف تسريبات بأحدث الأجهزة بدون تكسير، وتركيب أطقم الدفن وصيانة المضخات المنزلية.
-            </p>
-
-          </div>
-
-          <div class="card-footer bg-white border-0 craftsman-actions">
-
-            <button class="btn btn-light rounded-3 border message-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z">
-                </path>
-              </svg>
-            </button>
-
-            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn">
-              اتفق مع الأسطى
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-
-
-      <!-- Craftsman 3 -->
-      <div class="col-lg-4 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 craftsman-card">
-
-          <div class="card-body">
-
-            <div class="craftsman-info d-flex justify-content-between align-items-start mb-3">
-
-              <div class="d-flex align-items-center craftsman-profile">
-
-                <div class="craftsman-image flex-shrink-0 shadow-sm border">
-                  <img src="craftsman-hassan.jpg" alt="حسن النجار" class="w-100 h-100" width="200" height="200"
-                    loading="lazy">
-                </div>
-
-                <div class="craftsman-details">
-                  <h6 class="fw-bold m-0">حسن النجار</h6>
-
-                  <small class="text-muted d-block">
-                    تصنيع وتجديد أثاث • 19 سنة خبرة
-                  </small>
-
-                  <small class="text-muted">
-                    <span class="availability-dot unavailable"></span>
-                    متاح بدءاً من الغد
-                  </small>
-                </div>
-
-              </div>
-
-              <div class="fw-bold d-flex align-items-center craftsman-rating">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="#EAB308">
-                  <path
-                    d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                  </path>
-                </svg>
-                4.98
-              </div>
-
-            </div>
-
-            <p class="text-muted craftsman-description">
-              تصليح الأبواب والمفصلات، تصنيع الدواليب الحديثة وتجديد الصالونات مع ورشة متكاملة.
-            </p>
-
-          </div>
-
-          <div class="card-footer bg-white border-0 craftsman-actions">
-
-            <button class="btn btn-light rounded-3 border message-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10z">
-                </path>
-              </svg>
-            </button>
-
-            <button class="btn bg-primary-custom text-white rounded-3 fw-bold agreement-btn">
-              اتفق مع الأسطى
-            </button>
-
-          </div>
-
-        </div>
-      </div>
-
-    </div>
+    </article></div>
   </section>
-
 
   <!-- 5. DUAL CARDS SECTION -->
   <section class="container py-5 my-4 dual-cards-section">
@@ -681,7 +417,7 @@
           <!-- Buttons -->
           <div class="dual-card-buttons">
 
-            <button class="btn bg-primary-custom text-white fw-bold">
+            <button class="btn bg-primary-custom text-white fw-bold" (click)="postRequest()">
               نزل طلبك دلوقتي
             </button>
 

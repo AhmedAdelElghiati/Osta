@@ -1,8 +1,11 @@
+const http = require('http');
 const request = require('supertest');
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const { io: connectSocket } = require('socket.io-client');
 const app = require('../src/app');
 const { connectDatabase } = require('../src/config/database');
+const { attachChatSocket } = require('../src/services/chatSocket');
 const Craft = require('../src/models/Craft');
 const Job = require('../src/models/Job');
 const Transaction = require('../src/models/Transaction');
@@ -12,12 +15,45 @@ jest.setTimeout(30000);
 let mongoServer;
 let customerCookie;
 let artisanCookie;
+let otherCustomerCookie;
 let craft;
 
 const login = async (email) => {
   const response = await request(app).post('/api/auth/login').send({ email, password: 'StrongPass123!' });
   return response.headers['set-cookie'][0].split(';')[0];
 };
+
+const loginToken = async (email) => {
+  const response = await request(app).post('/api/auth/login').send({ email, password: 'StrongPass123!' });
+  return response.body.data.accessToken;
+};
+
+const connectAuthenticatedSocket = (url, token) =>
+  new Promise((resolve, reject) => {
+    const socket = connectSocket(url, { auth: { token }, transports: ['websocket'], reconnection: false });
+    const timeout = setTimeout(() => {
+      socket.close();
+      reject(new Error('Socket connection timed out'));
+    }, 5000);
+    socket.once('connect', () => {
+      clearTimeout(timeout);
+      resolve(socket);
+    });
+    socket.once('connect_error', (error) => {
+      clearTimeout(timeout);
+      socket.close();
+      reject(error);
+    });
+  });
+
+const nextSocketEvent = (socket, eventName) =>
+  new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error(`Timed out waiting for ${eventName}`)), 5000);
+    socket.once(eventName, (payload) => {
+      clearTimeout(timeout);
+      resolve(payload);
+    });
+  });
 
 const makeRequestBody = () => ({
   title: 'إصلاح تسريب في الحمام',
@@ -55,10 +91,18 @@ beforeAll(async () => {
     serviceAreas: ['مدينة نصر'],
     hourlyRate: 150,
   });
+  await request(app).post('/api/auth/register').send({
+    name: 'عميل آخر',
+    email: 'other-job-customer@example.com',
+    phone: '01000000333',
+    password: 'StrongPass123!',
+    role: 'customer',
+  });
 
   craft = await Craft.create({ name: 'سباكة', slug: 'plumbing-test', isActive: true });
   customerCookie = await login('job-customer@example.com');
   artisanCookie = await login('job-artisan@example.com');
+  otherCustomerCookie = await login('other-job-customer@example.com');
 });
 
 afterAll(async () => {
@@ -118,6 +162,99 @@ describe('Offer acceptance to job workflow', () => {
     const artisanJobs = await request(app).get('/api/v1/jobs/me').set('Cookie', [artisanCookie]).expect(200);
     expect(artisanJobs.body.data.items).toHaveLength(1);
     const jobId = artisanJobs.body.data.items[0]._id;
+
+    const scheduled = await request(app)
+      .post(`/api/v1/requests/${requestId}/schedule`)
+      .set('Cookie', [customerCookie])
+      .send({ preferredDate: '2099-10-08', preferredTime: '11:30' })
+      .expect(200);
+    expect(scheduled.body.data.preferredTime).toBe('11:30');
+    expect(scheduled.body.data.acceptedPrice).toBe(900);
+    expect(scheduled.body.data.jobId).toBe(jobId);
+    expect(scheduled.body.data.artisanId.name).toBe('أسطى تجربة');
+    await request(app)
+      .post(`/api/v1/requests/${requestId}/schedule`)
+      .set('Cookie', [otherCustomerCookie])
+      .send({ preferredDate: '2099-10-08', preferredTime: '11:30' })
+      .expect(404);
+
+    const sentMessage = await request(app)
+      .post(`/api/v1/chat/jobs/${jobId}/messages`)
+      .set('Cookie', [customerCookie])
+      .send({ text: 'مساء الخير، متى يمكن أن تبدأ؟' })
+      .expect(201);
+    expect(sentMessage.body.data.text).toBe('مساء الخير، متى يمكن أن تبدأ؟');
+    expect(sentMessage.body.data.senderId.name).toBe('عميل تجربة');
+
+    await request(app)
+      .post(`/api/v1/chat/jobs/${jobId}/messages`)
+      .set('Cookie', [artisanCookie])
+      .send({ text: 'أقدر أبدأ بكرة الصبح.' })
+      .expect(201);
+
+    const history = await request(app)
+      .get(`/api/v1/chat/jobs/${jobId}/messages`)
+      .set('Cookie', [customerCookie])
+      .expect(200);
+    expect(history.body.data.map((message) => message.text)).toEqual([
+      'مساء الخير، متى يمكن أن تبدأ؟',
+      'أقدر أبدأ بكرة الصبح.',
+    ]);
+    await request(app)
+      .get(`/api/v1/chat/jobs/${jobId}/messages`)
+      .set('Cookie', [otherCustomerCookie])
+      .expect(404);
+    await request(app).post(`/api/v1/chat/jobs/${jobId}/messages`).send({ text: 'بدون تسجيل' }).expect(401);
+    await request(app)
+      .post(`/api/v1/chat/jobs/${jobId}/messages`)
+      .set('Cookie', [customerCookie])
+      .send({ text: '   ' })
+      .expect(400);
+
+    const socketServer = http.createServer(app);
+    const socketIo = attachChatSocket(socketServer, app);
+    const sockets = [];
+    try {
+      await new Promise((resolve, reject) => {
+        socketServer.once('error', reject);
+        socketServer.listen(0, '127.0.0.1', resolve);
+      });
+
+      const address = socketServer.address();
+      const socketUrl = `http://127.0.0.1:${address.port}`;
+      const customerSocket = await connectAuthenticatedSocket(socketUrl, await loginToken('job-customer@example.com'));
+      const artisanSocket = await connectAuthenticatedSocket(socketUrl, await loginToken('job-artisan@example.com'));
+      const otherCustomerSocket = await connectAuthenticatedSocket(
+        socketUrl,
+        await loginToken('other-job-customer@example.com'),
+      );
+      sockets.push(customerSocket, artisanSocket, otherCustomerSocket);
+
+      const customerJoined = nextSocketEvent(customerSocket, 'chat:joined');
+      customerSocket.emit('chat:join', jobId);
+      await customerJoined;
+      const artisanJoined = nextSocketEvent(artisanSocket, 'chat:joined');
+      artisanSocket.emit('chat:join', jobId);
+      await artisanJoined;
+
+      const deniedJoin = nextSocketEvent(otherCustomerSocket, 'chat:error');
+      otherCustomerSocket.emit('chat:join', jobId);
+      expect((await deniedJoin).message).toContain('غير مسموح');
+
+      const customerReceived = nextSocketEvent(customerSocket, 'chat:message');
+      const artisanReceived = nextSocketEvent(artisanSocket, 'chat:message');
+      await request(app)
+        .post(`/api/v1/chat/jobs/${jobId}/messages`)
+        .set('Cookie', [customerCookie])
+        .send({ text: 'هكون موجود في الموعد.' })
+        .expect(201);
+      await expect(customerReceived).resolves.toMatchObject({ text: 'هكون موجود في الموعد.' });
+      await expect(artisanReceived).resolves.toMatchObject({ text: 'هكون موجود في الموعد.' });
+    } finally {
+      sockets.forEach((socket) => socket.disconnect());
+      await new Promise((resolve) => socketIo.close(resolve));
+      app.set('io', undefined);
+    }
 
     await request(app)
       .patch(`/api/v1/jobs/${jobId}/status`)

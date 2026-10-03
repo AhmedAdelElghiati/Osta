@@ -12,6 +12,7 @@ import { JobsMarket } from './pages/jobs-market/jobs-market';
 import { HowItWorks } from './pages/how-it-works/how-it-works';
 import { Developers } from './pages/developers/developers';
 import { CustomerDashboard } from './pages/customer-dashboard/customer-dashboard';
+import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
 import { authGuard } from './guards/auth-guard';
 
 // Dashboard
@@ -23,6 +24,7 @@ import { MyJobs } from './dashboard/my-jobs/my-jobs';
 import { Earnings } from './dashboard/earnings/earnings';
 import { Profile } from './dashboard/profile/profile';
 import { Settings } from './dashboard/settings/settings';
+import { DashboardChat } from './pages/customer-dashboard/components/dashboard-chat/dashboard-chat';
 
 
 export const routes: Routes = [
@@ -53,6 +55,8 @@ export const routes: Routes = [
     redirectTo: 'dashboard/home',
     pathMatch: 'full',
   },
+
+  { path: 'admin-dashboard', component: AdminDashboard, canActivate: [authGuard], data: { role: 'admin' } },
 
   {
     path: 'register',
@@ -130,6 +134,11 @@ export const routes: Routes = [
       {
         path: 'my-jobs',
         component: MyJobs,
+      },
+
+      {
+        path: 'chat',
+        component: DashboardChat,
       },
 
       {

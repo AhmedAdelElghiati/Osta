@@ -69,6 +69,13 @@ router.patch('/contact/:id', authenticate, authorize('admin'), async (req, res, 
 });
 
 // ---- artisan verification ----
+router.get('/artisans', authenticate, authorize('admin'), async (_req, res, next) => {
+  try {
+    const artisans = await Artisan.find({}).populate('userId', 'name email isActive').sort({ createdAt: -1 }).lean();
+    return sendResponse(res, 200, true, 'قائمة الحرفيين.', artisans);
+  } catch (error) { next(error); }
+});
+
 router.patch('/artisans/:id/verify', authenticate, authorize('admin'), async (req, res, next) => {
   try {
     const artisan = await Artisan.findByIdAndUpdate(req.params.id, { $set: { isVerified: req.body.isVerified !== false } }, { new: true });

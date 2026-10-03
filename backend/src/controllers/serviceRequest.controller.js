@@ -20,4 +20,15 @@ const timeline = async (req, res, next) => { try { return sendResponse(res, 200,
 const images = async (req, res, next) => { try { if (!req.files?.length) return sendResponse(res, 400, false, 'من فضلك اختار صورة واحدة على الأقل.'); return sendResponse(res, 201, true, 'تمت إضافة الصور بنجاح.', await service.addImages(req.params.id, req.user.id, req.files)); } catch (error) { next(error); } };
 const deleteImage = async (req, res, next) => { try { return sendResponse(res, 200, true, 'تم حذف الصورة بنجاح.', await service.deleteImage(req.params.id, req.user.id, req.params.imageId)); } catch (error) { next(error); } };
 
-module.exports = { create, list, get, update, publish, cancel, republish, timeline, images, deleteImage };
+const schedule = async (req, res, next) => {
+  try {
+    const Joi = require('joi');
+    const schema = Joi.object({ preferredDate: Joi.date().iso().min('now').required(),
+      preferredTime: Joi.string().pattern(/^([01]\d|2[0-3]):[0-5]\d$/).required() });
+    const result = schema.validate(req.body);
+    if (result.error) return validationError(res, result.error);
+    return sendResponse(res, 200, true, 'تم حفظ موعد المعاينة.', await service.scheduleRequest(req.params.id, req.user.id, req.body));
+  } catch (error) { next(error); }
+};
+
+module.exports = { create, list, get, update, publish, cancel, republish, timeline, images, deleteImage, schedule };

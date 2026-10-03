@@ -1,4 +1,4 @@
-﻿import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Subject, map } from 'rxjs';
 import { Marketplace } from '../../services/marketplace';
 import { RequestsService } from './requests.service';
@@ -31,7 +31,9 @@ export class OffersService {
   accepted$ = new Subject<{ offer: Offer }>();
   withdrawn$ = new Subject<Offer>();
 
-  offers: Offer[] = [];
+  private offerState = signal<Offer[]>([]);
+  get offers() { return this.offerState(); }
+  set offers(value: Offer[]) { this.offerState.set(value); }
   loading = false;
   error = '';
 
@@ -76,7 +78,7 @@ export class OffersService {
     return this.api.createOffer(body).pipe(
       map((response) => {
         const offer = this.mapOffer(response.data);
-        this.offers.unshift(offer);
+        this.offers = [offer, ...this.offers];
         this.requests.setApplied(data.reqId, true);
         this.requests.load();
         return offer;
@@ -91,7 +93,7 @@ export class OffersService {
     this.api.withdrawOffer(id).subscribe({
       next: (response) => {
         const updated = this.mapOffer(response.data);
-        Object.assign(offer, updated);
+        this.offers = this.offers.map(item => item.id === id ? updated : item);
         this.requests.setApplied(offer.reqId, false);
         this.requests.load();
         this.withdrawn$.next(offer);

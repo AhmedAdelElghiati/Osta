@@ -1,15 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Subject } from 'rxjs';
 import { JOBS_ENDPOINT } from '../../core/api.config';
 
 export type JobPhase = 'معاينة' | 'تنفيذ' | 'انتظار' | 'مكتمل';
-
-export interface ChatMessage {
-  me: boolean;
-  text: string;
-  time: string;
-}
 
 export interface Job {
   id: string;
@@ -21,7 +15,6 @@ export interface Job {
   escrow: number;
   note: string;
   inv?: string;
-  chat: ChatMessage[];
 }
 
 const PHASE_BY_STATUS: Record<string, JobPhase> = {
@@ -36,7 +29,9 @@ const PHASE_BY_STATUS: Record<string, JobPhase> = {
 export class JobsService {
   approved$ = new Subject<{ job: Job; net: number; fee: number }>();
 
-  jobs: Job[] = [];
+  private jobState = signal<Job[]>([]);
+  get jobs() { return this.jobState(); }
+  set jobs(value: Job[]) { this.jobState.set(value); }
   loading = false;
   error = '';
 
@@ -76,14 +71,6 @@ export class JobsService {
     this.updateStatus(id, 'DELIVERED');
   }
 
-  addMessage(id: string, message: ChatMessage) {
-    this.find(id)?.chat.push(message);
-  }
-
-  nowTime() {
-    return new Date().toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit' });
-  }
-
   private updateStatus(id: string, status: 'IN_PROGRESS' | 'DELIVERED') {
     this.http.patch<any>(`${JOBS_ENDPOINT}/${id}/status`, { status }, { withCredentials: true }).subscribe({
       next: (response) => this.upsert(this.mapJob(response.data)),
@@ -93,17 +80,13 @@ export class JobsService {
     });
   }
 
-  private find(id: string) {
-    return this.jobs.find((job) => job.id === id);
-  }
-
   private upsert(job: Job) {
     const index = this.jobs.findIndex((item) => item.id === job.id);
     if (index === -1) {
-      this.jobs.unshift(job);
+      this.jobs = [job, ...this.jobs];
       return;
     }
-    this.jobs[index] = { ...job, chat: this.jobs[index].chat };
+    this.jobs = this.jobs.map((item, i) => i === index ? job : item);
   }
 
   private mapJob(raw: any): Job {
@@ -122,7 +105,6 @@ export class JobsService {
       escrow: raw.paymentStatus === 'RELEASED' ? 0 : Number(raw.price ?? 0),
       inv: raw.completedAt ? `INV-${String(raw._id ?? '').slice(-4).toUpperCase()}` : undefined,
       note: this.noteFor(raw.status),
-      chat: [],
     };
   }
 

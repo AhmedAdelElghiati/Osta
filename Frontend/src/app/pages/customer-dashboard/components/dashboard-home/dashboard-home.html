@@ -246,7 +246,7 @@
 
                         <div class="custom-progress">
 
-                            <span [style.width]="'50%'">
+                            <span [style.width]="request.backendStatus === 'COMPLETED' ? '100%' : request.backendStatus === 'DELIVERED' ? '85%' : request.backendStatus === 'IN_PROGRESS' ? '50%' : '10%'">
                             </span>
 
                         </div>
@@ -257,7 +257,7 @@
                     <!-- Actions -->
                     <div class="d-flex gap-2 mt-3">
 
-                        <button type="button" class="btn-outline-custom flex-fill">
+                        <button type="button" class="btn-outline-custom flex-fill" (click)="goToPage('chat')">
 
                             <i class="bi bi-chat-dots"></i>
 
@@ -344,7 +344,7 @@
                                     <i class="bi bi-star-fill"></i>
 
                                     <strong>
-                                        4.8
+                                        {{ offer.artisanProfile?.rating ?? 'لا يوجد تقييم' }}
                                     </strong>
 
                                     <span>

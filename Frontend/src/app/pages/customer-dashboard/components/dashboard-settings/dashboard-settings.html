@@ -10,6 +10,22 @@
         </div>
     </div>
 
+    <section class="settings-card mb-4">
+        <h2>حساب السحب</h2>
+        <form (ngSubmit)="savePayout()" class="row g-3">
+            <div class="col-md-6">
+                <label for="payoutProvider" class="form-label">الجهة</label>
+                <input id="payoutProvider" name="payoutProvider" class="form-control" [(ngModel)]="payout.provider" required maxlength="100">
+            </div>
+            <div class="col-md-6">
+                <label for="payoutNumber" class="form-label">رقم الحساب أو المحفظة</label>
+                <input id="payoutNumber" name="payoutNumber" class="form-control" [(ngModel)]="payout.number" required maxlength="100" dir="ltr">
+            </div>
+            <div><button class="primary-btn" type="submit" [disabled]="payoutSaving"><i class="bi bi-check2"></i> حفظ</button></div>
+            <p *ngIf="payoutMessage" role="status">{{ payoutMessage }}</p>
+        </form>
+    </section>
+
     <!-- ================= Profile ================= -->
     <section class="settings-card mb-4">
 
@@ -69,7 +85,7 @@
                         البريد الإلكتروني
                     </label>
 
-                    <input type="email" class="form-control" [(ngModel)]="profile.email" name="email">
+                    <input type="email" class="form-control" [(ngModel)]="profile.email" name="email" readonly>
                 </div>
 
                 <div class="col-md-6">
@@ -287,7 +303,7 @@
                 </div>
 
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.requests">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.requests" (ngModelChange)="saveNotifications()">
                 </div>
 
             </div>
@@ -303,7 +319,7 @@
                 </div>
 
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.offers">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.offers" (ngModelChange)="saveNotifications()">
                 </div>
 
             </div>
@@ -319,7 +335,7 @@
                 </div>
 
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.messages">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.messages" (ngModelChange)="saveNotifications()">
                 </div>
 
             </div>
@@ -335,7 +351,7 @@
                 </div>
 
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.updates">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="notifications.updates" (ngModelChange)="saveNotifications()">
                 </div>
 
             </div>

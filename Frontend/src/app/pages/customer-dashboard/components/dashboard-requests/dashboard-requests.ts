@@ -419,9 +419,11 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.closeSchedule();
-
-    this.showToast('تم تحديد موعد المعاينة بنجاح');
+    if (!this.selectedRequest) return;
+    this.requestsApi.schedule(this.selectedRequest.id, this.scheduleDate, this.scheduleTime).subscribe({
+      next: request => { this.selectedRequest = request; this.closeSchedule(); this.showToast('تم حفظ موعد المعاينة.'); this.cdr.markForCheck(); },
+      error: err => this.toast.emit({ message: err.error?.message || 'تعذر حفظ الموعد.', type: 'error' }),
+    });
   }
 
   // =========================
@@ -446,11 +448,11 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
 الخدمة: ${this.selectedRequest?.title}
 الأسطى: ${this.currentRequestDetails?.craftsman?.name || 'غير محدد'}
 
-قيمة العمل: ${this.selectedRequest?.budget} ج.م
+قيمة العمل: ${this.selectedRequest?.acceptedPrice ?? 'لم يتم قبول عرض'} ج.م
 رسوم المنصة: 0 ج.م
-الإجمالي: ${this.selectedRequest?.budget} ج.م
+الإجمالي: ${this.selectedRequest?.acceptedPrice ?? 'غير محدد'} ج.م
 
-تم دفع المبلغ من خلال ضمان المنصة.
+حالة التسوية: ${this.selectedRequest?.paymentStatus || 'لا يوجد دفع مسجل'}
 `;
     const blob = new Blob([invoice], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);

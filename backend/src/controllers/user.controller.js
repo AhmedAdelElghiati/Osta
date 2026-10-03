@@ -1,6 +1,45 @@
 const { sendResponse } = require('../utils/apiResponse');
 const User = require('../models/User');
 const Artisan = require('../models/Artisan');
+const Joi = require('joi');
+
+const settingsSchema = Joi.object({
+  notifications: Joi.object({
+    requests: Joi.boolean(), offers: Joi.boolean(), messages: Joi.boolean(), updates: Joi.boolean(),
+  }),
+  addresses: Joi.array().max(20).items(Joi.object({
+    id: Joi.string().max(100).required(), title: Joi.string().trim().max(100).required(),
+    address: Joi.string().trim().max(500).required(),
+  })),
+  paymentMethods: Joi.array().max(10).items(Joi.object({
+    id: Joi.string().max(100).required(), type: Joi.string().max(50).required(),
+    lastFour: Joi.string().pattern(/^\d{1,4}$/).required(),
+    details: Joi.string().max(100).required(), icon: Joi.string().valid('bi-phone', 'bi-credit-card').required(),
+  })),
+  payout: Joi.object({ provider: Joi.string().max(100).allow(''), number: Joi.string().max(50).allow('') }),
+}).min(1);
+
+const getSettings = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('settings');
+    return sendResponse(res, 200, true, 'تم جلب الإعدادات.', user.settings);
+  } catch (error) { next(error); }
+};
+
+const updateSettings = async (req, res, next) => {
+  try {
+    const { error, value } = settingsSchema.validate(req.body);
+    if (error) return sendResponse(res, 400, false, error.details[0].message);
+    const patch = {};
+    Object.entries(value).forEach(([key, item]) => {
+      if (key === 'notifications' || key === 'payout') {
+        Object.entries(item).forEach(([field, entry]) => { patch[`settings.${key}.${field}`] = entry; });
+      } else patch[`settings.${key}`] = item;
+    });
+    const user = await User.findByIdAndUpdate(req.user.id, { $set: patch }, { new: true, runValidators: true }).select('settings');
+    return sendResponse(res, 200, true, 'تم حفظ الإعدادات.', user.settings);
+  } catch (error) { next(error); }
+};
 
 // PATCH /api/users/me  (customer/artisan updates own basic profile)
 const updateMe = async (req, res, next) => {
@@ -13,7 +52,7 @@ const updateMe = async (req, res, next) => {
       if (clash) return sendResponse(res, 409, false, 'رقم الموبايل ده متسجل قبل كده.');
     }
     if (patch.name && String(patch.name).trim().length < 2) return sendResponse(res, 400, false, 'الاسم قصير أوي.');
-    const user = await User.findByIdAndUpdate(req.user.id, { $set: patch }, { new: true }).select('-password');
+    const user = await User.findByIdAndUpdate(req.user.id, { $set: patch }, { new: true, runValidators: true }).select('-password');
     if (!user) return sendResponse(res, 404, false, 'المستخدم مش موجود.');
 
     // لو أسطى وباعت بيانات حرفة حدّثها كمان
@@ -42,4 +81,4 @@ const deleteMe = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-module.exports = { updateMe, deleteMe };
+module.exports = { updateMe, deleteMe, getSettings, updateSettings };

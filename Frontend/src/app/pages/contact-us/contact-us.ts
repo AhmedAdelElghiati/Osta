@@ -1,7 +1,8 @@
-﻿import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
+import { Marketplace } from '../../services/marketplace';
 
 @Component({
   selector: 'app-contact-us',
@@ -11,6 +12,8 @@ import { FormsModule, NgForm } from '@angular/forms';
   styleUrl: './contact-us.css',
 })
 export class ContactUs {
+  constructor(private api: Marketplace, private cdr: ChangeDetectorRef) {}
+  sending = false;
   contactType: 'business' | 'personal' | 'company' = 'business';
 
   fullName = '';
@@ -152,80 +155,23 @@ export class ContactUs {
       return;
     }
 
-    // =========================
-    // Data Object
-    // =========================
-
-    const contactMessage = {
-      id: Date.now(),
-
-      fullName: cleanName,
-
-      phone: '+20' + cleanPhone.substring(1),
-
-      contactType: this.contactType,
-
-      subject: this.subject,
-
-      partNumber: cleanPartNumber,
-
-      message: cleanMessage,
-
-      createdAt: new Date().toISOString(),
-    };
-
-    // =========================
-    // Local Storage
-    // =========================
-
-    const oldMessages = localStorage.getItem('ostaContactMessages');
-
-    let messages: any[] = [];
-
-    if (oldMessages) {
-      try {
-        const parsedMessages = JSON.parse(oldMessages);
-
-        if (Array.isArray(parsedMessages)) {
-          messages = parsedMessages;
-        }
-      } catch {
-        messages = [];
+    if (this.sending) return;
+    this.sending = true;
+    this.api.sendContact({ fullName: cleanName, phone: cleanPhone, contactType: this.contactType,
+      subject: this.subject, partNumber: cleanPartNumber, message: cleanMessage }).subscribe({
+      next: () => {
+        this.sending = false;
+        this.successMessage = 'تم إرسال رسالتك بنجاح.';
+        form.resetForm({ contactType: 'business' });
+        this.contactType = 'business';
+        this.submitted = false;
+        this.cdr.markForCheck();
+      },
+      error: err => {
+        this.sending = false;
+        this.errorMessage = err.error?.message || 'تعذر إرسال الرسالة.';
+        this.cdr.markForCheck();
       }
-    }
-
-    messages.push(contactMessage);
-
-    localStorage.setItem('ostaContactMessages', JSON.stringify(messages));
-
-    // =========================
-    // Success
-    // =========================
-
-    this.successMessage = 'تم إرسال رسالتك بنجاح، وهنتواصل معاك في أقرب وقت.';
-
-    this.errorMessage = '';
-
-    // =========================
-    // Reset
-    // =========================
-
-    form.resetForm({
-      contactType: 'business',
-
-      fullName: '',
-
-      phone: '',
-
-      subject: '',
-
-      partNumber: '',
-
-      message: '',
     });
-
-    this.contactType = 'business';
-
-    this.submitted = false;
   }
 }

@@ -1,121 +1,66 @@
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Observable, tap } from 'rxjs';
 import { WALLET_ENDPOINT } from '../../core/api.config';
+import { Marketplace } from '../../services/marketplace';
+import { Auth } from '../../services/auth';
 
 export interface Tx {
   type: 'escrow' | 'income' | 'fee' | 'withdraw';
-  title: string;
-  sub: string;
-  date: string;
-  status: string;
-  amount: number;
-  green?: boolean;
+  title: string; sub: string; date: string; status: string; amount: number; green?: boolean; createdAt?: string;
 }
-
 @Injectable({ providedIn: 'root' })
 export class WalletService {
-
-  constructor(private http: HttpClient) {
-    this.load();
+  private balanceState = signal(0);
+  get balance() { return this.balanceState(); }
+  set balance(value: number) { this.balanceState.set(value); }
+  private escrowState = signal(0);
+  get escrow() { return this.escrowState(); }
+  set escrow(value: number) { this.escrowState.set(value); }
+  private payoutState = signal({ provider: '', number: '' });
+  get payout() { return this.payoutState(); }
+  set payout(value: { provider: string; number: string }) { this.payoutState.set(value); }
+  private transactionState = signal<Tx[]>([]);
+  get transactions() { return this.transactionState(); }
+  set transactions(value: Tx[]) { this.transactionState.set(value); }
+  error = '';
+  constructor(private http: HttpClient, private api: Marketplace, auth: Auth) {
+    auth.currentUser$.subscribe(user => {
+      this.balance = 0; this.escrow = 0; this.transactions = []; this.payout = { provider: '', number: '' };
+      if (user?.role === 'artisan') {
+        this.load();
+        this.api.settings().subscribe({ next: res => { this.payout = res.data.payout || this.payout; },
+          error: () => { this.error = 'تعذر تحميل حساب السحب.'; } });
+      }
+    });
   }
-
-  readonly COMMISSION = 0.03;
-
-  balance = 0;
-  escrow = 0;
-    /** حساب السحب المحفوظ من صفحة الإعدادات */
-  payout = { provider: 'فودافون كاش', number: '0100 987 6543' };
-
   get payoutLabel() {
-    const last2 = this.payout.number.replace(/\D/g, '').slice(-2);
-    return `${this.payout.provider} •• ${last2}`;
+    return this.payout.provider ? this.payout.provider + ' •• ' + this.payout.number.slice(-2) : '';
   }
-
-  private feeSeq = 92;
-
-  transactions: Tx[] = [];
-  load(): void {
+  load() {
     this.http.get<any>(WALLET_ENDPOINT, { withCredentials: true }).subscribe({
-      next: (response) => {
-        const data = response?.data;
-        this.balance = Number(data?.availableBalance ?? 0);
-        this.escrow = Number(data?.escrowBalance ?? 0);
-        this.transactions = (data?.transactions ?? []).map((transaction: any) => this.mapTransaction(transaction));
+      next: res => {
+        this.balance = res.data.availableBalance; this.escrow = res.data.escrowBalance;
+        this.transactions = (res.data.transactions || []).map((t: any) => ({
+          type: t.type === 'escrow_hold' ? 'escrow' : ['escrow_release','deposit','refund'].includes(t.type) ? 'income' : t.type === 'withdraw' ? 'withdraw' : 'fee',
+          title: t.title, sub: t.meta?.jobId ? '#' + t.meta.jobId.slice(-6) : '',
+          date: new Date(t.createdAt).toLocaleDateString('ar-EG'), createdAt: t.createdAt,
+          status: t.status === 'completed' ? 'مكتمل' : t.status === 'pending' ? 'قيد الانتظار' : 'فشل',
+          amount: t.amount, green: ['escrow_release','deposit','refund'].includes(t.type)
+        }));
+        this.error = '';
       },
+      error: () => { this.error = 'تعذر تحميل المحفظة.'; }
     });
   }
-
-  private mapTransaction(transaction: any): Tx {
-    const type: Tx['type'] = transaction.type === 'escrow_hold'
-      ? 'escrow'
-      : transaction.type === 'escrow_release' || transaction.type === 'deposit' || transaction.type === 'refund'
-        ? 'income'
-        : transaction.type === 'withdraw'
-          ? 'withdraw'
-          : 'fee';
-    return {
-      type,
-      title: transaction.title || 'عملية مالية',
-      sub: transaction.meta?.jobId ? `#${String(transaction.meta.jobId).slice(-6).toUpperCase()}` : '',
-      date: transaction.createdAt ? new Date(transaction.createdAt).toLocaleDateString('ar-EG') : '',
-      status: transaction.status === 'completed' ? 'مكتمل' : transaction.status,
-      amount: Number(transaction.amount || 0),
-      green: type === 'income',
-    };
-  }
-
   get earnings() {
-    return this.transactions
-      .filter(t => t.type === 'income')
-      .reduce((sum, t) => sum + t.amount, 0);
+    const today = new Date();
+    return this.transactions.filter(t => {
+      const date = new Date(t.createdAt || '');
+      return t.type === 'income' && t.status === 'مكتمل' && date.getMonth() === today.getMonth() && date.getFullYear() === today.getFullYear();
+    }).reduce((sum, t) => sum + t.amount, 0);
   }
-
-  /** عميل قبل العرض → المبلغ يتحجز في الضمان */
-  reserveEscrow(title: string, amount: number) {
-    this.escrow += amount;
-    this.transactions.unshift({
-      type: 'escrow',
-      title: 'حجز ضمان من العميل',
-      sub: `${title} — #ESC-${2200 + Math.floor(Math.random() * 60)}`,
-      date: 'الآن',
-      status: 'محجوز',
-      amount
-    });
-  }
-
-  /** العميل اعتمد التسليم → تحرير الضمان للرصيد بعد خصم العمولة */
-  release(title: string, price: number, inv: string) {
-    const fee = Math.round(price * this.COMMISSION);
-    const net = price - fee;
-
-    this.escrow = Math.max(0, this.escrow - price);
-    this.balance += net;
-
-    this.transactions.unshift({
-      type: 'income', title: 'تحرير ضمان — أرباح شغلانة',
-      sub: `${title} — #${inv}`, date: 'الآن', status: 'مكتمل', amount: net, green: true
-    });
-    this.transactions.unshift({
-      type: 'fee', title: 'عمولة المنصة (3%)',
-      sub: `${title} — #FEE-0${this.feeSeq++}`, date: 'الآن', status: 'مدفوع', amount: fee
-    });
-
-    return { net, fee };
-  }
-    /** سحب أرباح — بيرجع رسالة خطأ لو المبلغ مش صحيح */
-  withdraw(amount: number, to: string): string | null {
-    if (!amount || amount <= 0) return 'اكتب مبلغ صحيح أول';
-    if (amount > this.balance) return 'المبلغ أكبر من رصيدك المتاح';
-
-    this.balance -= amount;
-    this.transactions.unshift({
-      type: 'withdraw',
-      title: 'سحب أرباح',
-      sub: `${to} — #WDR-${290 + Math.floor(Math.random() * 50)}`,
-      date: 'الآن',
-      status: 'مكتمل',
-      amount
-    });
-    return null;
+  withdraw(amount: number, _to: string): Observable<any> {
+    return this.api.withdraw(amount).pipe(tap(() => this.load()));
   }
 }

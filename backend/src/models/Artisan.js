@@ -52,6 +52,11 @@ const artisanSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    isAvailable: { type: Boolean, default: true },
+    portfolio: [{
+      title: { type: String, required: true, trim: true, maxlength: 200 },
+      image: { type: String, default: '', maxlength: 2000 },
+    }],
   },
   {
     timestamps: true,

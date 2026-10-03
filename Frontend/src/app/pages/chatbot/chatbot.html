@@ -3,7 +3,7 @@
          d-flex justify-content-center align-items-center chatbot-fab"
   style="width: 60px; height: 60px; z-index: 1050; font-size: 24px;"
   (click)="toggleChat()"
-  title="مساعد الأسطى الذكي"
+  title="مساعد أُسطى"
 >
   {{ isOpen ? '✖' : '👷' }}
 </button>
@@ -25,7 +25,7 @@
       <span style="font-size: 22px;">👷</span>
       <div>
         <h6 class="m-0 fw-bold">الأسطى</h6>
-        <small style="font-size: 11px; opacity: .8;">مساعدك الذكي للحرف والخدمات</small>
+        <small style="font-size: 11px; opacity: .8;">مساعد أُسطى</small>
       </div>
     </div>
     <button type="button" class="btn-close" (click)="toggleChat()" aria-label="إغلاق"></button>
@@ -74,6 +74,7 @@
         [(ngModel)]="userInput"
         name="userInput"
         autocomplete="off"
+        maxlength="1000"
         [disabled]="loading"
       >
       <button

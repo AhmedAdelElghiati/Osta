@@ -1,7 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Marketplace } from '../../services/marketplace';
+import { API_ORIGIN } from '../../core/api.config';
+import { Auth } from '../../services/auth';
 
 @Component({
   selector: 'app-home',
@@ -10,11 +13,27 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
-export class Home {
+export class Home implements OnInit {
   searchSpecialty = '';
   searchLocation = '';
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private api: Marketplace, private cdr: ChangeDetectorRef, private auth: Auth) {}
+  stats: any = null;
+  featured: any[] = [];
+  statsError = '';
+  featuredError = '';
+  ngOnInit() {
+    this.api.platformStats().subscribe({
+      next: res => { this.stats = res.data; this.cdr.markForCheck(); },
+      error: () => { this.statsError = 'تعذر تحميل الإحصائيات.'; this.cdr.markForCheck(); },
+    });
+    this.api.listArtisans({ sort: 'rating', limit: 3 }).subscribe({
+      next: res => { this.featured = res.data.items; this.cdr.markForCheck(); },
+      error: () => { this.featuredError = 'تعذر تحميل الأسطوات.'; this.cdr.markForCheck(); },
+    });
+  }
+  imageUrl(image: string) { return image.startsWith('/uploads/') ? API_ORIGIN + image : image; }
+  postRequest() { this.router.navigate([this.auth.currentUserValue?.role === 'customer' ? '/customer-dashboard' : '/login']); }
 
   searchCraftsman(): void {
     this.router.navigate(['/craftsmen-guide'], {

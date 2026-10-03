@@ -4,6 +4,7 @@ import { ChangeDetectorRef, Component, EventEmitter, OnInit, Output } from '@ang
 import { Router } from '@angular/router';
 import { Auth } from '../../../../services/auth';
 import { Marketplace } from '../../../../services/marketplace';
+import { API_ORIGIN } from '../../../../core/api.config';
 
 @Component({
   selector: 'app-dashboard-settings',
@@ -32,8 +33,18 @@ export class DashboardSettings implements OnInit {
   knownCities = ['مدينة نصر', 'مصر الجديدة', 'المعادي'];
 
   ngOnInit(): void {
+    this.api.settings().subscribe({
+      next: res => {
+        this.addresses = (res.data.addresses || []).map((a: any) => ({ id: a.id, title: a.title, address: a.address }));
+        this.notifications = res.data.notifications;
+        this.payout = res.data.payout || this.payout;
+        this.cdr.markForCheck();
+      },
+      error: () => { this.profileMessage = 'تعذر تحميل الإعدادات.'; this.cdr.markForCheck(); },
+    });
     const user = this.auth.currentUserValue;
     if (user) {
+      this.profileImage = user.profileImage?.startsWith('/uploads/') ? API_ORIGIN + user.profileImage : user.profileImage || null;
       this.profile = {
         name: user.name,
         email: user.email,
@@ -141,25 +152,28 @@ export class DashboardSettings implements OnInit {
     updates: true,
   };
 
+  payout = { provider: '', number: '' };
+  payoutSaving = false;
+  payoutMessage = '';
+
+  savePayout() {
+    if (this.payoutSaving) return;
+    this.payoutSaving = true;
+    this.payoutMessage = '';
+    this.api.saveSettings({ payout: this.payout }).subscribe({
+      next: () => { this.payoutSaving = false; this.payoutMessage = 'تم حفظ حساب السحب.'; this.cdr.markForCheck(); },
+      error: err => { this.payoutSaving = false; this.payoutMessage = err.error?.message || 'تعذر حفظ حساب السحب.'; this.cdr.markForCheck(); },
+    });
+  }
+
   // Saved Addresses
-  addresses = [
-    {
-      id: 1,
-      title: 'المنزل',
-      address: 'شارع عباس العقاد، مدينة نصر، القاهرة',
-    },
-    {
-      id: 2,
-      title: 'العمل',
-      address: 'شارع مصطفى النحاس، مدينة نصر، القاهرة',
-    },
-  ];
+  addresses: { id: string; title: string; address: string }[] = [];
 
   addressModalOpen = false;
 
   addressTitle = '';
   addressText = '';
-  editingAddressId: number | null = null;
+  editingAddressId: string | null = null;
 
   openAddAddress() {
     this.addressTitle = '';
@@ -186,29 +200,29 @@ export class DashboardSettings implements OnInit {
       return;
     }
 
-    if (this.editingAddressId !== null) {
-      const address = this.addresses.find((item) => item.id === this.editingAddressId);
-
-      if (address) {
-        address.title = this.addressTitle;
-        address.address = this.addressText;
-      }
-    } else {
-      this.addresses.push({
-        id: Date.now(),
-        title: this.addressTitle,
-        address: this.addressText,
-      });
-    }
-
-    this.closeAddressModal();
+    const updated = { id: this.editingAddressId || crypto.randomUUID(), title: this.addressTitle.trim(), address: this.addressText.trim() };
+    const addresses = this.editingAddressId ? this.addresses.map(a => a.id === updated.id ? updated : a) : [...this.addresses, updated];
+    this.api.saveSettings({ addresses }).subscribe({
+      next: () => { this.addresses = addresses; this.closeAddressModal(); this.cdr.markForCheck(); },
+      error: err => { this.profileMessage = err.error?.message || 'تعذر حفظ العنوان.'; this.cdr.markForCheck(); },
+    });
   }
 
-  deleteAddress(id: number) {
-    this.addresses = this.addresses.filter((address) => address.id !== id);
+  deleteAddress(id: string) {
+    const addresses = this.addresses.filter(a => a.id !== id);
+    this.api.saveSettings({ addresses }).subscribe({
+      next: () => { this.addresses = addresses; this.cdr.markForCheck(); },
+      error: () => { this.profileMessage = 'تعذر حذف العنوان.'; this.cdr.markForCheck(); },
+    });
   }
 
-  profileImage: string | null = localStorage.getItem('profileImage');
+  saveNotifications() {
+    this.api.saveSettings({ notifications: this.notifications }).subscribe({
+      error: () => { this.profileMessage = 'تعذر حفظ تفضيلات الإشعارات.'; this.cdr.markForCheck(); },
+    });
+  }
+
+  profileImage: string | null = null;
 
   onProfileImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
@@ -223,15 +237,10 @@ export class DashboardSettings implements OnInit {
       return;
     }
 
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      this.profileImage = reader.result as string;
-
-      localStorage.setItem('profileImage', this.profileImage);
-    };
-
-    reader.readAsDataURL(file);
+    this.api.uploadImage(file).subscribe({
+      next: res => { this.profileImage = API_ORIGIN + res.data.url; this.auth.fetchCurrentUser().subscribe(); this.cdr.markForCheck(); },
+      error: err => { this.profileMessage = err.error?.message || 'تعذر رفع الصورة.'; this.cdr.markForCheck(); },
+    });
   }
 
   // Delete Account
