@@ -7,6 +7,7 @@ const router = express.Router();
 
 router.use(authenticate, authorize('customer', 'artisan'));
 router.get('/me', jobController.listMine);
+router.post('/:id/dispute', authorize('customer'), require('../controllers/dispute.controller').open);
 router.get('/:id', jobController.getOne);
 router.patch('/:id/status', jobController.updateStatus);
 

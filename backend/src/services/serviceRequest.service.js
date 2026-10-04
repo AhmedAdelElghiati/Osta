@@ -8,6 +8,7 @@ const Offer = require('../models/Offer');
 const Job = require('../models/Job');
 const Artisan = require('../models/Artisan');
 const Review = require('../models/Review');
+const { createRequestSchema } = require('../validators/serviceRequest.validators');
 
 const enrichRequests = async (items) => {
   const ids = items.map(item => item._id);
@@ -60,8 +61,14 @@ const getOwnedRequest = async (requestId, customerId, populateCraft = false) => 
 };
 
 const validatePublishable = (request) => {
-  const required = request.title && request.description && request.craftId && request.location && request.budget;
-  if (!required) throw fail(400, 'لازم تكمل بيانات الطلب قبل ما تنشره.');
+  const location = request.location?.toObject ? request.location.toObject() : request.location;
+  const budget = request.budget?.toObject ? request.budget.toObject() : request.budget;
+  const { error } = createRequestSchema.validate({
+    title: request.title, description: request.description, craftId: String(request.craftId),
+    location, budget: budget && { min: budget.min, max: budget.max, currency: budget.currency },
+    receiveMode: request.receiveMode,
+  });
+  if (error) throw fail(400, error.details[0].message);
 };
 
 const createRequest = async (customerId, input) => {
@@ -118,6 +125,7 @@ const updateRequest = async (requestId, customerId, input) => {
 
 const transition = async (requestId, customerId, targetStatus, eventType) => {
   const request = await getOwnedRequest(requestId, customerId);
+  if (targetStatus === 'PUBLISHED') { validatePublishable(request); await ensureCraft(request.craftId); }
   if (!TRANSITIONS[request.status]?.includes(targetStatus)) {
     throw fail(409, 'مينفعش تنفذ العملية دي دلوقتي.');
   }

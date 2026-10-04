@@ -18,6 +18,18 @@ const jobSchema = new mongoose.Schema(
     startedAt: { type: Date },
     expectedCompletion: { type: Date },
     completedAt: { type: Date },
+    paymentProcessing: { type: Boolean, default: false },
+    disputeHistory: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    dispute: {
+      status: { type: String, enum: ['NONE', 'OPEN', 'UNDER_REVIEW', 'RESOLVED', 'REJECTED'], default: 'NONE' },
+      reason: { type: String, enum: ['QUALITY', 'INCOMPLETE', 'DAMAGE', 'OTHER'] },
+      description: { type: String, maxlength: 5000 },
+      openedAt: Date,
+      paymentStatusAtOpening: String,
+      decision: { type: String, maxlength: 5000 },
+      reviewedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      resolvedAt: Date,
+    },
   },
   { timestamps: true }
 );

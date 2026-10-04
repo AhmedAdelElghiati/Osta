@@ -23,7 +23,8 @@
   color: #64748b;
 }
 
-<!-- Modals -- > .confirm-icon {
+/* Modals */
+.confirm-icon {
   width: 56px;
   height: 56px;
   border-radius: 50%;

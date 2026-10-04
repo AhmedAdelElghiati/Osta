@@ -5,12 +5,18 @@ const Offer = require('../models/Offer');
 const Review = require('../models/Review');
 const Artisan = require('../models/Artisan');
 const RequestEvent = require('../models/RequestEvent');
+const Joi = require('joi');
 
 // POST /api/v1/requests/:id/review  { rating, comment? } — customer rates accepted/completed job
 const createForRequest = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { rating, comment = '' } = req.body;
+    const { error, value } = Joi.object({
+      rating: Joi.number().strict().integer().min(1).max(5).required(),
+      comment: Joi.string().trim().max(2000).allow('').default(''),
+    }).validate(req.body);
+    if (error) return sendResponse(res, 400, false, 'التقييم عدد صحيح من 1 إلى 5 والتعليق لا يتجاوز 2000 حرف.');
+    const { rating, comment } = value;
     if (!mongoose.isValidObjectId(id)) return sendResponse(res, 404, false, 'الطلب ده مش موجود.');
     if (!rating || Number(rating) < 1 || Number(rating) > 5) return sendResponse(res, 400, false, 'التقييم لازم يكون من 1 لـ 5.');
 

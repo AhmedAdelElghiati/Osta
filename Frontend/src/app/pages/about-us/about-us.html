@@ -1,0 +1,25 @@
+<main class="about-page" dir="rtl">
+  <header class="about-intro">
+    <div class="about-inner">
+      <nav aria-label="مسار الصفحة"><a routerLink="/">الرئيسية</a><i class="bi bi-chevron-left" aria-hidden="true"></i><span>إحنا مين</span></nav>
+      <img class="about-logo" src="/Logo.webp" alt="شعار أُسطى" width="88" height="88">
+      <h1>أُسطى</h1>
+      <p class="about-lead">شغل يجمعنا. وتكنولوجيا تقرّبنا.</p>
+      <p class="about-description">منصة مصرية بتربط العملاء بالصنايعية، من أول التعارف والاتفاق لحد متابعة الشغل. وراها فريق بيطوّر تجربة تواصل أبسط وأوضح للطرفين.</p>
+    </div>
+  </header>
+  <section class="about-team about-inner" aria-labelledby="teamHeading">
+    <div class="about-section-heading"><div><span class="about-eyebrow">إحنا مين</span><h2 id="teamHeading">الفريق ورا أُسطى</h2></div><p>برمجة، تطوير، وتعليم.</p></div>
+    <div class="team-grid">
+      <article class="team-member" *ngFor="let member of team" [ngClass]="member.color">
+        <div class="member-monogram" aria-hidden="true">{{ member.initials }}</div>
+        <h3>{{ member.name }}</h3>
+        <p class="member-role" dir="ltr">{{ member.role }}</p>
+        <p class="member-arabic-role">{{ member.arabicRole }}</p>
+      </article>
+    </div>
+  </section>
+  <section class="about-purpose">
+    <div class="about-inner purpose-layout"><div><span class="about-eyebrow">فكرتنا</span><h2>نخلّي الاتفاق على الشغل أسهل.</h2></div><div><p>العميل يقدر يدور على الصنايعي المناسب، يتواصل معاه مباشرة أو ينشر طلب ويقارن العروض. والصنايعي يقدر يعرض شغله ويوصل لفرص جديدة.</p><a routerLink="/contact-us" class="about-contact">تواصل معانا <i class="bi bi-arrow-left" aria-hidden="true"></i></a></div></div>
+  </section>
+</main>

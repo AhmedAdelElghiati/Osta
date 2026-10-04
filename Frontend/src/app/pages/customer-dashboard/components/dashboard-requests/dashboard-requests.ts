@@ -33,6 +33,7 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
   @Output() retry = new EventEmitter<void>();
   @Output() toast = new EventEmitter<{ message: string; type: 'success' | 'error' }>();
   @Output() walletChanged = new EventEmitter<void>();
+  @Output() conversationOpen = new EventEmitter<string>();
 
   constructor(
     private requestsApi: ServiceRequests,
@@ -154,6 +155,36 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
   detailsError = '';
   approvalJobId = '';
   approvalLoading = false;
+  dispute: any = null;
+  disputeHistory: any[] = [];
+  disputeFormOpen = false;
+  disputeReason = 'QUALITY';
+  disputeDescription = '';
+  disputeSaving = false;
+  disputeError = '';
+  jobLoading = false;
+
+  get disputeActive(): boolean { return ['OPEN', 'UNDER_REVIEW'].includes(this.dispute?.status); }
+  disputeLabel(status: string): string {
+    return ({ OPEN: 'مفتوح', UNDER_REVIEW: 'قيد المراجعة', RESOLVED: 'تم الحل', REJECTED: 'مرفوض' } as Record<string, string>)[status] || status;
+  }
+  submitDispute(): void {
+    if (!this.approvalJobId || this.disputeSaving) return;
+    const description = this.disputeDescription.trim();
+    if (description.length < 10 || description.length > 5000) { this.disputeError = 'اكتب وصفًا من 10 إلى 5000 حرف.'; return; }
+    this.disputeSaving = true;
+    this.disputeError = '';
+    const id = this.approvalJobId;
+    this.marketplace.openDispute(id, this.disputeReason, description).subscribe({
+      next: res => {
+        if (this.approvalJobId === id) { this.dispute = res.data.dispute; this.disputeHistory = res.data.disputeHistory || []; this.disputeFormOpen = false; }
+        this.disputeSaving = false;
+        this.toast.emit({ message: 'تم فتح النزاع وإرساله للإدارة.', type: 'success' });
+        this.cdr.markForCheck();
+      },
+      error: err => { this.disputeSaving = false; this.disputeError = err.error?.message || 'تعذر فتح النزاع.'; this.cdr.markForCheck(); },
+    });
+  }
 
   openRequestDetails(request: RequestVm) {
     this.selectedRequest = request;
@@ -161,6 +192,12 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
     this.detailsLoading = true;
     this.detailsError = '';
     this.approvalJobId = '';
+    this.dispute = null;
+    this.disputeHistory = [];
+    this.disputeFormOpen = false;
+    this.disputeDescription = '';
+    this.disputeError = '';
+    this.jobLoading = true;
 
     // نحمّل التفاصيل الكاملة: التايم لاين الحقيقي + الصور
     this.requestsApi.loadDetails(request.id).subscribe({
@@ -194,21 +231,28 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
       },
     });
 
-    this.marketplace.myJobs().subscribe({
+    const jobId = request.jobId;
+    const jobCall = jobId ? this.marketplace.jobDetails(jobId) : this.marketplace.myJobs();
+    jobCall.subscribe({
       next: (response) => {
-        const jobs = response?.data?.items ?? [];
+        if (this.selectedRequest?.id !== request.id) return;
+        const jobs = jobId ? [response.data] : response?.data?.items ?? [];
         const job = jobs.find((item: any) => {
           const requestId = typeof item.requestId === 'object' ? item.requestId?._id : item.requestId;
           return String(requestId) === request.id;
         });
         this.approvalJobId = job?._id ? String(job._id) : '';
+        this.dispute = job?.dispute?.status !== 'NONE' ? job?.dispute : null;
+        this.disputeHistory = job?.disputeHistory || [];
+        this.jobLoading = false;
         this.cdr.markForCheck();
       },
+      error: err => { if (this.selectedRequest?.id !== request.id) return; this.jobLoading = false; this.detailsError = err.error?.message || 'تعذر تحميل الشغلانة.'; this.cdr.markForCheck(); },
     });
   }
 
   approveDelivery(): void {
-    if (!this.approvalJobId || this.approvalLoading) return;
+    if (!this.approvalJobId || this.approvalLoading || this.disputeActive || this.jobLoading || this.disputeSaving) return;
     this.approvalLoading = true;
     this.marketplace.approveJob(this.approvalJobId).subscribe({
       next: () => {
@@ -229,6 +273,16 @@ export class DashboardRequests implements OnInit, OnChanges, OnDestroy {
   closeRequestDetails() {
     this.showDetails = false;
     this.selectedRequest = null;
+  }
+
+  contactCraftsman(): void {
+    const jobId = this.selectedRequest?.jobId || this.approvalJobId;
+    if (!jobId) {
+      this.toast.emit({ message: 'اقبل عرض أسطى أولًا لفتح محادثة الطلب.', type: 'error' });
+      return;
+    }
+    this.closeRequestDetails();
+    this.conversationOpen.emit(jobId);
   }
 
   get currentRequestDetails(): any {

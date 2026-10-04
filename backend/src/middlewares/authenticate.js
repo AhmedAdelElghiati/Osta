@@ -22,6 +22,7 @@ const authenticate = async (req, res, next) => {
 
     const user = await User.findById(decoded.userId).select('-password');
 
+    if (user?.isBanned) return sendResponse(res, 403, false, 'الحساب محظور بواسطة الإدارة. تواصل مع الدعم.');
     if (!user || !user.isActive) {
       return sendResponse(res, 401, false, 'User account is inactive or not found');
     }

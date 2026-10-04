@@ -71,3 +71,62 @@ a {
 .section-bg {
   background-color: var(--color-bg);
 }
+
+/* Shared overlays must not rely on a parent component's encapsulated styles. */
+:is(.modal-backdrop-custom, .modal-overlay, .wallet-modal-backdrop, .settings-modal-overlay, .support-modal-backdrop, .artisan-overlay, .ban-backdrop) {
+  position: fixed;
+  inset: 0;
+  z-index: 3000 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: rgb(0 0 0 / 45%);
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+}
+
+html:has(:is(.modal-backdrop-custom, .modal-overlay, .wallet-modal-backdrop, .settings-modal-overlay, .support-modal-backdrop, .artisan-overlay, .ban-backdrop)),
+body:has(:is(.modal-backdrop-custom, .modal-overlay, .wallet-modal-backdrop, .settings-modal-overlay, .support-modal-backdrop, .artisan-overlay, .ban-backdrop)) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body :is(.modal-backdrop-custom, .modal-overlay, .wallet-modal-backdrop, .settings-modal-overlay, .support-modal-backdrop, .artisan-overlay, .ban-backdrop) > :is(.modal-dialog, .modal-box, .wallet-modal, .settings-modal, .support-modal, .artisan-dialog, .ban-dialog, .accept-modal, .quote-modal) {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  max-height: calc(100dvh - 32px) !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+}
+
+body .modal-backdrop-custom .modal-content {
+  max-height: calc(100dvh - 32px);
+  overflow: hidden;
+  border-radius: 8px !important;
+}
+body .modal-backdrop-custom .modal-header,
+body .modal-backdrop-custom .modal-footer {
+  flex-shrink: 0;
+  gap: 12px;
+}
+body .modal-backdrop-custom .modal-header > div { min-width: 0; }
+body .modal-backdrop-custom .btn-close { flex-shrink: 0; margin: 0; }
+body .modal-backdrop-custom .modal-body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+body .modal-overlay .chat-scroll { min-height: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 575px), (max-height: 500px) {
+  body .modal-backdrop-custom .modal-header,
+  body .modal-backdrop-custom .modal-body,
+  body .modal-backdrop-custom .modal-footer { padding: 16px !important; }
+  body .modal-backdrop-custom .modal-footer { flex-wrap: wrap; }
+  body .modal-backdrop-custom .modal-footer .btn { min-width: 0; white-space: normal; }
+  body .modal-overlay .offer-box { padding: 16px; }
+  body .modal-overlay .om-row > input { min-width: 0; }
+}

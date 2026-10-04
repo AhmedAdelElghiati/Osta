@@ -17,6 +17,7 @@ let customerCookie;
 let artisanCookie;
 let otherCustomerCookie;
 let craft;
+let adminCookie;
 
 const login = async (email) => {
   const response = await request(app).post('/api/auth/login').send({ email, password: 'StrongPass123!' });
@@ -103,6 +104,8 @@ beforeAll(async () => {
   customerCookie = await login('job-customer@example.com');
   artisanCookie = await login('job-artisan@example.com');
   otherCustomerCookie = await login('other-job-customer@example.com');
+  await require('../src/models/User').create({ name: 'Dispute Admin', email: 'dispute-admin@example.com', phone: '01000000444', password: 'StrongPass123!', role: 'admin' });
+  adminCookie = await login('dispute-admin@example.com');
 });
 
 afterAll(async () => {
@@ -274,6 +277,24 @@ describe('Offer acceptance to job workflow', () => {
       .send({ status: 'DELIVERED' })
       .expect(200);
 
+    const disputeBody = { reason: 'QUALITY', description: 'There is a leak after the work was delivered.' };
+    await request(app).post(`/api/v1/jobs/${jobId}/dispute`).set('Cookie', [artisanCookie]).send(disputeBody).expect(403);
+    await request(app).post(`/api/v1/jobs/${jobId}/dispute`).set('Cookie', [otherCustomerCookie]).send(disputeBody).expect(404);
+    await request(app).post(`/api/v1/jobs/${jobId}/dispute`).set('Cookie', [customerCookie]).send({ reason: 'QUALITY', description: '  ' }).expect(400);
+    const opened = await request(app).post(`/api/v1/jobs/${jobId}/dispute`).set('Cookie', [customerCookie]).send(disputeBody).expect(201);
+    expect(opened.body.data.dispute.paymentStatusAtOpening).toBe('ESCROWED');
+    await request(app).post(`/api/v1/jobs/${jobId}/dispute`).set('Cookie', [customerCookie]).send(disputeBody).expect(409);
+    await request(app).patch(`/api/v1/jobs/${jobId}/status`).set('Cookie', [customerCookie]).send({ status: 'COMPLETED' }).expect(409);
+    expect(await Transaction.countDocuments({ type: 'escrow_release', 'meta.jobId': jobId })).toBe(0);
+    await request(app).get('/api/admin/disputes').set('Cookie', [customerCookie]).expect(403);
+    const adminDisputes = await request(app).get('/api/admin/disputes').set('Cookie', [adminCookie]).expect(200);
+    expect(adminDisputes.body.data[0]._id).toBe(jobId);
+    await request(app).patch(`/api/admin/disputes/${jobId}`).set('Cookie', [customerCookie]).send({ status: 'RESOLVED', decision: 'The leak was fixed successfully.' }).expect(403);
+    await request(app).patch(`/api/admin/disputes/${jobId}`).set('Cookie', [adminCookie]).send({ status: 'RESOLVED', decision: '' }).expect(400);
+    await request(app).patch(`/api/admin/disputes/${jobId}`).set('Cookie', [adminCookie]).send({ status: 'UNDER_REVIEW', decision: 'We are reviewing the reported issue.' }).expect(200);
+    await request(app).patch(`/api/v1/jobs/${jobId}/status`).set('Cookie', [customerCookie]).send({ status: 'COMPLETED' }).expect(409);
+    await request(app).patch(`/api/admin/disputes/${jobId}`).set('Cookie', [adminCookie]).send({ status: 'RESOLVED', decision: 'The leak was fixed successfully.' }).expect(200);
+
     const completed = await request(app)
       .patch(`/api/v1/jobs/${jobId}/status`)
       .set('Cookie', [customerCookie])
@@ -281,6 +302,28 @@ describe('Offer acceptance to job workflow', () => {
       .expect(200);
 
     expect(completed.body.data.status).toBe('COMPLETED');
+    const postPayment = await request(app).post(`/api/v1/jobs/${jobId}/dispute`).set('Cookie', [customerCookie]).send(disputeBody).expect(201);
+    expect(postPayment.body.data.dispute.paymentStatusAtOpening).toBe('RELEASED');
+    expect(postPayment.body.data.disputeHistory).toHaveLength(1);
+    expect(postPayment.body.data.paymentStatus).toBe('RELEASED');
+    await request(app).patch(`/api/admin/disputes/${jobId}`).set('Cookie', [adminCookie]).send({ status: 'REJECTED', decision: 'No defect was found after inspection.' }).expect(200);
+    await request(app).patch(`/api/admin/disputes/${jobId}`).set('Cookie', [adminCookie]).send({ status: 'RESOLVED', decision: 'A second decision cannot overwrite.' }).expect(409);
+    const DirectConversation = require('../src/models/DirectConversation');
+    const direct = await DirectConversation.create({
+      customerId: completed.body.data.customerId._id,
+      artisanId: completed.body.data.artisanId._id,
+    });
+    for (const conversationId of [jobId, `direct:${direct._id}`]) {
+      for (const cookie of [customerCookie, artisanCookie]) {
+        const blocked = await request(app).post(`/api/v1/chat/jobs/${conversationId}/messages`)
+          .set('Cookie', [cookie]).send({ text: 'رسالة بعد التسليم' }).expect(403);
+        expect(blocked.body.code).toBe('CHAT_CLOSED');
+        const readOnly = await request(app).get(`/api/v1/chat/jobs/${conversationId}/messages`)
+          .set('Cookie', [cookie]).expect(200);
+        expect(readOnly.body.chatClosed).toBe(true);
+        if (conversationId === jobId) expect(readOnly.body.data).toHaveLength(3);
+      }
+    }
     await expect(Job.findById(jobId).lean()).resolves.toMatchObject({ paymentStatus: 'RELEASED' });
     await expect(Transaction.find({ userId: completed.body.data.customerId._id }).lean()).resolves.toEqual(
       expect.arrayContaining([

@@ -46,17 +46,10 @@
 }
 
 
-/* =========================
-   Stats
-========================= */
-
-.stat-item {
-  border-right: 1px solid var(--color-border);
-}
-
-.stat-item:last-child {
-  border-right: none;
-}
+/* ========================= Stats ========================= */
+.home-stats-section { background: #f7fafb; border-block: 1px solid #e4eaee; padding: 42px 0; direction: rtl; }
+.stats-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; margin-bottom: 24px; }.stats-heading > div > span { color: #147e73; font-size: 13px; font-weight: 700; }.stats-heading h2 { color: #202b38; font-size: 25px; margin: 6px 0 0; font-weight: 700; }.stats-heading p { color: #718091; font-size: 13px; margin: 0; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #fff; border: 1px solid #e0e7eb; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 24px rgb(28 48 61 / 4%); }.stat-item { min-width: 0; padding: 24px 20px; text-align: right; border-inline-start: 1px solid #e8edf0; }.stat-item:first-child { border-inline-start: 0; }.stat-item i { display: grid; place-items: center; width: 34px; height: 34px; margin-bottom: 16px; border-radius: 6px; color: #147e73; background: #eaf6f3; }.stat-item strong { display: block; color: #202b38; font-size: 30px; line-height: 1.25; font-weight: 700; }.stat-item span { display: block; color: #394b5d; font-size: 14px; font-weight: 600; margin-top: 4px; }.stat-item small { display: block; color: #8a96a3; font-size: 11px; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }.stat-skeleton { min-height: 148px; margin: 16px; border-radius: 6px; background: linear-gradient(90deg,#f1f4f6 25%,#e5eaed 37%,#f1f4f6 63%); background-size: 400% 100%; animation: stats-shimmer 1.2s infinite; } @keyframes stats-shimmer { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
 
 
 /* =========================
@@ -367,6 +360,11 @@
     border-right: none;
   }
 
+  .stats-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stat-item:nth-child(odd) { border-inline-start: 0; }
+  .stat-item:nth-child(-n + 2) { border-bottom: 1px solid #e8edf0; }
+
   .dual-cards-row {
     gap: 0;
   }
@@ -413,6 +411,12 @@
   .craftsman-actions {
     gap: 8px;
   }
+}
+
+@media (max-width: 420px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-item, .stat-item:nth-child(-n + 2) { border-inline-start: 0; border-bottom: 1px solid #e8edf0; }
+  .stat-item:last-child { border-bottom: 0; }
 }
 
 

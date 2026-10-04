@@ -148,6 +148,11 @@
       </p>
 
       <p class="note">{{ job.note }}</p>
+      <div *ngIf="job.dispute" class="border-top pt-2 text-break">
+        <strong>نزاع: {{ job.dispute.status === 'OPEN' ? 'مفتوح' : job.dispute.status === 'UNDER_REVIEW' ? 'قيد المراجعة' : job.dispute.status === 'RESOLVED' ? 'تم الحل' : 'مرفوض' }}</strong>
+        <p>{{ job.dispute.description }}</p>
+        <p *ngIf="job.dispute.decision">قرار الإدارة: {{ job.dispute.decision }}</p>
+      </div>
     </div>
 
     <div class="job-price">
@@ -238,16 +243,17 @@
     </div>
 
     <p *ngIf="chatError" class="chat-error" role="alert">{{ chatError }}</p>
-    <div class="chat-input">
+    <p *ngIf="chatClosed" class="chat-state">المحادثة للقراءة فقط بعد اعتماد التسليم وتحرير الفلوس.</p>
+    <div *ngIf="!chatClosed" class="chat-input">
       <input
         type="text"
         class="form-control form-control-sm"
         placeholder="اكتب رسالتك للعميل..."
         [(ngModel)]="chatInput"
         maxlength="2000"
-        [disabled]="sendingMessage"
+        [disabled]="sendingMessage || chatLoading"
         (keydown.enter)="sendMessage()">
-      <button class="btn btn-dark btn-sm" [disabled]="sendingMessage || !chatInput.trim()" (click)="sendMessage()">إرسال</button>
+      <button class="btn btn-dark btn-sm" [disabled]="sendingMessage || chatLoading || !chatInput.trim()" (click)="sendMessage()">إرسال</button>
     </div>
 
   </div>

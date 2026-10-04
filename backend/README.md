@@ -178,6 +178,13 @@ npm test -- --runInBand
 
 ## Admin bootstrap
 
+For local development, the seeded demo administrator uses:
+
+- Email: `admin@example.com`
+- Password: `AdminPass123!`
+
+The login page has a button that fills these values. Create the account once with `npm run seed:admin`; change the environment variables before using this outside local development.
+
 Run:
 
 ```bash

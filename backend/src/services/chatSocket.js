@@ -19,8 +19,8 @@ const attachChatSocket = (server, app) => {
       if (!token) return next(new Error('Authentication required'));
 
       const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-      const user = await User.findById(decoded.userId).select('_id role isActive');
-      if (!user || !user.isActive || !['customer', 'artisan'].includes(user.role)) {
+      const user = await User.findById(decoded.userId).select('_id role isActive isBanned');
+      if (!user || !user.isActive || user.isBanned || !['customer', 'artisan'].includes(user.role)) {
         return next(new Error('Unauthorized'));
       }
 
@@ -32,6 +32,7 @@ const attachChatSocket = (server, app) => {
   });
 
   io.on('connection', (socket) => {
+    socket.join(`user:${socket.data.user.id}`);
     socket.on('chat:join', async (jobId) => {
       const direct = typeof jobId === 'string' && jobId.startsWith('direct:');
       const id = direct ? jobId.slice(7) : jobId;
@@ -41,6 +42,8 @@ const attachChatSocket = (server, app) => {
       }
 
       try {
+        const user = await User.findById(socket.data.user.id).select('isActive isBanned');
+        if (!user || !user.isActive || user.isBanned) { socket.disconnect(true); return; }
         const ownerField = socket.data.user.role === 'customer' ? 'customerId' : 'artisanId';
         const job = await (direct ? DirectConversation : Job).findOne({ _id: id, [ownerField]: socket.data.user.id }).select('_id');
         if (!job) {

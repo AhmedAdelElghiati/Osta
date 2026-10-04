@@ -71,6 +71,7 @@ export class Home {
   get rating() {
     return this.account.account.rating || 0;
   }
+  get totalReviews() { return this.account.account.totalReviews || 0; }
 
   get activeJobs() {
     return this.jobsService.activeJobs;

@@ -49,6 +49,13 @@ export interface OfferVm {
 export class Marketplace {
   constructor(private http: HttpClient) {}
 
+  jobDetails(id: string): Observable<any> {
+    return this.http.get<any>(`${JOBS_ENDPOINT}/${id}`, { withCredentials: true });
+  }
+  openDispute(id: string, reason: string, description: string): Observable<any> {
+    return this.http.post<any>(`${JOBS_ENDPOINT}/${id}/dispute`, { reason, description }, { withCredentials: true });
+  }
+
   settings(): Observable<any> {
     return this.http.get<any>(`${USERS_ENDPOINT}/me/settings`, { withCredentials: true });
   }

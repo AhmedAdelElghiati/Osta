@@ -42,9 +42,16 @@ const getOwnedJob = async (jobId, user) => {
   if (direct) jobId = jobId.slice(7);
   if (!mongoose.isValidObjectId(jobId)) throw fail(404, 'المحادثة دي مش موجودة.');
   const ownerField = user.role === 'customer' ? 'customerId' : 'artisanId';
-  const job = await (direct ? DirectConversation : Job).findOne({ _id: jobId, [ownerField]: user.id }).select('_id customerId artisanId');
+  const job = await (direct ? DirectConversation : Job).findOne({ _id: jobId, [ownerField]: user.id }).select('_id customerId artisanId status paymentStatus');
   if (!job) throw fail(404, 'المحادثة دي مش موجودة.');
   return { ...job.toObject(), direct };
+};
+
+const isChatClosed = async (job) => {
+  if (!job.direct) return job.status === 'COMPLETED' && job.paymentStatus === 'RELEASED';
+  const pair = { customerId: job.customerId, artisanId: job.artisanId };
+  if (!(await Job.exists({ ...pair, status: 'COMPLETED', paymentStatus: 'RELEASED' }))) return false;
+  return !(await Job.exists({ ...pair, status: { $nin: ['COMPLETED', 'CANCELLED'] } }));
 };
 
 const listMessages = async (req, res, next) => {
@@ -57,7 +64,7 @@ const listMessages = async (req, res, next) => {
       .populate('senderId', 'name role profileImage')
       .lean();
 
-    return sendResponse(res, 200, true, 'تم تحميل المحادثة بنجاح.', messages.reverse());
+    return res.status(200).json({ success: true, message: 'تم تحميل المحادثة بنجاح.', data: messages.reverse(), chatClosed: await isChatClosed(job) });
   } catch (error) {
     next(error);
   }
@@ -67,6 +74,9 @@ const sendMessage = async (req, res, next) => {
   try {
     const job = await getOwnedJob(req.params.id, req.user);
     const text = typeof req.body.text === 'string' ? req.body.text.trim() : '';
+    if (await isChatClosed(job)) {
+      return res.status(403).json({ success: false, code: 'CHAT_CLOSED', message: 'المحادثة للقراءة فقط بعد اعتماد التسليم وتحرير الفلوس.' });
+    }
     if (!text || text.length > 2000) {
       return sendResponse(res, 400, false, 'اكتب رسالة من 1 إلى 2000 حرف.');
     }

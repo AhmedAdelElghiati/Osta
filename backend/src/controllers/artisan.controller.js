@@ -18,7 +18,8 @@ const getMine = async (req, res, next) => {
       Offer.countDocuments({ artisanId: req.user.id, status: 'ACCEPTED' }),
     ]);
     return sendResponse(res, 200, true, 'تم جلب البروفايل.', {
-      ...artisan, reviews, stats: { completedJobs, totalOffers, acceptedOffers,
+      ...artisan, rating: reviews.length ? Math.round(reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length * 100) / 100 : 0,
+      totalReviews: reviews.length, reviews, stats: { completedJobs, totalOffers, acceptedOffers,
         acceptanceRate: totalOffers ? Math.round(acceptedOffers / totalOffers * 100) : 0 },
     });
   } catch (error) { next(error); }

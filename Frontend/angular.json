@@ -65,7 +65,8 @@
               "buildTarget": "Front-End:build:production"
             },
             "development": {
-              "buildTarget": "Front-End:build:development"
+              "buildTarget": "Front-End:build:development",
+              "prebundle": false
             }
           },
           "defaultConfiguration": "development"

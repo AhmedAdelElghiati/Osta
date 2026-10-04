@@ -38,6 +38,48 @@ beforeAll(async () => {
 });
 afterAll(async () => { await mongoose.disconnect(); if (mongo) await mongo.stop(); });
 
+test('admin bans customers and artisans, revokes sessions, and prevents re-registration by identity', async () => {
+  const AccountBan = require('../src/models/AccountBan');
+  const Session = require('../src/models/Session');
+  for (const [index, role] of ['customer', 'artisan'].entries()) {
+    const email = `banned-${role}@example.com`;
+    const phone = `0102222200${index}`;
+    const registered = await register(email, phone, role);
+    const loggedIn = await request(app).post('/api/auth/login').send({ email, password: 'StrongPass123!' }).expect(200);
+    const cookies = loggedIn.headers['set-cookie'].map(cookie => cookie.split(';')[0]);
+    await request(app).patch(`/api/admin/users/${registered.id}/ban`).set('Cookie', customer).send({ banned: true, reason: 'Violation' }).expect(403);
+    await request(app).patch(`/api/admin/users/${registered.id}/ban`).set('Cookie', admin).send({ banned: true, reason: ' ' }).expect(400);
+    const banned = await request(app).patch(`/api/admin/users/${registered.id}/ban`).set('Cookie', admin).send({ banned: true, reason: 'Repeated violations' }).expect(200);
+    expect(banned.body.data).toMatchObject({ isBanned: true, isActive: false });
+    expect(banned.body.data.password).toBeUndefined();
+    expect(await Session.countDocuments({ userId: registered.id, revokedAt: null })).toBe(0);
+    await request(app).get('/api/auth/me').set('Cookie', registered.cookie).expect(403);
+    await request(app).post('/api/auth/login').send({ email, password: 'StrongPass123!' }).expect(403);
+    await request(app).post('/api/auth/refresh').set('Cookie', cookies).expect(401);
+    await request(app).patch(`/api/admin/users/${registered.id}/toggle-active`).set('Cookie', admin).expect(409);
+    const body = { name: 'Another account', email: email.toUpperCase(), phone: '01099999990', role: 'customer', password: 'StrongPass123!' };
+    await request(app).post('/api/auth/register').send(body).expect(403);
+    await request(app).post('/api/auth/register').send({ ...body, email: `different-${role}@example.com`, phone: `+2${phone}` }).expect(403);
+    const original = await User.collection.findOne({ _id: new mongoose.Types.ObjectId(registered.id) });
+    await User.collection.deleteOne({ _id: original._id });
+    await request(app).post('/api/auth/register').send(body).expect(403);
+    await User.collection.insertOne(original);
+    await request(app).patch(`/api/admin/users/${registered.id}/ban`).set('Cookie', admin).send({ banned: false }).expect(200);
+    expect(await AccountBan.exists({ userId: registered.id })).toBeNull();
+    await request(app).post('/api/auth/login').send({ email, password: 'StrongPass123!' }).expect(200);
+    await User.deleteOne({ _id: registered.id });
+    await Artisan.deleteOne({ userId: registered.id });
+  }
+  const adminId = (await User.findOne({ role: 'admin' }))._id;
+  await request(app).patch(`/api/admin/users/${adminId}/ban`).set('Cookie', admin).send({ banned: true, reason: 'Violation' }).expect(403);
+  const legacyId = 'legacy-ban-account';
+  await User.collection.insertOne({ _id: legacyId, name: 'Legacy customer', email: 'legacy-ban@example.com', phone: '01033333333', role: 'customer', isActive: true });
+  try {
+    await request(app).patch(`/api/admin/users/${legacyId}/ban`).set('Cookie', admin).send({ banned: true, reason: 'Legacy violation' }).expect(200);
+    await request(app).patch(`/api/admin/users/${legacyId}/ban`).set('Cookie', admin).send({ banned: false }).expect(200);
+  } finally { await User.collection.deleteOne({ _id: legacyId }); await AccountBan.deleteOne({ userId: legacyId }); }
+});
+
 test('settings start empty, survive reload, preserve other fields, and remain private', async () => {
   const empty = await request(app).get('/api/users/me/settings').set('Cookie', customer).expect(200);
   expect(empty.body.data.addresses).toEqual([]);
@@ -146,6 +188,41 @@ test('image uploads validate image bytes rather than trusting a filename', async
     .attach('image', Buffer.from('not an image'), { filename: 'fake.png', contentType: 'image/png' }).expect(400);
 });
 
+test('artisan login and profile show actual reviews even when cached totals are stale', async () => {
+  const Review = require('../src/models/Review');
+  const reviews = await Review.create([4, 5].map(rating => ({
+    requestId: new mongoose.Types.ObjectId(), artisanId, customerId, rating,
+  })));
+  try {
+    await Artisan.updateOne({ userId: artisanId }, { $set: { rating: 0, totalReviews: 0 } });
+    const logged = await request(app).post('/api/auth/login').send({ email: 'real-artisan@example.com', password: 'StrongPass123!' }).expect(200);
+    expect(logged.body.data.user.artisan).toMatchObject({ rating: 4.5, totalReviews: 2 });
+    const me = await request(app).get('/api/auth/me').set('Cookie', artisan).expect(200);
+    expect(me.body.data.artisan).toMatchObject({ rating: 4.5, totalReviews: 2 });
+    const profile = await request(app).get('/api/v1/artisans/me/profile').set('Cookie', artisan).expect(200);
+    expect(profile.body.data).toMatchObject({ rating: 4.5, totalReviews: 2 });
+  } finally { await Review.deleteMany({ _id: { $in: reviews.map(review => review._id) } }); }
+});
+
+test('invalid prices, ratings, profiles, contact and admin changes return validation errors', async () => {
+  for (const price of [null, '', 'abc', -1, 0, {}]) {
+    await request(app).post('/api/v1/offers').set('Cookie', artisan)
+      .send({ requestId: String(new mongoose.Types.ObjectId()), price }).expect(400);
+  }
+  await request(app).post('/api/v1/offers').set('Cookie', artisan)
+    .send({ requestId: String(new mongoose.Types.ObjectId()), price: 100, items: [{ name: 'Work', price: 90 }] }).expect(400);
+  for (const rating of ['abc', 2.5, {}, 6]) {
+    await request(app).post(`/api/v1/requests/${new mongoose.Types.ObjectId()}/review`).set('Cookie', customer).send({ rating }).expect(400);
+  }
+  for (const body of [{ name: '  ' }, { phone: 'abcdefghijk' }, { role: 'admin' }]) {
+    await request(app).patch('/api/users/me').set('Cookie', customer).send(body).expect(400);
+  }
+  await request(app).patch('/api/users/me').set('Cookie', artisan).send({ hourlyRate: -1 }).expect(400);
+  await request(app).post('/api/v1/contact').send({ fullName: {}, phone: '01011111001', message: 'Long enough message' }).expect(400);
+  await request(app).patch(`/api/admin/contact/${new mongoose.Types.ObjectId()}`).set('Cookie', admin).send({ status: 'INVALID' }).expect(400);
+  await request(app).patch(`/api/admin/artisans/${new mongoose.Types.ObjectId()}/verify`).set('Cookie', admin).send({ isVerified: 'yes' }).expect(400);
+});
+
 test('direct chat works without a job, reuses the pair, persists messages, and protects its socket room', async () => {
   const profile = await Artisan.findOne({ userId: artisanId });
   const start = () => request(app).post('/api/v1/chat/direct').set('Cookie', customer).send({ artisanId: String(profile._id) });
@@ -190,6 +267,12 @@ test('direct chat works without a job, reuses the pair, persists messages, and p
     const received = event(sockets[0], 'chat:message');
     await request(app).post(`/api/v1/chat/jobs/${id}/messages`).set('Cookie', customer).send({ text: 'Live direct message' }).expect(201);
     expect((await received).text).toBe('Live direct message');
+    const disconnected = event(sockets[0], 'disconnect');
+    await request(app).patch(`/api/admin/users/${artisanId}/ban`).set('Cookie', admin)
+      .send({ banned: true, reason: 'Chat policy violation' }).expect(200);
+    expect(await disconnected).toBe('io server disconnect');
+    await request(app).post(`/api/v1/chat/jobs/${id}/messages`).set('Cookie', artisan).send({ text: 'Blocked message' }).expect(403);
+    await request(app).patch(`/api/admin/users/${artisanId}/ban`).set('Cookie', admin).send({ banned: false }).expect(200);
   } finally {
     sockets.forEach(socket => socket.disconnect());
     await new Promise(resolve => io.close(resolve));

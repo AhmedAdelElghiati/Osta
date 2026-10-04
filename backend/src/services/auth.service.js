@@ -3,6 +3,17 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const Artisan = require('../models/Artisan');
 const Session = require('../models/Session');
+const Review = require('../models/Review');
+const AccountBan = require('../models/AccountBan');
+const { normalizeEmail, normalizePhone } = require('../utils/identity');
+
+const ensureNotBanned = async (user) => {
+  if (user.isBanned || await AccountBan.exists({ $or: [{ userId: String(user._id) }, { email: normalizeEmail(user.email) }, { phone: normalizePhone(user.phone) }] })) {
+    const error = new Error('الحساب محظور بواسطة الإدارة. تواصل مع الدعم.');
+    error.statusCode = 403;
+    throw error;
+  }
+};
 const { hashPassword, comparePassword } = require('../utils/password');
 const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../utils/jwt');
 
@@ -53,12 +64,17 @@ const issueTokens = async ({ user, userAgent = '', ipAddress = '', res }) => {
     accessToken,
     refreshToken,
     session,
-    user: safeUserData(user),
+    user: await getCurrentUser(user._id),
   };
 };
 
 const registerUser = async ({ data, req }) => {
   const { name, email, phone, password, role, location, profession, bio, experienceYears, skills, serviceAreas, hourlyRate } = data;
+  if (await AccountBan.exists({ $or: [{ email: normalizeEmail(email) }, { phone: normalizePhone(phone) }] })) {
+    const error = new Error('لا يمكن التسجيل بهذه البيانات لأنها مرتبطة بحساب محظور. تواصل مع الدعم.');
+    error.statusCode = 403;
+    throw error;
+  }
 
   const existingEmail = await User.findOne({ email: email.toLowerCase() });
   if (existingEmail) {
@@ -125,6 +141,7 @@ const loginUser = async ({ email, password, userAgent, ipAddress, res }) => {
     throw error;
   }
 
+  await ensureNotBanned(user);
   if (!user.isActive) {
     const error = new Error('Account is inactive');
     error.statusCode = 401;
@@ -171,6 +188,7 @@ const refreshTokenService = async ({ refreshToken, userAgent = '', ipAddress = '
     throw error;
   }
 
+  await ensureNotBanned(session.userId);
   if (!session.userId.isActive) {
     const error = new Error('User account is inactive');
     error.statusCode = 401;
@@ -223,10 +241,18 @@ const getCurrentUser = async (userId) => {
     throw error;
   }
 
-  const artisan = await Artisan.findOne({ userId: user._id });
+  const artisan = await Artisan.findOne({ userId: user._id }).lean();
+  if (artisan) {
+    const [stats] = await Review.aggregate([
+      { $match: { artisanId: user._id } },
+      { $group: { _id: null, rating: { $avg: '$rating' }, totalReviews: { $sum: 1 } } },
+    ]);
+    artisan.rating = stats ? Math.round(stats.rating * 100) / 100 : 0;
+    artisan.totalReviews = stats?.totalReviews || 0;
+  }
   return {
     ...safeUserData(user),
-    artisan: artisan ? artisan.toObject() : null,
+    artisan: artisan || null,
   };
 };
 

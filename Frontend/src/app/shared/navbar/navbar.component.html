@@ -19,10 +19,10 @@
     <div class="announcement-action">
 
       <a
-        routerLink="/craftsman-register"
+        [routerLink]="user() ? dashboardLink : '/craftsman-register'"
         class="text-secondary-custom fw-bold"
       >
-        سجل ورشتك / مهنتك كـ أسطى &larr;
+        {{ user() ? 'الذهاب إلى لوحة حسابك' : 'سجل ورشتك / مهنتك كـ أسطى' }} &larr;
       </a>
 
       <button
@@ -42,7 +42,7 @@
   <div class="container d-flex justify-content-between align-items-center">
 
     <!-- Logo + Brand -->
-     <a class="navbar-brand m-0 d-flex align-items-center" routerLink="/dashboard">
+     <a class="navbar-brand m-0 d-flex align-items-center" routerLink="/">
         <img src="Logo.webp" alt="Osta" width="40" height="40" class="object-fit-contain" loading="lazy">
 
       <div class="brand-text me-2">
@@ -91,6 +91,9 @@
         </li>
 
         <li class="nav-item">
+          <a class="nav-link" routerLink="/about-us" routerLinkActive="active">إحنا مين</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" routerLink="/contact-us" routerLinkActive="active">
             تواصل معانا
           </a>
@@ -101,11 +104,17 @@
       <!-- Left Side: Auth -->
       <div class="auth-links d-flex align-items-center">
 
-        <a routerLink="/login" class="fw-semibold login-link">
+        <a *ngIf="user()" [routerLink]="dashboardLink" class="btn btn-outline-secondary-custom fw-semibold">
+          <i class="bi bi-speedometer2"></i> {{ user()?.role === 'admin' ? 'لوحة الأدمن' : 'لوحة حسابي' }}
+        </a>
+        <button *ngIf="user()" type="button" class="btn login-link" (click)="logout()" [disabled]="loggingOut"><i class="bi bi-box-arrow-right"></i> {{ loggingOut ? 'جاري الخروج...' : 'تسجيل الخروج' }}</button>
+        <span *ngIf="logoutError" class="text-danger small" role="alert">{{ logoutError }}</span>
+
+        <a *ngIf="!user()" routerLink="/login" class="fw-semibold login-link">
           تسجيل الدخول
         </a>
 
-        <a routerLink="/client-register"
+        <a *ngIf="!user()" routerLink="/client-register"
           class="btn btn-outline-secondary-custom fw-bold d-flex align-items-center px-4 py-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             class="mx-2">

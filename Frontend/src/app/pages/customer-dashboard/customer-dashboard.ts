@@ -405,19 +405,20 @@ export class CustomerDashboard implements OnInit, OnDestroy {
 
   // رسائل التحقق بنفس قواعد الباك اند (Joi) عشان اليوزر يشوف المشكلة قبل الإرسال
   private validateNewRequest(): string {
-    if (this.newRequestTitle.trim().length < 3) return 'عنوان الطلب لازم يكون 3 حروف على الأقل.';
-    if (this.newRequestDescription.trim().length < 10)
-      return 'تفاصيل الطلب لازم تكون 10 حروف على الأقل.';
+    if (this.newRequestTitle.trim().length < 3 || this.newRequestTitle.trim().length > 200) return 'عنوان الطلب من 3 إلى 200 حرف.';
+    if (this.newRequestDescription.trim().length < 10 || this.newRequestDescription.trim().length > 5000)
+      return 'تفاصيل الطلب من 10 إلى 5000 حرف.';
     if (this.newRequestCity.trim().length < 2) return 'من فضلك اكتب المحافظة.';
     if (this.newRequestLocation.trim().length < 2) return 'من فضلك اكتب المنطقة.';
     if (this.newRequestAddress.trim().length < 5) return 'العنوان لازم يكون 5 حروف على الأقل.';
     const min = Number(this.newRequestBudgetMin);
     const max = Number(this.newRequestBudget);
-    if (isNaN(min) || isNaN(max) || min < 0 || max < 0) return 'الميزانية غير صحيحة.';
+    if (this.newRequestBudgetMin === null || this.newRequestBudget === null || !Number.isFinite(min) || !Number.isFinite(max) || min < 0 || max < 0) return 'الميزانية غير صحيحة.';
     if (max < min) return 'الحد الأقصى للميزانية لازم يكون أكبر من أو يساوي الحد الأدنى.';
     if (this.newRequestWhen === 'أفضل تحديد موعد' && !this.newRequestDate) {
       return 'من فضلك اختار تاريخ الموعد.';
     }
+    if (this.newRequestWhen === 'أفضل تحديد موعد' && new Date(this.newRequestDate).getTime() <= Date.now()) return 'اختار تاريخًا في المستقبل.';
     return '';
   }
 
@@ -628,6 +629,16 @@ export class CustomerDashboard implements OnInit, OnDestroy {
     }
 
     this.showPage(page);
+  }
+
+  openRequestConversation(conversation: string): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { page: 'chat', conversation, newRequest: null },
+      queryParamsHandling: 'merge',
+    }).then(navigated => {
+      if (navigated) { this.showPage('chat'); this.cdr.markForCheck(); }
+    });
   }
   submitRating() {
     if (!this.selectedRating || !this.selectedRatingRequest) {

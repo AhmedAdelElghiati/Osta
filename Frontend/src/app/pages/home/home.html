@@ -107,13 +107,15 @@
   </section>
 
 
-  <section class="bg-white py-5 border-top border-bottom"><div class="container">
+  <section class="home-stats-section"><div class="container">
+    <div class="stats-heading"><div><span>أُسطى بالأرقام</span><h2>منصة بتكبر مع كل شغلانة</h2></div><p>إحصائيات محدثة من نشاط المنصة الفعلي</p></div>
     <p *ngIf="statsError" class="text-danger" role="alert">{{ statsError }}</p>
-    <div class="row text-center" *ngIf="stats">
-      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.verifiedArtisans | number }}</h2><p>أسطى موثق</p></div>
-      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.completedJobs | number }}</h2><p>شغلانة مكتملة</p></div>
-      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.rating === null ? 'لا يوجد تقييم' : (stats.rating | number:'1.1-2') }}</h2><p>متوسط تقييم العملاء</p></div>
-      <div class="col-md-3 col-6 stat-item"><h2>{{ stats.customers | number }}</h2><p>عميل مسجل</p></div>
+    <div class="stats-grid" *ngIf="statsLoading" aria-label="جاري تحميل الإحصائيات"><div class="stat-skeleton" *ngFor="let item of [1,2,3,4]"></div></div>
+    <div class="stats-grid" *ngIf="!statsLoading && stats">
+      <div class="stat-item"><i class="bi bi-patch-check"></i><strong>{{ stats.verifiedArtisans | number }}</strong><span>أسطى موثق</span><small>حسابات راجعتها الإدارة</small></div>
+      <div class="stat-item"><i class="bi bi-tools"></i><strong>{{ stats.completedJobs | number }}</strong><span>شغلانة مكتملة</span><small>تم تنفيذها عبر المنصة</small></div>
+      <div class="stat-item"><i class="bi bi-star"></i><strong>{{ stats.rating === null ? '—' : (stats.rating | number:'1.1-2') }}</strong><span>متوسط التقييم</span><small>{{ stats.reviews || 0 | number }} تقييم موثق</small></div>
+      <div class="stat-item"><i class="bi bi-people"></i><strong>{{ stats.customers | number }}</strong><span>عميل مسجل</span><small>بيستخدموا أُسطى</small></div>
     </div>
   </div></section>
 

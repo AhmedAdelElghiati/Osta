@@ -1,4 +1,4 @@
-<main class="admin-page container py-4" dir="rtl">
+<main class="admin-page container-fluid py-4" dir="rtl">
   <header class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
     <div>
       <p class="eyebrow mb-1">إدارة المنصة</p>
@@ -14,28 +14,75 @@
   </header>
 
   <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+  <div *ngIf="banUser" class="ban-backdrop">
+    <section class="ban-dialog" role="dialog" aria-modal="true" aria-labelledby="ban-title">
+      <h2 id="ban-title" class="h5">{{ banUser.isBanned ? 'فك حظر الحساب' : 'حظر الحساب' }}: {{ banUser.name }}</h2>
+      <p>{{ banUser.isBanned ? 'سيتم السماح بالدخول مرة أخرى.' : 'سيتم منع الدخول وإغلاق الجلسات ومنع إعادة التسجيل بنفس البريد أو الموبايل.' }}</p>
+      <form (ngSubmit)="confirmBan()">
+        <label *ngIf="!banUser.isBanned" for="ban-reason" class="form-label">سبب الحظر</label>
+        <textarea *ngIf="!banUser.isBanned" id="ban-reason" name="banReason" class="form-control mb-3" rows="3" [(ngModel)]="banReason" required minlength="3" maxlength="1000" [disabled]="banSaving"></textarea>
+        <p *ngIf="banError" class="text-danger" role="alert">{{ banError }}</p>
+        <div class="d-flex gap-2"><button type="submit" class="btn btn-danger" [disabled]="banSaving"><i class="bi bi-ban"></i> {{ banSaving ? 'جاري التنفيذ...' : 'تأكيد' }}</button><button type="button" class="btn btn-outline-secondary" [disabled]="banSaving" (click)="banUser = null">إلغاء</button></div>
+      </form>
+    </section>
+  </div>
   <div *ngIf="loading" class="text-secondary py-4">جاري تحميل بيانات الإدارة...</div>
 
-  <section *ngIf="!loading" class="row g-3 mb-4">
+  <nav class="admin-tabs mb-4" aria-label="أقسام لوحة الإدارة">
+    <button type="button" [class.active]="activeTab === 'disputes'" (click)="setTab('disputes')"><i class="bi bi-flag"></i> النزاعات</button>
+    <button type="button" [class.active]="activeTab === 'overview'" (click)="setTab('overview')"><i class="bi bi-grid-1x2"></i> نظرة عامة</button>
+    <button type="button" [class.active]="activeTab === 'users'" (click)="setTab('users')"><i class="bi bi-people"></i> المستخدمون</button>
+    <button type="button" [class.active]="activeTab === 'artisans'" (click)="setTab('artisans')"><i class="bi bi-person-gear"></i> الصنايعية</button>
+    <button type="button" [class.active]="activeTab === 'support'" (click)="setTab('support')"><i class="bi bi-inbox"></i> الدعم <span *ngIf="overview.unreadMessages" class="tab-count">{{ overview.unreadMessages }}</span></button>
+  </nav>
+  <section *ngIf="activeTab === 'disputes'" aria-label="إدارة النزاعات">
+    <div class="d-flex justify-content-between mb-3"><h2 class="h5">نزاعات الشغلانات</h2><button class="btn btn-outline-secondary btn-sm" (click)="loadDisputes()"><i class="bi bi-arrow-clockwise"></i> تحديث</button></div>
+    <p *ngIf="!disputes.length" class="text-secondary">لا توجد نزاعات.</p>
+    <article *ngFor="let job of disputes" class="border-top py-4">
+      <div class="d-flex flex-wrap justify-content-between gap-2"><h3 class="h6 fw-bold">{{ job.requestId?.title || 'شغلانة' }}</h3><span>{{ disputeLabel(job.dispute.status) }}</span></div>
+      <p class="text-secondary">{{ job.customerId?.name }} / {{ job.artisanId?.name }} · {{ job.price | number }} ج.م · {{ job.dispute.openedAt | date:'short' }}</p>
+      <p>{{ job.paymentStatus === 'RELEASED' ? 'تم تحرير الدفعة: لا يوجد استرجاع تلقائي' : 'الدفعة في الضمان' }}</p>
+      <p class="text-break">{{ job.dispute.description }}</p>
+      <p *ngIf="job.dispute.decision" class="text-break"><strong>قرار الإدارة:</strong> {{ job.dispute.decision }}</p>
+      <details *ngIf="job.disputeHistory?.length" class="mb-3">
+        <summary>سجل النزاعات السابقة ({{ job.disputeHistory.length }})</summary>
+        <article *ngFor="let previous of job.disputeHistory" class="py-2 text-break">
+          <strong>{{ disputeLabel(previous.status) }}</strong> · {{ previous.openedAt | date:'short' }}
+          <p>{{ previous.description }}</p><p>قرار الإدارة: {{ previous.decision }}</p>
+        </article>
+      </details>
+      <div *ngIf="job.dispute.status === 'OPEN' || job.dispute.status === 'UNDER_REVIEW'">
+        <label class="form-label" [for]="'decision-' + job._id">ملاحظات أو قرار الإدارة</label>
+        <textarea class="form-control mb-3" rows="3" maxlength="5000" [id]="'decision-' + job._id" [(ngModel)]="decisions[job._id]" [disabled]="!!disputeSaving"></textarea>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-outline-secondary" [disabled]="!!disputeSaving" (click)="reviewDispute(job, 'UNDER_REVIEW')"><i class="bi bi-search"></i> قيد المراجعة</button>
+          <button class="btn btn-success" [disabled]="!!disputeSaving" (click)="reviewDispute(job, 'RESOLVED')"><i class="bi bi-check-circle"></i> إغلاق بعد الحل</button>
+          <button class="btn btn-outline-danger" [disabled]="!!disputeSaving" (click)="reviewDispute(job, 'REJECTED')"><i class="bi bi-x-circle"></i> رفض النزاع</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section *ngIf="!loading && activeTab === 'overview'" class="row g-3 mb-4">
     <div
       class="col-6 col-lg-3"
       *ngFor="
         let card of [
-          { label: 'المستخدمون', value: overview.users },
-          { label: 'الحرفيون', value: overview.artisans },
-          { label: 'طلبات الخدمة', value: overview.requests },
-          { label: 'رسائل جديدة', value: overview.unreadMessages },
+          { label: 'إجمالي المستخدمين', value: overview.users, icon: 'bi-people' },
+          { label: 'المستخدمون النشطون', value: overview.activeUsers, icon: 'bi-activity' },
+          { label: 'طلبات مفتوحة', value: overview.openRequests, icon: 'bi-clipboard-check' },
+          { label: 'بانتظار التوثيق', value: overview.pendingVerification, icon: 'bi-patch-exclamation' },
         ]
       "
     >
       <div class="metric-card h-100">
-        <span>{{ card.label }}</span
+        <i class="metric-icon bi" [ngClass]="card.icon"></i><span>{{ card.label }}</span
         ><strong>{{ card.value || 0 | number }}</strong>
       </div>
     </div>
   </section>
 
-  <section class="panel mb-4">
+  <section *ngIf="activeTab === 'overview' || activeTab === 'artisans'" class="panel mb-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h2 class="h5 fw-bold mb-0">توثيق الحرفيين</h2>
       <button class="btn btn-sm btn-outline-secondary" type="button" (click)="loadArtisans()">
@@ -58,8 +105,8 @@
               <strong>{{ artisan.userId?.name }}</strong
               ><small class="d-block text-secondary">{{ artisan.userId?.email }}</small>
             </td>
-            <td>{{ artisan.profession }}</td>
-            <td>{{ artisan.isVerified ? 'موثق' : 'غير موثق' }}</td>
+            <td>{{ artisan.profession || artisan.userId?.profession || 'لم تكتمل البيانات' }}</td>
+            <td>{{ artisan.userId?.isBanned ? 'محظور' : artisan.isVerified ? 'موثق' : 'غير موثق' }}</td>
             <td>
               <button
                 class="btn btn-sm"
@@ -67,9 +114,11 @@
                 [class.btn-outline-success]="!artisan.isVerified"
                 type="button"
                 (click)="toggleVerification(artisan)"
+                [disabled]="!artisan.profileId"
               >
-                {{ artisan.isVerified ? 'إلغاء التوثيق' : 'توثيق' }}
+                {{ !artisan.profileId ? 'البروفايل ناقص' : artisan.isVerified ? 'إلغاء التوثيق' : 'توثيق' }}
               </button>
+              <button class="btn btn-sm btn-outline-danger me-2" type="button" (click)="openBan(artisan.userId)"><i class="bi bi-ban"></i> {{ artisan.userId?.isBanned ? 'فك الحظر' : 'حظر' }}</button>
             </td>
           </tr>
           <tr *ngIf="!artisans.length">
@@ -80,7 +129,7 @@
     </div>
   </section>
 
-  <section class="row g-4">
+  <section *ngIf="activeTab === 'overview' || activeTab === 'users' || activeTab === 'support'" class="row g-4">
     <div class="col-xl-7">
       <div class="panel">
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -112,16 +161,18 @@
                   <strong>{{ user.name }}</strong
                   ><small class="d-block text-secondary">{{ user.email }}</small>
                 </td>
-                <td>{{ user.role }}</td>
-                <td>{{ user.isActive ? 'نشط' : 'موقوف' }}</td>
+                <td><span class="role-chip">{{ roleLabel(user.role) }}</span></td>
+                <td>{{ user.isBanned ? 'محظور' : user.isActive ? 'نشط' : 'موقوف' }}<small *ngIf="user.banReason" class="d-block text-secondary text-break">{{ user.banReason }}</small></td>
                 <td>
                   <button
                     class="btn btn-sm btn-outline-secondary"
                     type="button"
                     (click)="toggleUser(user)"
+                    [disabled]="user.isBanned || user.role === 'admin'"
                   >
                     {{ user.isActive ? 'إيقاف' : 'تفعيل' }}
                   </button>
+                  <button *ngIf="user.role !== 'admin'" class="btn btn-sm btn-outline-danger me-2" type="button" (click)="openBan(user)"><i class="bi bi-ban"></i> {{ user.isBanned ? 'فك الحظر' : 'حظر' }}</button>
                 </td>
               </tr>
               <tr *ngIf="!users.length">
@@ -130,6 +181,7 @@
             </tbody>
           </table>
         </div>
+        <div class="table-footer" *ngIf="userTotalPages > 1"><button type="button" class="btn btn-sm btn-light" (click)="nextUsersPage(-1)" [disabled]="userPage === 1">السابق</button><span>{{ userPage }} / {{ userTotalPages }}</span><button type="button" class="btn btn-sm btn-light" (click)="nextUsersPage(1)" [disabled]="userPage === userTotalPages">التالي</button></div>
       </div>
     </div>
     <div class="col-xl-5">

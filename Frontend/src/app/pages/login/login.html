@@ -121,6 +121,7 @@
         <div class="form-input-wrapper">
 
           <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password"
+            required maxlength="128"
             class="form-input-custom" id="passwordInput" placeholder="••••••••"
             style="padding-left: 40px; padding-right: 40px;">
 
@@ -187,6 +188,11 @@
       </button>
 
     </form>
+
+    <button type="button" class="demo-admin-button" (click)="fillDemoAdmin()">
+      <i class="bi bi-shield-lock"></i>
+      ملء حساب الأدمن التجريبي
+    </button>
 
 
     <!-- Register link -->

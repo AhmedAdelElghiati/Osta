@@ -54,7 +54,8 @@
         </article>
       </div>
 
-      <form class="message-composer" (ngSubmit)="sendMessage()">
+      <p *ngIf="chatClosed" class="empty-state">المحادثة للقراءة فقط بعد اعتماد التسليم وتحرير الفلوس.</p>
+      <form *ngIf="!chatClosed" class="message-composer" (ngSubmit)="sendMessage()">
         <input
           type="text"
           name="message"
@@ -62,10 +63,10 @@
           maxlength="2000"
           autocomplete="off"
           placeholder="اكتب رسالتك..."
-          [disabled]="sending"
+          [disabled]="sending || messagesLoading"
           aria-label="اكتب رسالتك"
         />
-        <button type="submit" [disabled]="sending || !messageText.trim()">
+        <button type="submit" [disabled]="sending || messagesLoading || !messageText.trim()">
           <i class="bi bi-send"></i>
           إرسال
         </button>

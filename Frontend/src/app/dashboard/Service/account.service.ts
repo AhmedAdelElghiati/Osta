@@ -7,6 +7,7 @@ export interface Account {
   phone: string;
   city: string;
   rating?: number;
+  totalReviews?: number;
   profession?: string;
 }
 
@@ -29,6 +30,7 @@ export class AccountService {
         phone: user.phone,
         city: user.location || '',
         rating: Number(user.artisan?.rating ?? 0),
+        totalReviews: Number(user.artisan?.totalReviews ?? 0),
         profession: user.artisan?.profession || '',
       };
     });

@@ -79,6 +79,14 @@ const updateStatus = async (req, res, next) => {
       return sendResponse(res, 409, false, 'مينفعش تنفذ العملية دي في حالة الشغلانة الحالية.');
     }
 
+    if (target === 'COMPLETED') {
+      const claimed = await Job.findOneAndUpdate({
+        _id: job._id, status: 'DELIVERED', paymentProcessing: { $ne: true },
+        'dispute.status': { $nin: ['OPEN', 'UNDER_REVIEW'] },
+      }, { $set: { paymentProcessing: true } }, { new: true });
+      if (!claimed) return sendResponse(res, 409, false, 'لا يمكن تحرير الدفعة أثناء نزاع مفتوح أو عملية تحرير جارية.');
+      job.paymentProcessing = true;
+    }
     job.status = target;
     if (target === 'IN_PROGRESS') {
       job.startedAt = job.startedAt || new Date();
@@ -114,6 +122,7 @@ const updateStatus = async (req, res, next) => {
       });
     }
 
+    job.paymentProcessing = false;
     await job.save();
     const recipient = req.user.role === 'customer' ? job.artisanId : job.customerId;
     await notify(recipient, target === 'COMPLETED' ? 'تم اعتماد التسليم' : 'تحديث حالة الشغلانة',

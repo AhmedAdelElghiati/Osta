@@ -47,13 +47,18 @@ export class OfferModal {
   }
 
   submit() {
+    if (this.submitting) return;
+    if (this.rows.length > 50 || this.msg.trim().length > 2000) { this.error = 'الحد الأقصى 50 بندًا و2000 حرف للرسالة.'; return; }
+    if (this.rows.some(row => row.amount !== null && (!Number.isFinite(Number(row.amount)) || Number(row.amount) < 0 || row.desc.trim().length < 1 || row.desc.trim().length > 200))) {
+      this.error = 'كل بند بسعر لازم يكون له وصف صحيح وسعر غير سالب.'; return;
+    }
     const rows = this.rows
       .filter(r => r.desc.trim() && Number(r.amount) > 0)
       .map(r => [r.desc.trim(), Number(r.amount)] as [string, number]);
 
     const price = rows.reduce((s, r) => s + r[1], 0);
 
-    if (!price) {
+    if (!Number.isFinite(price) || price <= 0 || price > 100000000) {
       this.error = 'اكتب بنود المقايسة وأسعارها الأول';
       return;
     }

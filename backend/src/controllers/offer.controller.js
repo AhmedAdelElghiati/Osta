@@ -7,6 +7,18 @@ const RequestEvent = require('../models/RequestEvent');
 const Transaction = require('../models/Transaction');
 const { notify } = require('../services/notification.service');
 const Artisan = require('../models/Artisan');
+const Joi = require('joi');
+const offerSchema = Joi.object({
+  requestId: Joi.string().hex().length(24).required(),
+  price: Joi.number().strict().greater(0).max(100000000).required(),
+  duration: Joi.string().trim().max(100).allow('').default(''),
+  warranty: Joi.string().trim().max(100).allow('').default(''),
+  notes: Joi.string().trim().max(2000).allow('').default(''),
+  items: Joi.array().max(50).items(Joi.object({
+    name: Joi.string().trim().min(1).max(200).required(),
+    price: Joi.number().strict().min(0).max(100000000).required(),
+  })).default([]),
+}).unknown(false);
 
 const withArtisanRatings = async (offers) => {
   const profiles = await Artisan.find({ userId: { $in: offers.map(o => o.artisanId?._id) } }).select('userId rating totalReviews').lean();
@@ -26,10 +38,12 @@ const ensureOwnedRequest = async (requestId, customerId) => {
 // ARTISAN: POST /api/v1/offers { requestId, price, duration?, warranty?, notes?, items? }
 const create = async (req, res, next) => {
   try {
-    const { requestId, price, duration = '', warranty = '', notes = '', items = [] } = req.body;
-    if (!requestId || price === undefined) return sendResponse(res, 400, false, 'requestId والسعر مطلوبين.');
-    if (!mongoose.isValidObjectId(requestId)) return sendResponse(res, 400, false, 'رقم الطلب غير صحيح.');
-    if (Number(price) < 0) return sendResponse(res, 400, false, 'السعر غير صحيح.');
+    const { error, value } = offerSchema.validate(req.body);
+    if (error) return sendResponse(res, 400, false, 'اكتب عرضًا صحيحًا: السعر أكبر من صفر، والبنود بأسماء وأسعار صحيحة، والتفاصيل لا تتجاوز 2000 حرف.');
+    const { requestId, price, duration, warranty, notes, items } = value;
+    if (items.length && Math.abs(items.reduce((sum, item) => sum + item.price, 0) - price) > 0.01) {
+      return sendResponse(res, 400, false, 'مجموع أسعار البنود لازم يساوي سعر العرض.');
+    }
 
     const requestDoc = await ServiceRequest.findById(requestId);
     if (!requestDoc || !['PUBLISHED', 'OFFER_RECEIVED'].includes(requestDoc.status)) {

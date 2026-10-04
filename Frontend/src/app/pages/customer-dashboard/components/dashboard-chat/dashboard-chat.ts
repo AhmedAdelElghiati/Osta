@@ -31,6 +31,10 @@ export class DashboardChat implements OnInit, OnDestroy {
   error = '';
   connectionStatus = 'connecting';
 
+  get chatClosed(): boolean {
+    return !!this.selectedJob && (this.chat.isClosed(this.selectedJob._id) || this.selectedJob.status === 'COMPLETED');
+  }
+
   get participantLabel(): string {
     return this.auth.currentUserValue?.role === 'artisan' ? 'العميل' : 'الصنايعي';
   }
@@ -116,7 +120,7 @@ export class DashboardChat implements OnInit, OnDestroy {
   sendMessage(): void {
     const job = this.selectedJob;
     const text = this.messageText.trim();
-    if (!job || !text || this.sending) return;
+    if (!job || !text || this.sending || this.chatClosed || this.messagesLoading) return;
 
     this.sending = true;
     this.error = '';

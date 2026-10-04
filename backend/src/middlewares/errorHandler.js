@@ -15,6 +15,9 @@ const errorHandler = (err, req, res, next) => {
       : 'ملفات الصور المرفوعة غير صحيحة.';
     return sendResponse(res, 400, false, message);
   }
+  if (err.name === 'ValidationError') return sendResponse(res, 400, false, 'راجع البيانات المطلوبة وأطوال الحقول والقيم المدخلة.');
+  if (err.name === 'CastError') return sendResponse(res, 400, false, 'معرّف أو قيمة غير صحيحة.');
+  if (err.code === 11000) return sendResponse(res, 409, false, 'هذه البيانات مسجلة بالفعل.');
 
   const statusCode = err.statusCode || 500;
   const message = err.message || 'حصلت مشكلة غير متوقعة.';

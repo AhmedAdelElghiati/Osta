@@ -15,6 +15,7 @@ export interface Job {
   escrow: number;
   note: string;
   inv?: string;
+  dispute?: { status: string; description: string; decision?: string };
 }
 
 const PHASE_BY_STATUS: Record<string, JobPhase> = {
@@ -105,6 +106,7 @@ export class JobsService {
       escrow: raw.paymentStatus === 'RELEASED' ? 0 : Number(raw.price ?? 0),
       inv: raw.completedAt ? `INV-${String(raw._id ?? '').slice(-4).toUpperCase()}` : undefined,
       note: this.noteFor(raw.status),
+      dispute: raw.dispute?.status !== 'NONE' ? raw.dispute : undefined,
     };
   }
 

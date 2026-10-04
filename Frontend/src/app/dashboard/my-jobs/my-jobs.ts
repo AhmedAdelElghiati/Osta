@@ -184,6 +184,10 @@ export class MyJobs implements OnDestroy {
     this.chatService.closeConversation();
   }
 
+  get chatClosed(): boolean {
+    return !!this.chatJob && this.chatService.isClosed(this.chatJob.id);
+  }
+
   avatar(client: string) {
     return client
       .replace('أ. ', '')
@@ -197,7 +201,7 @@ export class MyJobs implements OnDestroy {
   sendMessage() {
     const job = this.chatJob;
     const text = this.chatInput.trim();
-    if (!job || !text || this.sendingMessage) return;
+    if (!job || !text || this.sendingMessage || this.chatClosed || this.chatLoading) return;
 
     this.sendingMessage = true;
     this.chatError = '';

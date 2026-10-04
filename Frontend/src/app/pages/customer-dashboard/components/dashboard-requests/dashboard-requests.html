@@ -418,7 +418,40 @@
       }
 
       <!-- Actions -->
+      <details *ngIf="disputeHistory.length" class="border-top pt-3 mt-3">
+        <summary>النزاعات السابقة ({{ disputeHistory.length }})</summary>
+        <article *ngFor="let previous of disputeHistory" class="py-2 text-break">
+          <strong>{{ disputeLabel(previous.status) }}</strong> · {{ previous.openedAt | date:'short' }}
+          <p>{{ previous.description }}</p><p>قرار الإدارة: {{ previous.decision }}</p>
+        </article>
+      </details>
+      @if (dispute) {
+        <section class="border-top pt-3 mt-3" aria-label="حالة النزاع">
+          <h3 class="h6 fw-bold">النزاع: {{ disputeLabel(dispute.status) }}</h3>
+          <p class="text-break">{{ dispute.description }}</p>
+          <p *ngIf="disputeActive" class="text-danger">الدفعة غير المحررة محجوزة لحين إغلاق النزاع.</p>
+          <p *ngIf="dispute.decision" class="text-break"><strong>قرار الإدارة:</strong> {{ dispute.decision }}</p>
+        </section>
+      }
+      @if (disputeFormOpen) {
+        <form class="border-top pt-3 mt-3" (ngSubmit)="submitDispute()">
+          <h3 class="h6 fw-bold">فتح نزاع</h3>
+          <label for="dispute-reason" class="form-label">سبب المشكلة</label>
+          <select id="dispute-reason" class="form-select mb-3" name="disputeReason" [(ngModel)]="disputeReason" [disabled]="disputeSaving">
+            <option value="QUALITY">مشكلة في جودة الشغل</option><option value="INCOMPLETE">الشغل غير مكتمل</option><option value="DAMAGE">تلف أو ضرر</option><option value="OTHER">سبب آخر</option>
+          </select>
+          <label for="dispute-description" class="form-label">وصف المشكلة</label>
+          <textarea id="dispute-description" class="form-control mb-3" rows="4" name="disputeDescription" [(ngModel)]="disputeDescription" minlength="10" maxlength="5000" required [disabled]="disputeSaving"></textarea>
+          <p class="text-secondary">بعد تحرير الدفعة، فتح النزاع لا يسترجع المبلغ تلقائيًا.</p>
+          <p *ngIf="disputeError" class="text-danger" role="alert">{{ disputeError }}</p>
+          <button class="btn btn-danger" type="submit" [disabled]="disputeSaving || approvalLoading"><i class="bi bi-flag"></i> {{ disputeSaving ? 'جاري الإرسال...' : 'إرسال النزاع' }}</button>
+          <button class="btn btn-outline-secondary me-2" type="button" [disabled]="disputeSaving" (click)="disputeFormOpen = false">إلغاء</button>
+        </form>
+      }
       <div class="d-flex flex-wrap gap-2 mt-4">
+        @if (approvalJobId && !disputeActive && !jobLoading && (selectedRequest.backendStatus === 'DELIVERED' || selectedRequest.status === 'done')) {
+          <button class="btn btn-outline-danger" type="button" [disabled]="approvalLoading || disputeSaving" (click)="disputeFormOpen = !disputeFormOpen"><i class="bi bi-flag"></i> فتح نزاع</button>
+        }
         @if (selectedRequest.status === 'draft') {
           <!-- Publish draft -->
           <button
@@ -469,7 +502,7 @@
             <button
               type="button"
               class="btn btn-success"
-              [disabled]="approvalLoading"
+              [disabled]="approvalLoading || disputeActive || jobLoading || disputeSaving"
               (click)="approveDelivery()"
             >
               <i class="bi bi-check-circle ms-1"></i>
@@ -478,7 +511,9 @@
           }
 
           <!-- Chat -->
-          <button type="button" class="btn text-white" style="background-color: #0f172a">
+          <button type="button" class="btn text-white" style="background-color: #0f172a"
+            (click)="contactCraftsman()" [disabled]="detailsLoading || !(selectedRequest.jobId || approvalJobId)"
+            [title]="selectedRequest.jobId || approvalJobId ? 'فتح محادثة الأسطى' : 'تتاح محادثة الطلب بعد قبول عرض أسطى'">
             <i class="bi bi-chat-dots ms-1"></i>
 
             التواصل مع الأسطى

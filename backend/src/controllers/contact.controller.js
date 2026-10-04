@@ -2,6 +2,7 @@ const { sendResponse } = require('../utils/apiResponse');
 const ContactMessage = require('../models/ContactMessage');
 const mongoose = require('mongoose');
 const User = require('../models/User');
+const Joi = require('joi');
 
 const createTicket = async (req, res, next) => {
   try {
@@ -36,7 +37,16 @@ const reply = async (req, res, next) => {
 // POST /api/v1/contact  (public — contact-us page)
 const create = async (req, res, next) => {
   try {
-    const { fullName, phone, contactType = 'business', subject = '', partNumber = '', message } = req.body;
+    const { error, value } = Joi.object({
+      fullName: Joi.string().trim().min(3).max(100).required(),
+      phone: Joi.string().trim().pattern(/^01[0125][0-9]{8}$/).required(),
+      contactType: Joi.string().valid('business', 'personal', 'company').default('business'),
+      subject: Joi.string().trim().max(200).allow('').default(''),
+      partNumber: Joi.string().trim().max(20).allow('').default(''),
+      message: Joi.string().trim().min(10).max(5000).required(),
+    }).validate(req.body);
+    if (error) return sendResponse(res, 400, false, 'اكتب اسمًا من 3 إلى 100 حرف، ورقم موبايل مصري صحيح، ورسالة من 10 إلى 5000 حرف.');
+    const { fullName, phone, contactType, subject, partNumber, message } = value;
     if (!fullName || String(fullName).trim().length < 3) return sendResponse(res, 400, false, 'من فضلك اكتب الاسم بالكامل بشكل صحيح.');
     if (!phone || !/^01[0125][0-9]{8}$/.test(String(phone).trim())) return sendResponse(res, 400, false, 'من فضلك اكتب رقم موبايل مصري صحيح.');
     if (!message || String(message).trim().length < 10) return sendResponse(res, 400, false, 'من فضلك اكتب تفاصيل الرسالة بشكل أوضح.');

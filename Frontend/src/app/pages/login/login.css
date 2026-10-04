@@ -340,6 +340,10 @@
   animation: slideInToast 0.35s ease;
 }
 
+.demo-admin-button { width: 100%; margin-top: 14px; padding: 10px 14px; border: 1px dashed #b7c2cc; border-radius: 6px; background: #f7fafb; color: #526173; font-size: 13px; cursor: pointer; }
+.demo-admin-button:hover { border-color: #147e73; color: #147e73; background: #eef7f5; }
+.demo-admin-button:focus-visible { outline: 3px solid #147e73; outline-offset: 2px; }
+
 
 .success-toast svg {
   color: var(--color-secondary);

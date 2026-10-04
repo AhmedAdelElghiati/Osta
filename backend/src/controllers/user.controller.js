@@ -44,9 +44,27 @@ const updateSettings = async (req, res, next) => {
 // PATCH /api/users/me  (customer/artisan updates own basic profile)
 const updateMe = async (req, res, next) => {
   try {
+    const schema = Joi.object({
+      name: Joi.string().trim().min(2).max(100),
+      phone: Joi.string().trim().pattern(/^\+?\d{7,15}$/),
+      location: Joi.string().trim().max(200).allow(''),
+      profileImage: Joi.string().max(2000).allow(''),
+      profession: Joi.string().trim().min(2).max(100),
+      bio: Joi.string().trim().max(5000).allow(''),
+      experienceYears: Joi.number().min(0).max(100),
+      skills: Joi.array().max(30).items(Joi.string().trim().min(1).max(100)),
+      serviceAreas: Joi.array().max(50).items(Joi.string().trim().min(1).max(100)),
+      hourlyRate: Joi.number().min(0).max(100000000),
+    }).min(1);
+    const { error, value } = schema.validate(req.body);
+    if (error) return sendResponse(res, 400, false, 'راجع بياناتك: الاسم حرفان على الأقل ورقم الهاتف من 7 إلى 15 رقمًا والأسعار والخبرة غير سالبة.');
+    const professional = ['profession', 'bio', 'experienceYears', 'skills', 'serviceAreas', 'hourlyRate'];
+    if (req.user.role !== 'artisan' && professional.some(key => value[key] !== undefined)) {
+      return sendResponse(res, 403, false, 'البيانات المهنية متاحة لحساب الصنايعي فقط.');
+    }
     const allowed = ['name', 'phone', 'location', 'profileImage'];
     const patch = {};
-    allowed.forEach((k) => { if (req.body[k] !== undefined) patch[k] = req.body[k]; });
+    allowed.forEach((k) => { if (value[k] !== undefined) patch[k] = value[k]; });
     if (patch.phone) {
       const clash = await User.findOne({ phone: patch.phone, _id: { $ne: req.user.id } });
       if (clash) return sendResponse(res, 409, false, 'رقم الموبايل ده متسجل قبل كده.');
@@ -58,11 +76,11 @@ const updateMe = async (req, res, next) => {
     // لو أسطى وباعت بيانات حرفة حدّثها كمان
     const artisanPatch = {};
     ['profession', 'bio', 'experienceYears', 'skills', 'serviceAreas', 'hourlyRate'].forEach((k) => {
-      if (req.body[k] !== undefined) artisanPatch[k] = req.body[k];
+      if (value[k] !== undefined) artisanPatch[k] = value[k];
     });
     let artisan = await Artisan.findOne({ userId: user._id });
     if (Object.keys(artisanPatch).length && artisan) {
-      artisan = await Artisan.findOneAndUpdate({ userId: user._id }, { $set: artisanPatch }, { new: true });
+      artisan = await Artisan.findOneAndUpdate({ userId: user._id }, { $set: artisanPatch }, { new: true, runValidators: true });
     }
     return sendResponse(res, 200, true, 'تم تحديث البيانات بنجاح.', {
       id: user._id, name: user.name, email: user.email, phone: user.phone, role: user.role,

@@ -12,6 +12,8 @@ import { Auth } from '../../services/auth';
   templateUrl: './login.html',
 })
 export class Login {
+  readonly demoAdminEmail = 'admin@example.com';
+  readonly demoAdminPassword = 'AdminPass123!';
   activeTab: 'client' | 'craftsman' = 'craftsman';
   showPassword = false;
   emailOrPhone = '';
@@ -31,6 +33,12 @@ export class Login {
 
   switchTab(tab: 'client' | 'craftsman'): void {
     this.activeTab = tab;
+  }
+
+  fillDemoAdmin(): void {
+    this.emailOrPhone = this.demoAdminEmail;
+    this.password = this.demoAdminPassword;
+    this.activeTab = 'craftsman';
   }
 
   togglePassword(): void {

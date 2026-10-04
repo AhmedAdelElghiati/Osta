@@ -272,6 +272,7 @@
             [loading]="requestsLoading"
             [loadError]="requestsError"
             (pageChange)="handleRequestsPageChange($event)"
+            (conversationOpen)="openRequestConversation($event)"
             (retry)="reloadRequests()"
             (toast)="showToast($event.message, $event.type)"
             (walletChanged)="loadWallet()"
@@ -365,6 +366,7 @@
                   class="form-control"
                   placeholder="مثال: تسريب مياه تحت حوض المطبخ"
                   [(ngModel)]="newRequestTitle"
+                  required minlength="3" maxlength="200"
                 />
               </div>
               <!-- Description -->
@@ -375,8 +377,10 @@
                   rows="4"
                   placeholder="اكتب تفاصيل المشكلة أو الشغل المطلوب..."
                   [(ngModel)]="newRequestDescription"
+                  required minlength="10" maxlength="5000"
                 >
                 </textarea>
+                <small class="text-secondary">وصف الشغل مطلوب، من 10 إلى 5000 حرف.</small>
               </div>
               <!-- Images -->
               <div class="mb-3">
@@ -431,6 +435,7 @@
                     class="form-control"
                     placeholder="مثال: القاهرة"
                     [(ngModel)]="newRequestCity"
+                    required minlength="2" maxlength="100"
                     name="requestCity"
                   />
                 </div>
@@ -441,6 +446,7 @@
                     class="form-control"
                     placeholder="مثال: مدينة نصر"
                     [(ngModel)]="newRequestLocation"
+                    required minlength="2" maxlength="100"
                     name="requestArea"
                   />
                 </div>
@@ -452,6 +458,7 @@
                   class="form-control"
                   placeholder="مثال: شارع مكرم عبيد، عمارة 5"
                   [(ngModel)]="newRequestAddress"
+                  required minlength="5" maxlength="300"
                   name="requestAddress"
                 />
               </div>

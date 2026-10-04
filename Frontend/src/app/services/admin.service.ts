@@ -13,15 +13,25 @@ export class AdminService {
     return this.http.get<any>(`${this.base}/overview`, { withCredentials: true });
   }
 
-  users(search = '', role = ''): Observable<any> {
+  disputes(): Observable<any> { return this.http.get<any>(`${this.base}/disputes`, { withCredentials: true }); }
+  reviewDispute(id: string, status: string, decision: string): Observable<any> {
+    return this.http.patch<any>(`${this.base}/disputes/${id}`, { status, decision }, { withCredentials: true });
+  }
+
+  users(search = '', role = '', page = 1): Observable<any> {
     let params = new HttpParams();
     if (search.trim()) params = params.set('search', search.trim());
     if (role) params = params.set('role', role);
+    params = params.set('page', page);
     return this.http.get<any>(`${this.base}/users`, { params, withCredentials: true });
   }
 
   toggleUser(id: string): Observable<any> {
     return this.http.patch<any>(`${this.base}/users/${id}/toggle-active`, {}, { withCredentials: true });
+  }
+
+  banUser(id: string, banned: boolean, reason: string): Observable<any> {
+    return this.http.patch<any>(`${this.base}/users/${id}/ban`, { banned, reason }, { withCredentials: true });
   }
 
   artisans(): Observable<any> {

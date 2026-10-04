@@ -47,6 +47,21 @@ afterAll(async () => {
 });
 
 describe('Service Requests API', () => {
+  test.each([undefined, '', '   ', 'قصير'])('rejects missing or short descriptions: %p', async description => {
+    const body = requestBody();
+    if (description === undefined) delete body.description; else body.description = description;
+    await request(app).post('/api/v1/requests').set('Cookie', [customerCookie]).send(body).expect(400);
+  });
+
+  test('rejects incomplete legacy drafts during publishing and republishing', async () => {
+    const created = await request(app).post('/api/v1/requests').set('Cookie', [customerCookie]).send(requestBody()).expect(201);
+    const id = new mongoose.Types.ObjectId(created.body.data._id);
+    await ServiceRequest.collection.updateOne({ _id: id }, { $set: { description: '   ' } });
+    await request(app).post(`/api/v1/requests/${id}/publish`).set('Cookie', [customerCookie]).expect(400);
+    await ServiceRequest.collection.updateOne({ _id: id }, { $set: { status: 'CANCELLED' } });
+    await request(app).post(`/api/v1/requests/${id}/republish`).set('Cookie', [customerCookie]).expect(400);
+    await ServiceRequest.deleteOne({ _id: id });
+  });
   test('creates an owned draft and ignores no owner substitution', async () => {
     const response = await request(app)
       .post('/api/v1/requests')

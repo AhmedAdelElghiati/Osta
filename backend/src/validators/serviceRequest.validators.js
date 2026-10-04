@@ -27,8 +27,8 @@ const preferredDate = Joi.date().iso().min('now').optional().messages({
 });
 
 const requestFields = {
-  title: Joi.string().trim().min(3).max(200).required().messages({ 'any.required': 'من فضلك اكتب عنوان الطلب.' }),
-  description: Joi.string().trim().min(10).max(5000).required().messages({ 'any.required': 'من فضلك اكتب تفاصيل الطلب.' }),
+  title: Joi.string().trim().min(3).max(200).required().messages({ 'any.required': 'من فضلك اكتب عنوان الطلب.', 'string.empty': 'من فضلك اكتب عنوان الطلب.', 'string.min': 'عنوان الطلب لازم يكون 3 حروف على الأقل.', 'string.max': 'عنوان الطلب لا يتجاوز 200 حرف.' }),
+  description: Joi.string().trim().min(10).max(5000).required().messages({ 'any.required': 'من فضلك اكتب تفاصيل الطلب.', 'string.empty': 'من فضلك اكتب تفاصيل الطلب.', 'string.min': 'تفاصيل الطلب لازم تكون 10 حروف على الأقل.', 'string.max': 'تفاصيل الطلب لا تتجاوز 5000 حرف.' }),
   craftId: craftRef.required().messages({ 'any.required': 'من فضلك اختار نوع الخدمة.', 'any.invalid': 'نوع الخدمة غير صحيح.' }),
   location,
   preferredDate,

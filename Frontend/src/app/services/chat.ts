@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, Subject, forkJoin, map } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, forkJoin, map, tap } from 'rxjs';
 import type { Socket } from 'socket.io-client';
 import { API_ORIGIN, API_BASE_URL, JOBS_ENDPOINT } from '../core/api.config';
 import { Auth } from './auth';
@@ -38,6 +38,9 @@ export class Chat {
   private socket: Socket | null = null;
   private socketToken = '';
   private activeJobId = '';
+  private readonly closedConversations = new Set<string>();
+
+  isClosed(id: string): boolean { return this.closedConversations.has(id); }
   private readonly messageSubject = new Subject<ChatMessage>();
   private readonly connectionStatusSubject = new BehaviorSubject<ConnectionStatus>('offline');
   private readonly socketErrorSubject = new Subject<string>();
@@ -74,6 +77,10 @@ export class Chat {
 
   loadMessages(jobId: string): Observable<ChatMessage[]> {
     return this.http.get<any>(`${this.endpoint}/jobs/${jobId}/messages`, { withCredentials: true }).pipe(
+      tap(response => {
+        if (response.chatClosed) this.closedConversations.add(jobId);
+        else this.closedConversations.delete(jobId);
+      }),
       map((response) => (response?.data ?? []).map((message: any) => this.mapMessage(message))),
     );
   }
@@ -85,7 +92,10 @@ export class Chat {
         { text },
         { withCredentials: true },
       )
-      .pipe(map((response) => this.mapMessage(response.data)));
+      .pipe(
+        tap({ error: error => { if (error?.error?.code === 'CHAT_CLOSED') this.closedConversations.add(jobId); } }),
+        map((response) => this.mapMessage(response.data)),
+      );
   }
 
   openConversation(jobId: string): void {

@@ -21,11 +21,12 @@ export class Home implements OnInit {
   stats: any = null;
   featured: any[] = [];
   statsError = '';
+  statsLoading = true;
   featuredError = '';
   ngOnInit() {
     this.api.platformStats().subscribe({
-      next: res => { this.stats = res.data; this.cdr.markForCheck(); },
-      error: () => { this.statsError = 'تعذر تحميل الإحصائيات.'; this.cdr.markForCheck(); },
+      next: res => { this.stats = res.data; this.statsLoading = false; this.cdr.markForCheck(); },
+      error: () => { this.statsLoading = false; this.statsError = 'تعذر تحميل الإحصائيات.'; this.cdr.markForCheck(); },
     });
     this.api.listArtisans({ sort: 'rating', limit: 3 }).subscribe({
       next: res => { this.featured = res.data.items; this.cdr.markForCheck(); },
